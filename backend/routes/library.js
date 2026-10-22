@@ -33,6 +33,8 @@ async function onPublished(db, id, { remix, allowRemix } = {}) {
   await db.query(
     `INSERT INTO publication_versions (assignment_id, version_no, title)
      SELECT id, version_no, title FROM assignments WHERE id = $1 ON CONFLICT DO NOTHING`, [id]);
+  // the lesson falls into the teachers' feed as a lesson card - one object with the publication (ТЗ «Удержание» §2.1)
+  if (pub && pub.visibility === 'community') await require('../lib/feed').onPublished(db, id);
   if (remix) {
     const { rows: [v] } = await db.query('SELECT id FROM publication_versions WHERE assignment_id = $1 AND version_no = (SELECT version_no FROM assignments WHERE id = $1)', [remix.id]);
     await db.query(

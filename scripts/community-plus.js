@@ -943,7 +943,7 @@
 
   /* start: the tab from the address (#saved, #author=…, ?tab=games) or All */
   CM.start = () => {
-    const raw = (location.hash || '').slice(1) || new URLSearchParams(location.search).get('tab') || 'all';
+    const raw = (location.hash || '').slice(1) || new URLSearchParams(location.search).get('tab') || (typeof token !== 'undefined' && token ? 'feed' : 'all');
     switchCommTab(raw);
     countMine();
     track('community_viewed', null, { tab: parseTab(raw).tab });

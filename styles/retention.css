@@ -1,0 +1,79 @@
+/* TeachEd - retention surfaces, phase 2 (palette: TZ Style Lock): the dashboard digest and the absence hints,
+   and the teachers' feed in Community. Every rule starts with an id or a surface class so no page resets it. */
+
+/* ---- dashboard: «In the feed» digest (TZ code, as is) ---- */
+.feed-digest { background: #fff; border: 1px solid #E7E2D2; border-radius: 18px; padding: 14px 16px; font-family: Manrope, sans-serif; margin: 12px 0; }
+.feed-digest h5 { font-size: 11.5px; letter-spacing: 1.6px; color: #8A8672; margin: 0 0 8px; font-weight: 800; }
+.feed-digest ul { list-style: none; margin: 0; padding: 0; }
+.feed-digest li { padding: 4px 0; }
+.feed-digest a { color: #0B1026; font-weight: 700; font-size: 14px; text-decoration: none; }
+.feed-digest a:hover { text-decoration: underline; text-decoration-color: #D5F568; text-decoration-thickness: 3px; }
+
+/* ---- dashboard: students who have been away ---- */
+#mp-absence { background: #fff; border: 1px solid #E7E2D2; border-radius: 18px; padding: 14px 16px; margin: 12px 0; font-family: Manrope, sans-serif; color: #0B1026; }
+#mp-absence h5 { font-size: 11.5px; letter-spacing: 1.6px; color: #8A8672; margin: 0 0 8px; font-weight: 800; }
+#mp-absence .ab-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid #F1EFE4; }
+#mp-absence .ab-row:first-of-type { border-top: 0; }
+#mp-absence .ab-txt { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.4; }
+#mp-absence .ab-txt small { display: block; font-size: 12px; font-weight: 600; color: #8A8672; }
+#mp-absence .ab-btn { border: 0; background: #D5F568; color: #0B1026; border-radius: 999px; padding: 9px 16px; font: 800 13px Manrope, sans-serif; cursor: pointer; flex: none; }
+#mp-absence .ab-done { font-size: 12.5px; font-weight: 800; color: #8A8672; flex: none; }
+#mp-absence .ab-more { border: 0; background: none; font: 800 12.5px Manrope, sans-serif; color: #0B1026; text-decoration: underline; text-decoration-color: #D5F568; text-decoration-thickness: 3px; cursor: pointer; padding: 6px 0 0; }
+
+/* ---- Community: the feed ---- */
+#tab-feed { font-family: Manrope, sans-serif; color: #0B1026; }
+#tab-feed .fd-head { margin: 22px 0 14px; }
+#tab-feed .fd-title { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+#tab-feed .fd-sub { font-size: 14px; font-weight: 600; color: #6b6a5c; margin-top: 3px; }
+#tab-feed .fd-comp { background: #fff; border: 1px solid #E7E2D2; border-radius: 20px; padding: 14px 16px; margin-bottom: 18px; }
+#tab-feed .fd-comp textarea { width: 100%; box-sizing: border-box; border: 2px solid transparent; background: #F6F6EF; border-radius: 14px; padding: 12px 14px; font: 600 14.5px Manrope, sans-serif; color: #0B1026; resize: vertical; min-height: 56px; }
+#tab-feed .fd-comp textarea:focus { outline: none; border-color: #D5F568; }
+#tab-feed .fd-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+#tab-feed .fd-chip { border: 1.5px solid rgba(11,16,38,.16); background: #fff; color: #0B1026; border-radius: 999px; padding: 8px 14px; font: 800 13px Manrope, sans-serif; cursor: pointer; }
+#tab-feed .fd-chip.on { background: #0B1026; color: #fff; border-color: #0B1026; }
+#tab-feed .fd-post { margin-left: auto; border: 0; background: #D5F568; color: #0B1026; border-radius: 999px; padding: 10px 22px; font: 800 14px Manrope, sans-serif; cursor: pointer; }
+#tab-feed .fd-post:disabled { opacity: .55; cursor: default; }
+#tab-feed .fd-rules { font-size: 12.5px; font-weight: 700; color: #6b6a5c; }
+#tab-feed .fd-msg { font-size: 12.5px; font-weight: 700; color: #6b6a5c; margin-top: 8px; min-height: 16px; }
+#tab-feed .fd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+#tab-feed .fd-item { background: #fff; border: 1px solid #E7E2D2; border-radius: 20px; padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+#tab-feed .fd-item.tich { border: 2px solid #2DD4BF; background: #F4FDFC; }
+#tab-feed .fd-by { display: flex; align-items: center; gap: 10px; }
+#tab-feed .fd-ava { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #E9F5C4; font-weight: 800; font-size: 13px; flex: none; object-fit: cover; }
+#tab-feed .fd-ava.tich { object-position: 38% 32%; border: 2px solid #D5F568; background: #7FD9CF; }
+#tab-feed .fd-by b { font-size: 14px; display: block; }
+#tab-feed .fd-by span { font-size: 11.5px; font-weight: 700; color: #8A8672; }
+#tab-feed .fd-tag { margin-left: auto; font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: 1.4px; padding: 4px 9px; border-radius: 99px; background: #2DD4BF; color: #0B1026; }
+#tab-feed .fd-tag.q { background: #F6D8D8; }
+#tab-feed .fd-text { font-size: 15px; font-weight: 600; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+#tab-feed .fd-word { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+#tab-feed .fd-meaning { font-size: 14.5px; font-weight: 600; color: #3b3a33; }
+#tab-feed .fd-card { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 22px rgba(11,16,38,.14); background: #E9E7DC; }
+#tab-feed .fd-card svg { display: block; width: 100%; height: auto; }
+#tab-feed .fd-foot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#tab-feed .fd-tyts { border: 1.5px solid rgba(11,16,38,.16); background: #fff; border-radius: 99px; padding: 8px 15px; font: 800 13px Manrope, sans-serif; cursor: pointer; color: #0B1026; }
+#tab-feed .fd-tyts.on { background: #D5F568; border-color: #D5F568; }
+#tab-feed .fd-tyts:disabled { opacity: .55; cursor: default; }
+#tab-feed .fd-fact { font-size: 12.5px; font-weight: 800; color: #6b6a5c; }
+#tab-feed .fd-link { border: 0; background: none; font: 800 12.5px Manrope, sans-serif; color: #6b6a5c; cursor: pointer; padding: 4px 2px; text-decoration: underline; }
+#tab-feed .fd-open { border: 0; background: #0B1026; color: #fff; border-radius: 99px; padding: 8px 15px; font: 800 13px Manrope, sans-serif; cursor: pointer; }
+#tab-feed .fd-ans { border-top: 1px solid #F1EFE4; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+#tab-feed .fd-ans p { font-size: 14px; font-weight: 600; line-height: 1.45; margin: 0; }
+#tab-feed .fd-ans p b { font-weight: 800; }
+#tab-feed .fd-ans form { display: flex; gap: 8px; }
+#tab-feed .fd-ans input { flex: 1; min-width: 0; border: 2px solid transparent; background: #F6F6EF; border-radius: 99px; padding: 9px 14px; font: 600 14px Manrope, sans-serif; }
+#tab-feed .fd-ans input:focus { outline: none; border-color: #D5F568; }
+#tab-feed .fd-ans button { border: 0; background: #D5F568; border-radius: 99px; padding: 9px 16px; font: 800 13px Manrope, sans-serif; cursor: pointer; }
+#tab-feed .fd-empty { grid-column: 1 / -1; background: #fff; border: 1px dashed #D9D4C0; border-radius: 20px; padding: 26px; font-size: 14.5px; font-weight: 600; color: #6b6a5c; text-align: center; }
+#tab-feed .fd-more { display: block; margin: 18px auto 0; border: 1.5px solid rgba(11,16,38,.16); background: #fff; border-radius: 99px; padding: 10px 22px; font: 800 13px Manrope, sans-serif; cursor: pointer; }
+.fd-modal { position: fixed; inset: 0; z-index: 9500; background: rgba(11,16,38,.55); display: grid; place-items: center; padding: 16px; font-family: Manrope, sans-serif; }
+.fd-modal .fd-box { background: #F6F6EF; color: #0B1026; border-radius: 22px; width: min(520px, 100%); max-height: 86vh; overflow: auto; padding: 20px 22px; }
+.fd-modal .fd-pick { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fff; border: 1.5px solid rgba(11,16,38,.12); border-radius: 14px; padding: 11px 14px; margin-top: 8px; font: 700 14px Manrope, sans-serif; cursor: pointer; color: #0B1026; }
+.fd-modal .fd-pick small { color: #8A8672; font-weight: 700; margin-left: auto; }
+@media (max-width: 700px) { #tab-feed .fd-list { grid-template-columns: 1fr; } #tab-feed .fd-bar .fd-post { margin-left: 0; width: 100%; } }
+
+/* inside the desktop Student pulse widget: scrolls on its own, folds away with the widget */
+#wg-pulse > #mp-retention { flex: none; max-height: 200px; overflow-y: auto; margin-bottom: 10px; scrollbar-width: thin; }
+#wg-pulse > #mp-retention #mp-absence, #wg-pulse > #mp-retention .feed-digest { margin: 0 0 8px; }
+#wg-pulse.is-collapsed > #mp-retention { display: none !important; }
+body.fx.os-desktop:not(#_) #wg-pulse.has-ret:not(.is-collapsed) { max-height: 440px !important; }

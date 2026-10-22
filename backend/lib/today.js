@@ -271,11 +271,15 @@ async function buildToday(db, user) {
   // the days a freeze closed are written down once, for the student's own screens and the metric (never shown as a loss)
   const sk = await require('./streakDays').streakOf(db, user).catch(() => null);
   if (sk) require('./streakDays').recordFreezes(db, user.id, sk.frozen).catch(() => {});
+  // a teacher's own line to a student who was away (ТЗ «Удержание» §3); and when the student is back, the teacher hears it
+  const absence = require('./absence');
+  if (sk && sk.days.has(sk.today)) absence.markReturned(db, user, sk.today).catch(() => {});
+  const tnote = await absence.pending(db, user.id).catch(() => null);
   const [rows0, t, wn] = await Promise.all([plan(db, user, ctx, lucky), treat(db, user), whatsNew(db, user, ctx)]);
   // three days or more away: a welcome from Tich and a plan that starts small (ТЗ «Удержание» §4); never a loss screen
   const cb = await require('./comeback').state(db, user).catch(() => null);
   const rows = cb && cb.away ? require('./comeback').gentle(rows0) : rows0;
-  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, comeback: cb && cb.away ? { ...cb, news: wn ? wn.text : null } : null, freezes: sk ? { left: sk.freeze_left, per_month: sk.per_month, covered: sk.frozen.slice(0, 4) } : null, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb),
+  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, teacher_note: tnote, comeback: cb && cb.away ? { ...cb, news: wn ? wn.text : null } : null, freezes: sk ? { left: sk.freeze_left, per_month: sk.per_month, covered: sk.frozen.slice(0, 4) } : null, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb),
     talk: ctx.talk ? { homework: ctx.talk.homework, sessions_today: ctx.talk.sessions_today, open_session: ctx.talk.open_session, unread: ctx.talk.unread, last_tich: ctx.talk.last_tich, pro: ctx.talk.pro, free_left: ctx.talk.free_left, rounds: ctx.talk.rounds } : null };
 }
 

@@ -2218,7 +2218,68 @@ function pulseInit() {
     el.onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === '_mine') window.TeachEdShare.manage({ api }); else if (b.dataset.k === '_circle') classCircleOpen(api); else open(b.dataset.k); };
   }).catch(() => {});
 }
+/* Retention, phase 2 (ТЗ «Удержание» §2.1, §3): the dashboard door to the feed (up to three lines, nothing when there is no
+   news) and the students who have been away 7 / 14 days, each with one touch - the teacher's own line, edited as they like,
+   lands in the student's hub. The teacher is the retention agent; the student gets a person, not a push. */
+function retentionInit() {
+  if (!_authToken || document.getElementById('mp-retention')) return;
+  // on the desktop it sits in the Student pulse widget (above its list, folded away with it); on a phone, under the next lesson
+  const deskList = document.getElementById('wg-pulse-list'), mobHost = document.getElementById('mp-next-lesson');
+  const onDesk = !!(deskList && deskList.offsetParent);
+  if (!onDesk && !mobHost) return;
+  const api = (path, opts = {}) => fetch(API_BASE + path, {
+    method: opts.method || 'GET', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const box = document.createElement('div'); box.id = 'mp-retention';
+  if (onDesk) { deskList.before(box); const w = document.getElementById('wg-pulse'); if (w) w.classList.add('has-ret'); } else mobHost.after(box);
+  api('/api/absence/alerts').then(r => (r.ok ? r.json() : null)).then(d => {
+    const list = d && d.alerts || []; if (!list.length) return;
+    const el = document.createElement('section'); el.id = 'mp-absence'; el.setAttribute('aria-label', 'Students who have been away');
+    let all = false;
+    const paint = () => {
+      const shown = all ? list : list.slice(0, 3);
+      el.innerHTML = '<h5>WORTH A MESSAGE</h5>' + shown.map(a => '<div class="ab-row"><div class="ab-txt">' + esc(a.name) + ' has not been here for ' + a.days + ' days<small>' + (a.tier === 14 ? 'Two weeks - a line from you matters most now' : 'A week without the hub') + '</small></div>' +
+        (a.sent ? '<span class="ab-done">Message sent ✓</span>' : '<button type="button" class="ab-btn" data-s="' + esc(a.student_id) + '">Write to ' + esc(a.name) + '</button>') + '</div>').join('') +
+        (list.length > 3 && !all ? '<button type="button" class="ab-more" data-all>Show all ' + list.length + '</button>' : '');
+    };
+    paint(); box.prepend(el);
+    el.onclick = e => {
+      if (e.target.closest('[data-all]')) { all = true; return paint(); }
+      const b = e.target.closest('[data-s]'); if (!b) return;
+      const a = list.find(x => String(x.student_id) === b.dataset.s); if (!a) return;
+      absenceNudgeOpen(a, api, esc, () => { a.sent = { at: new Date().toISOString() }; paint(); });
+    };
+    if (location.hash === '#absence') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }).catch(() => {});
+  api('/api/feed/digest').then(r => (r.ok ? r.json() : null)).then(d => {
+    const lines = d && d.lines || []; if (!lines.length) return;
+    const el = document.createElement('section'); el.className = 'feed-digest'; el.setAttribute('aria-label', 'In the feed');
+    el.innerHTML = '<h5>IN THE FEED</h5><ul>' + lines.map(l => '<li><a href="' + esc(l.href) + '">' + esc(l.label) + (typeof l.count === 'number' ? ' · ' + l.count : '') + '</a></li>').join('') + '</ul>';
+    box.append(el);
+  }).catch(() => {});
+}
+/* the one touch: a line from the teacher, ready to send and theirs to change */
+function absenceNudgeOpen(a, api, esc, done) {
+  const back = document.createElement('div'); back.className = 'fd-modal';
+  back.innerHTML = '<div class="fd-box"><div style="display:flex;align-items:center"><b style="font-size:18px;flex:1">Write to ' + esc(a.name) + '</b><button type="button" data-x style="border:0;background:rgba(11,16,38,.08);width:32px;height:32px;border-radius:50%;cursor:pointer">✕</button></div>' +
+    '<p style="margin:6px 0 12px;font-size:13px;font-weight:600;color:rgba(11,16,38,.6)">It lands in ' + esc(a.name) + '’s hub as a message from you - not as a reminder from the platform. Change it as you like.</p>' +
+    '<textarea data-t rows="5" maxlength="300" style="width:100%;box-sizing:border-box;border:2px solid transparent;border-radius:14px;padding:12px;font:600 14px Manrope,sans-serif">' + esc(a.suggest) + '</textarea>' +
+    '<div style="display:flex;gap:10px;align-items:center;margin-top:12px"><button type="button" data-send style="border:0;border-radius:99px;background:#D5F568;color:#0B1026;font:800 14px Manrope,sans-serif;padding:11px 20px;cursor:pointer">Send</button><button type="button" data-x style="border:0;background:none;font:800 13px Manrope,sans-serif;cursor:pointer;color:rgba(11,16,38,.6)">Not now</button><span data-msg style="font-size:12.5px;font-weight:700;color:rgba(11,16,38,.6)"></span></div></div>';
+  document.body.appendChild(back);
+  back.onclick = e => { if (e.target === back || e.target.closest('[data-x]')) back.remove(); };
+  back.querySelector('[data-send]').onclick = async e => {
+    const b = e.currentTarget, text = back.querySelector('[data-t]').value.trim(), msg = back.querySelector('[data-msg]');
+    if (text.length < 3) { msg.textContent = 'Write a line first.'; return; }
+    b.disabled = true;
+    const r = await api('/api/absence/nudge', { method: 'POST', body: { student_id: a.student_id, text } }), d = await r.json().catch(() => ({}));
+    if (!r.ok) { b.disabled = false; msg.textContent = d.error || 'Could not send.'; return; }
+    back.remove(); done();
+  };
+}
 window.addEventListener('load', () => setTimeout(pulseInit, 1500));
+window.addEventListener('load', () => setTimeout(retentionInit, 1700));
 /* Parental consent and erasure (E5): the teacher records who agreed; a minor without it
    stays away from the AI check. Erasure removes the journal entry and the written work. */
 async function studentsSetConsent(journalId) {
@@ -3945,13 +4006,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1364" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1365" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1364" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1365" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

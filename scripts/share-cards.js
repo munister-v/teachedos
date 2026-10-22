@@ -224,6 +224,7 @@
     document.head.appendChild(st);
   }
 
+  const FEED_KINDS = new Set(['lesson', 'game', 'pulse', 'milestone', 'authorweek', 'wordday', 'gratitude', 'anniversary', 'together']);
   const CIRCLE_KINDS = new Set(['week', 'duel', 'wordset', 'streak', 'levelup', 'words', 'comeback', 'perfectweek', 'wordmarathon', 'anniversary']);
   const NOTE = card => card.audience === 'student' ? 'Only game data on the card: XP, streak, words, duels. Lessons and teacher notes never appear.'
     : card.kind === 'pulse' ? 'Class aggregates only. No student names on the card.'
@@ -271,12 +272,14 @@
     const isPrivate = !!card.private;
     const hasInvite = !!ACTION[card.kind] && !isPrivate;
     // a student's own card can also go to the circle: the class and the friends, nobody else (ТЗ «Удержание» §2.2)
+    // a teacher's card can go to the teachers' feed in Community: colleagues, one reaction, no student data on it
+    const inFeed = card.audience === 'teacher' && FEED_KINDS.has(card.kind) && !isPrivate && !!card.code && opts.feed !== false;
     const inCircle = card.audience === 'student' && CIRCLE_KINDS.has(card.kind) && !isPrivate && !!card.code && opts.circle !== false;
     const body = back.querySelector('.shs-body');
     const draw = () => {
       const eff = { ...card, mode };
       body.innerHTML = (hasInvite ? '<div class="shs-modes" role="tablist"><button class="shs-mode' + (mode === 'invite' ? ' on' : '') + '" data-m="invite">Invite</button><button class="shs-mode' + (mode === 'brag' ? ' on' : '') + '" data-m="brag">Just brag</button></div>' : '') +
-        '<div class="shs-preview">' + render(eff, src) + '</div><div class="shs-actions"><button class="shs-btn shs-btn-primary" data-a="share">' + (isPrivate ? 'Send to parent' : 'Share') + '</button>' + (isPrivate ? '' : '<button class="shs-btn" data-a="copy">Copy link</button>') + (inCircle ? '<button class="shs-btn" data-a="circle">Post to my circle</button>' : '') + '</div>' +
+        '<div class="shs-preview">' + render(eff, src) + '</div><div class="shs-actions"><button class="shs-btn shs-btn-primary" data-a="share">' + (isPrivate ? 'Send to parent' : 'Share') + '</button>' + (isPrivate ? '' : '<button class="shs-btn" data-a="copy">Copy link</button>') + (inCircle ? '<button class="shs-btn" data-a="circle">Post to my circle</button>' : '') + (inFeed ? '<button class="shs-btn" data-a="feed">Post to the feed</button>' : '') + '</div>' +
         '<p class="shs-note">' + esc(NOTE(card)) + '</p><p class="shs-note" data-msg></p>';
       body.querySelectorAll('[data-m]').forEach(b => { b.onclick = () => { mode = b.dataset.m; draw(); }; });
       const msg = t => { body.querySelector('[data-msg]').textContent = t; };
@@ -290,6 +293,16 @@
           if (opts.onShared) opts.onShared(ch, mode);
         } catch (err) { if (err && err.name !== 'AbortError') msg('The picture could not be made here - Copy link still works.'); }
         b.disabled = false;
+      };
+      const feedBtn = body.querySelector('[data-a="feed"]');
+      if (feedBtn) feedBtn.onclick = async e => {
+        const b = e.currentTarget; b.disabled = true;
+        try {
+          const r = await opts.api('/api/feed/cards', { method: 'POST', body: { code: card.code } }), d = await r.json().catch(() => ({}));
+          if (!r.ok) { msg(d.error || 'Could not post it'); b.disabled = false; return; }
+          b.textContent = 'In the feed ✓'; msg(d.already ? 'It is already in the feed.' : 'Posted: your colleagues will see it in Community.');
+          if (opts.onFeed) opts.onFeed();
+        } catch (_) { msg('Could not post it right now.'); b.disabled = false; }
       };
       const circleBtn = body.querySelector('[data-a="circle"]');
       if (circleBtn) circleBtn.onclick = async e => {

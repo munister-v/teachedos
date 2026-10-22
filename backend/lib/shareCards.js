@@ -41,7 +41,7 @@ const STREAK_MILESTONES = [7, 14, 30, 60, 100];
 const PULSE_MIN_STUDENTS = 3;       // below that a class "aggregate" is one person's data
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WEEK_MIN_XP = 50;
-const SURFACES = new Set(['hub-today', 'wordbank', 'duel-result', 'progress', 'dashboard', 'community-publish', 'student-card', 'board-pad', 'invite-flow']);
+const SURFACES = new Set(['hub-today', 'wordbank', 'duel-result', 'progress', 'dashboard', 'community-publish', 'student-card', 'board-pad', 'invite-flow', 'community-feed']);
 
 const clip = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const first = n => clip(String(n || '').split(/[\s@]/)[0], 40) || 'Student';

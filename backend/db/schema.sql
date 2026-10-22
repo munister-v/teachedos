@@ -2055,3 +2055,62 @@ CREATE TABLE IF NOT EXISTS comebacks (
   returned_at TIMESTAMPTZ,
   PRIMARY KEY (user_id, last_active)
 );
+
+-- Retention phase 2 (ТЗ «Удержание» §2.1, §3): the teachers' feed in Community, and the absence touch.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS feed_seen_at TIMESTAMPTZ;                          -- the digest counts what is new since the teacher last opened the feed
+CREATE TABLE IF NOT EXISTS feed_posts (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind       VARCHAR(10) NOT NULL,                       -- card | text | question | official
+  author_id  UUID REFERENCES users(id) ON DELETE CASCADE, -- null for the official account (Tich)
+  card_code  VARCHAR(16),                                -- card posts: the ShareCard, never a copy of its data
+  lesson_id  UUID REFERENCES assignments(id) ON DELETE CASCADE,   -- a lesson card: the library publication it leads to (one object with it)
+  official   VARCHAR(12),                                -- word_day | welcome | event
+  day        DATE,                                       -- official posts: one of a kind a day
+  text       TEXT NOT NULL DEFAULT '',
+  payload    JSONB NOT NULL DEFAULT '{}'::jsonb,
+  hidden     BOOLEAN NOT NULL DEFAULT FALSE,
+  reports    INTEGER NOT NULL DEFAULT 0,                 -- 3 reports hide the post until a person reviews it (post-moderation)
+  review     VARCHAR(10),                                -- null | pending | restored | removed
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_feed_posts_recent ON feed_posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_feed_posts_author ON feed_posts(author_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_feed_posts_card ON feed_posts(author_id, card_code) WHERE card_code IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_feed_posts_lesson ON feed_posts(lesson_id) WHERE lesson_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_feed_posts_official ON feed_posts(official, day) WHERE official IS NOT NULL;
+CREATE TABLE IF NOT EXISTS feed_reactions (                -- «Тиць»; «took to the board» and «taught it» are read from the library's own facts, never clicked
+  post_id    UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (post_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS feed_answers (                  -- answers to a question for colleagues
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id    UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  author_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  text       TEXT NOT NULL,
+  hidden     BOOLEAN NOT NULL DEFAULT FALSE,
+  reports    INTEGER NOT NULL DEFAULT 0,
+  review     VARCHAR(10),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_feed_answers_post ON feed_answers(post_id, created_at);
+CREATE TABLE IF NOT EXISTS feed_reports (
+  target_kind VARCHAR(8) NOT NULL,                       -- post | answer
+  target_id   UUID NOT NULL,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (target_kind, target_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS absence_nudges (                -- the teacher's own «come back» line to a student who has been away (7 / 14 days)
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  text        TEXT NOT NULL,
+  last_active DATE NOT NULL,                             -- the absence it answers: one nudge per absence
+  sent_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  seen_at     TIMESTAMPTZ,                               -- the student closed it on Today
+  returned_at TIMESTAMPTZ,
+  UNIQUE (student_id, last_active)
+);
+CREATE INDEX IF NOT EXISTS idx_absence_nudges_teacher ON absence_nudges(teacher_id, sent_at DESC);

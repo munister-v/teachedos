@@ -30,10 +30,33 @@ async function sendPulses(now = new Date()) {
   return sent;
 }
 
+/* Monday 08:00 (the teacher's own clock): who has been away 7 days or more, in one in-app note - the touch is the
+   teacher's own line, never a system push. The notification is the once-a-week guard. */
+async function sendAbsenceNotes(now = new Date()) {
+  let sent = 0;
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.id, u.name, u.role, COALESCE(u.timezone, 'Europe/Kyiv') AS tz FROM users u
+        WHERE u.role IN ('teacher','admin') AND EXISTS (SELECT 1 FROM student_journal j WHERE j.teacher_id = u.id AND j.student_id IS NOT NULL) LIMIT 5000`);
+    for (const t of rows) {
+      const p = localParts(t.tz, now);
+      if (!p || p.dow !== 'Mon' || p.hour < 8) continue;
+      const { rows: [had] } = await pool.query(`SELECT 1 FROM notifications WHERE user_id = $1 AND type = 'absence' AND created_at > NOW() - INTERVAL '6 days' LIMIT 1`, [t.id]);
+      if (had) continue;
+      const a = (await require('../lib/absence').alerts(pool, t)).alerts || [];
+      const open = a.filter(x => !x.sent);
+      if (!open.length) continue;
+      const title = open.length === 1 ? open[0].name + ' has not been in the hub for ' + open[0].days + ' days' : open.length + ' students have not been in the hub for a week';
+      if (await createNotification(t.id, 'absence', title, 'A line from you brings them back better than any reminder.', 'index.html#absence')) sent++;
+    }
+  } catch (err) { console.error('[absence-notes]', err.message); }
+  return sent;
+}
+
 function scheduleClassPulse() {
-  const run = () => sendPulses().catch(() => {});
+  const run = () => { sendPulses().catch(() => {}); sendAbsenceNotes().catch(() => {}); };
   setTimeout(run, 90 * 1000).unref?.();
   setInterval(run, 60 * 60 * 1000).unref?.();
 }
 
-module.exports = { scheduleClassPulse, sendPulses };
+module.exports = { scheduleClassPulse, sendPulses, sendAbsenceNotes };

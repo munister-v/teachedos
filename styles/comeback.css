@@ -15,3 +15,14 @@
 html[data-hubtheme="dark"] #cbWelcome .cb-card{background:#1E2231;color:#F4F3EC}
 html[data-hubtheme="dark"] #cbWelcome p,html[data-hubtheme="dark"] #cbWelcome .cb-facts li,html[data-hubtheme="dark"] #cbWelcome .cb-no{color:rgba(244,243,236,.66)}
 @media(max-width:700px){#cbWelcome .cb-card{padding:16px}#cbWelcome .cb-act{width:100%}}
+
+/* a line from the student's own teacher after a break */
+#tmNote{margin:0 0 18px}
+#tmNote .tm-card{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:2.5px solid #D3F26A;border-radius:22px;padding:16px 20px;color:#1E2231;font-family:Manrope,sans-serif;box-shadow:0 12px 30px rgba(30,34,49,.08)}
+#tmNote .tm-ava{width:44px;height:44px;border-radius:50%;background:#E9F5C4;display:grid;place-items:center;font-weight:800;font-size:17px;flex:none}
+#tmNote .tm-body{flex:1;min-width:220px}
+#tmNote .tm-kick{font-size:11px;font-weight:800;letter-spacing:1.6px;color:rgba(30,34,49,.5)}
+#tmNote p{font-size:15px;font-weight:600;line-height:1.5;margin-top:3px;white-space:pre-wrap}
+#tmNote .tm-ok{background:#D3F26A;border:0;color:#1E2231;font:800 14px Manrope,sans-serif;padding:11px 20px;border-radius:999px;cursor:pointer;flex:none}
+html[data-hubtheme="dark"] #tmNote .tm-card{background:#1E2231;color:#F4F3EC}
+html[data-hubtheme="dark"] #tmNote .tm-kick{color:rgba(244,243,236,.62)}

@@ -29,5 +29,16 @@
     el.querySelector('.cb-no').onclick = () => { try { localStorage.setItem(key(), '1'); } catch (_) {} el.style.display = 'none'; };
     return true;
   }
-  window.Comeback = { render };
+  /* a line from the student's own teacher after a break (ТЗ «Удержание» §3): a person, not the platform */
+  function renderNote(el, note) {
+    if (!el) return;
+    if (!note) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = '';
+    el.innerHTML = '<div class="tm-card"><span class="tm-ava">' + esc((note.teacher || '?').charAt(0).toUpperCase()) + '</span><div class="tm-body"><div class="tm-kick">' + esc(String(note.teacher || 'YOUR TEACHER').toUpperCase()) + ' WROTE TO YOU</div><p>' + esc(note.text) + '</p></div><button type="button" class="tm-ok">Thanks</button></div>';
+    el.querySelector('.tm-ok').onclick = () => {
+      el.style.display = 'none';
+      try { window.TeachEdApp.createApiClient(() => localStorage.getItem('teachedos_token'))('/api/absence/seen/' + encodeURIComponent(note.id), { method: 'PUT' }); } catch (_) {}
+    };
+  }
+  window.Comeback = { render, renderNote };
 })();
