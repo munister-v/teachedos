@@ -2503,8 +2503,18 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
         [req.body.boardId, req.user.id]).catch(() => ({ rows: [] }));
       if (n) memory = `${memory ? memory + ' ' : ''}This board has ${n.n} student${n.n === 1 ? '' : 's'}${n.n === 1 ? ' (the one "assign" gives homework to)' : n.n ? ' ("assign" needs exactly one - otherwise ask which student, or answer no_tool)' : ' ("assign" has nobody to give homework to)'}.`;
     }
-    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory, history: req.body?.history, board: req.body?.board, pending: req.body?.pending }));
+    const promptArgs = { command, cards, viewport: req.body?.viewport, memory, history: req.body?.history, board: req.body?.board, pending: req.body?.pending };
+    let raw = await aiEngine.rawGenerate(boardAgent.buildPrompt(promptArgs));
     recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+    // The model may look things up first (how the students are doing, an encyclopedia search): at most two looks, then it plans.
+    let observations = '';
+    for (let look = 0; look < 2; look++) {
+      const reads = boardAgent.readRequest(raw);
+      if (!reads.length) break;
+      observations += (observations ? '\n' : '') + await require('../lib/boardAgentTools').runReads(db, req.user.id, req.body?.boardId, reads);
+      raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ ...promptArgs, observations }));
+      recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
+    }
     const plan = boardAgent.sanitizePlan(raw, cards);
     // A request with no tool behind it goes to the gap log (§8): the developers read it to decide the next tool.
     if (plan.gap) {
@@ -2515,6 +2525,17 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
   } catch (err) {
     console.error('[ai/board-agent]', err.message);
     res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });
+  }
+});
+
+/* POST /api/ai/board-agent/wordbank - the assistant's "wordbank" step after the teacher confirms:
+   words into the Word Bank of the board's one student (boardAgentTools.addWords). */
+router.post('/board-agent/wordbank', requireAuth, requireTeacher, async (req, res) => {
+  try {
+    res.json(await require('../lib/boardAgentTools').addWords(require('../db/pool'), req.user.id, req.body?.boardId, req.body?.words));
+  } catch (err) {
+    console.error('[ai/board-agent/wordbank]', err.message);
+    res.status(500).json({ ok: false, why: 'the server could not save the words' });
   }
 });
 
