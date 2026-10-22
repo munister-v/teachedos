@@ -188,11 +188,17 @@ body.sp-finding .cls-block,body.sp-finding .bk-block{opacity:.35}
     const save = document.getElementById('modal-save-btn');
     if (!save) return;
     let w = document.getElementById('sp-clash');
-    if (!w) { w = document.createElement('p'); w.id = 'sp-clash'; w.className = 'sp-clash'; save.parentElement.parentElement.insertBefore(w, save.parentElement); }
+    if (!w) { w = document.createElement('p'); w.id = 'sp-clash'; w.className = 'sp-clash'; w.setAttribute('role', 'alert'); save.parentElement.parentElement.insertBefore(w, save.parentElement); }
     const list = formClashes();
     w.hidden = !list.length;
-    w.textContent = list.length ? `⚠ At this time you have ${list.join(' and ')}.` : '';
+    w.textContent = list.length ? `⚠ This time is already taken: at this time you have ${list.join(' and ')}.` : '';
+    /* a taken time cannot be saved: the button is off (not a button that looks alive and does nothing)
+       and says why; it comes back by itself when the time is changed */
+    save.disabled = !!list.length || save.dataset.busy === '1';
+    save.title = list.length ? 'This time is already taken' : '';
+    save.setAttribute('aria-disabled', save.disabled ? 'true' : 'false');
   }
+  window.formClashes = formClashes; window.paintClash = paintClash;
   ['input', 'change', 'click'].forEach(t => document.addEventListener(t, e => {
     if (e.target.closest && e.target.closest('#modal, .modal, #class-modal') || (e.target.id || '').startsWith('f-')) setTimeout(paintClash, 0);
   }, true));

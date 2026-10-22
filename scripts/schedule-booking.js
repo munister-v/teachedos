@@ -35,8 +35,11 @@ function bkRender() {
     el.style.top = top + 'px';
     el.style.height = h + 'px';
     el.dataset.id = b.id;
-    el.title = b.kind === 'open' ? `Open for booking ${b.start_time}-${b.end_time}` : `Busy ${b.start_time}-${b.end_time}${b.label ? ' · ' + b.label : ''}`;
-    el.innerHTML = `<span class="bk-tag">${b.kind === 'open' ? 'Open for booking' : 'Busy' + (b.label ? ' · ' + bkEsc(b.label) : '')}</span>`;
+    /* a label of dashes or dots is no label: "Busy" and the time, no empty separators */
+    const lab = String(b.label || '').trim(), label = /^[\s\-–—·.]*$/.test(lab) ? '' : lab;
+    const span = `${String(b.start_time).slice(0, 5)}-${String(b.end_time).slice(0, 5)}`;
+    el.title = b.kind === 'open' ? `Open for booking ${span}` : `Busy ${span}${label ? ' · ' + label : ''}`;
+    el.innerHTML = `<span class="bk-tag">${b.kind === 'open' ? 'Open for booking' : 'Busy' + (label ? ' · ' + bkEsc(label) : '')}</span>${b.kind === 'busy' && (e - s) >= 45 ? `<span class="bk-time">${span}</span>` : ''}`;
     el.addEventListener('click', ev => {
       ev.stopPropagation();
       bkMenu({ days: [b.day], start: s, end: e, block: b }, ev.clientX, ev.clientY);

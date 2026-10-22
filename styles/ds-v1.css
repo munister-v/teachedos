@@ -1354,7 +1354,7 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
   width:19px !important; height:19px !important; flex:0 0 19px !important; border-radius:50%; background:#fff center/cover no-repeat; font-size:10px !important; font-weight:800;
   box-shadow:none !important; border:1.5px solid var(--bar); display:grid !important; place-items:center; color:#24282C;
 }
-html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-name { font-size:13.5px !important; font-weight:800 !important; white-space:nowrap; overflow:visible !important; text-overflow:clip !important; color:#24282C !important; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-name { font-size:13.5px !important; font-weight:800 !important; white-space:nowrap; overflow:hidden !important; text-overflow:ellipsis !important; display:block; min-width:0; max-width:100%; color:#24282C !important; }   /* a long name ends with an ellipsis; the whole title is in the tooltip (fixlist 5) */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-meta { display:block; font-size:11px !important; font-weight:700 !important; color:rgba(36,40,44,.78) !important; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:clip; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-st { margin-left:auto; flex:0 0 auto; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:800; }
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .cls-block.cc .cc-st.ok { background:#CDF649; color:#24282C; }
@@ -1499,3 +1499,8 @@ html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not
    hidden: "body.fx #wg-pulse { display:flex !important }" outranked the inline display:none, and
    the × on Student pulse did nothing (18.10). */
 html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body [data-wg-hidden="1"] { display:none !important; }
+
+/* Busy: "Busy" (and its label) over the block's time, one under the other */
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.busy { flex-direction:column !important; align-items:flex-start !important; justify-content:flex-start !important; gap:1px; padding-top:3px; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.busy .bk-tag { max-width:100%; flex:none; }
+html:not(#v1):not(#v2):not(#v3):not(#v4):not(#v5):not(#v6):not(#v7):not(#v8):not(#v9) body .bk-block.busy .bk-time { margin:0 6px; color:#8A8672; }

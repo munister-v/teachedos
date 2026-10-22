@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="scripts/phone-gate.js?v=1357"></script>
-<link rel="manifest" href="manifest.json?v=1357">
+<script src="scripts/phone-gate.js?v=1358"></script>
+<link rel="manifest" href="manifest.json?v=1358">
 <link rel="preconnect" href="https://teached.tech" crossorigin>
 <link rel="dns-prefetch" href="//teached.tech">
 <meta name="theme-color" content="#FFFFFF"/>
-<link rel="icon" href="favicon.ico?v=1357" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1357">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1357">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=1357">
+<link rel="icon" href="favicon.ico?v=1358" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=1358">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1358">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=1358">
 <meta charset="UTF-8"/>
 <!-- Preload heavy, late-discovered CSS so the network fetch starts before the parser reaches the inline style block -->
-<link rel="preload" as="style" href="styles/harmony.css?v=1357">
-<link rel="preload" as="style" href="styles/unify.css?v=1357">
+<link rel="preload" as="style" href="styles/harmony.css?v=1358">
+<link rel="preload" as="style" href="styles/unify.css?v=1358">
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -301,6 +301,20 @@ a{text-decoration:none;color:inherit;}
 .modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
 .form-row{display:flex;gap:12px;margin-bottom:14px;}
 .form-group{flex:1;display:flex;flex-direction:column;}
+/* required fields, errors under the field, the skeleton of the grid while the first schedule is on its way */
+.req{color:#B23A0E;font-weight:800;margin-left:2px}
+.f-err{margin-top:5px;font-size:12px;font-weight:650;color:#B23A0E;line-height:1.35}
+.f-err[hidden]{display:none}
+#modal .form-input.is-invalid,#modal .form-select.is-invalid,.form-input.is-invalid{border-color:#D8552B!important;box-shadow:0 0 0 3px rgba(216,85,43,.14)!important}
+#modal .btn-save:disabled:not([data-busy="1"]){cursor:not-allowed;opacity:.5}
+.grid-body{position:relative}
+.sch-skel{display:none;position:absolute;inset:0;z-index:6;grid-template-columns:repeat(7,1fr);gap:8px;padding:8px 8px 8px 58px;background:var(--bg,#F6F6EF);pointer-events:none}
+body.sch-loading .sch-skel{display:grid}
+body.sch-loading .grid-body>:not(.sch-skel){visibility:hidden}
+.sch-skel i{display:block;border-radius:14px;background:linear-gradient(90deg,rgba(36,40,44,.05),rgba(36,40,44,.11),rgba(36,40,44,.05));background-size:300% 100%;animation:sch-sk 1.4s ease-in-out infinite}
+.sch-skel i:nth-child(odd){margin-top:90px;height:120px}.sch-skel i:nth-child(even){margin-top:210px;height:90px}
+@keyframes sch-sk{0%{background-position:100% 0}100%{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){.sch-skel i{animation:none}}
 .form-group[hidden]{display:none}  /* display:flex beat [hidden]: a new lesson showed "Completed · −1" and the student picker */
 .form-label{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono);}
 .form-input,.form-select{
@@ -485,10 +499,10 @@ a{text-decoration:none;color:inherit;}
 .lesson-done button.main{background:#CDF649;color:#24282C}
 .lesson-done button:hover{filter:brightness(1.12)}
 </style>
-<script src="theme.js?v=1357" defer></script>
-<link rel="stylesheet" href="styles/mobile.css?v=1357">
-<link rel="stylesheet" href="styles/harmony.css?v=1357">
-<link rel="stylesheet" href="styles/unify.css?v=1357">
+<script src="theme.js?v=1358" defer></script>
+<link rel="stylesheet" href="styles/mobile.css?v=1358">
+<link rel="stylesheet" href="styles/harmony.css?v=1358">
+<link rel="stylesheet" href="styles/unify.css?v=1358">
 <style id="schedule-interaction-fix">
 /* Keep the global navigation reachable in compact desktop windows. */
 @media (min-width:861px){
@@ -520,26 +534,26 @@ a{text-decoration:none;color:inherit;}
   outline-offset:2px;
 }
 </style>
-<link rel="stylesheet" href="styles/teached-brand.css?v=1357">
-<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1357">
-<link rel="stylesheet" href="styles/tool-window.css?v=1357">
+<link rel="stylesheet" href="styles/teached-brand.css?v=1358">
+<link rel="stylesheet" href="styles/fonts-cyrillic.css?v=1358">
+<link rel="stylesheet" href="styles/tool-window.css?v=1358">
 <!-- Дизайн-язык макета ТИЧ.ЭД (Figma): подключается последним, работает при body.fx -->
-<link rel="stylesheet" href="styles/figma-theme.css?v=1357">
-<link rel="stylesheet" href="styles/mobile-chrome.css?v=1357">
-<link rel="stylesheet" href="styles/controls.css?v=1357">
-<link rel="stylesheet" href="styles/schedule-booking.css?v=1357">
+<link rel="stylesheet" href="styles/figma-theme.css?v=1358">
+<link rel="stylesheet" href="styles/mobile-chrome.css?v=1358">
+<link rel="stylesheet" href="styles/controls.css?v=1358">
+<link rel="stylesheet" href="styles/schedule-booking.css?v=1358">
 <!-- Finishing layer for teacher pages (desktop): loads last. -->
-<link rel="stylesheet" href="styles/polish.css?v=1357">
-<link rel="stylesheet" href="styles/pink-accent.css?v=1357">
-<link rel="stylesheet" href="styles/app-sidebar.css?v=1357">
-<link rel="stylesheet" href="styles/brand-harmony.css?v=1357">
-<link rel="stylesheet" href="styles/ui-fixes.css?v=1357">
-<link rel="stylesheet" href="styles/toast.css?v=1357">
+<link rel="stylesheet" href="styles/polish.css?v=1358">
+<link rel="stylesheet" href="styles/pink-accent.css?v=1358">
+<link rel="stylesheet" href="styles/app-sidebar.css?v=1358">
+<link rel="stylesheet" href="styles/brand-harmony.css?v=1358">
+<link rel="stylesheet" href="styles/ui-fixes.css?v=1358">
+<link rel="stylesheet" href="styles/toast.css?v=1358">
 <!-- Liquid Glass (iOS 26): last, so it wins. -->
-<link rel="stylesheet" href="styles/liquid-glass.css?v=1357">
-<link rel="stylesheet" href="styles/ds-v1.css?v=1357">
+<link rel="stylesheet" href="styles/liquid-glass.css?v=1358">
+<link rel="stylesheet" href="styles/ds-v1.css?v=1358">
 </head>
-<body class="tw-page fx">
+<body class="sch-loading tw-page fx">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 19.5c.8-3.4 3.5-5.2 7-5.2s6.2 1.8 7 5.2"/></symbol>
 <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h6a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2h-6z"/><path d="M19.5 5.5h-6a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h6z"/></symbol>
@@ -564,7 +578,7 @@ a{text-decoration:none;color:inherit;}
 
 <!-- Navbar -->
 <nav id="nav">
-  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1357" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
+  <a class="nav-logo" href="index.html"><img src="logo-sm.png?v=1358" alt="TeachEd"><span class="nav-logo-name">TeachEd</span></a>
   <div class="nav-sep"></div>
   <!-- One bar on every teacher page, the same as the desktop menubar: Journal,
        Gradebook and Analytics live as tabs inside Homework, Profile under the
@@ -712,6 +726,7 @@ a{text-decoration:none;color:inherit;}
 
     <!-- Time grid -->
     <div class="grid-body">
+      <div class="sch-skel" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="time-col" id="time-col"></div>
       <div class="day-col" id="day-0"><div class="now-line" id="now-line" style="display:none"></div></div>
       <div class="day-col" id="day-1"></div>
@@ -741,8 +756,9 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label">Title</label>
-      <input class="form-input" id="f-title" placeholder="English Grammar"/>
+      <label class="form-label" for="f-title">Title <span class="req" aria-hidden="true">*</span></label>
+      <input class="form-input" id="f-title" placeholder="English Grammar" aria-required="true"/>
+      <div class="f-err" id="err-title" role="alert" hidden></div>
     </div>
 
     <!-- Several days at once: a class that runs on Tuesday and Friday is two
@@ -760,12 +776,14 @@ a{text-decoration:none;color:inherit;}
 
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Start Time</label>
-        <input class="form-input" id="f-start" type="time" value="09:00"/>
+        <label class="form-label" for="f-start">Start Time <span class="req" aria-hidden="true">*</span></label>
+        <input class="form-input" id="f-start" type="time" value="09:00" aria-required="true" title="Type the time, e.g. 09:30, or pick it"/>
+        <div class="f-err" id="err-start" role="alert" hidden></div>
       </div>
       <div class="form-group">
-        <label class="form-label">End Time</label>
-        <input class="form-input" id="f-end" type="time" value="10:30"/>
+        <label class="form-label" for="f-end">End Time <span class="req" aria-hidden="true">*</span></label>
+        <input class="form-input" id="f-end" type="time" value="10:30" aria-required="true" title="Type the time, e.g. 10:30, or pick it"/>
+        <div class="f-err" id="err-end" role="alert" hidden></div>
       </div>
     </div>
 
@@ -776,16 +794,16 @@ a{text-decoration:none;color:inherit;}
     <div class="form-group" id="f-status-wrap" style="margin-bottom:14px" hidden>
       <label class="form-label" id="f-status-label">This lesson</label>
       <div class="lesson-status" id="f-status">
-        <button type="button" data-st="present" onclick="markLessonFromModal('present')">✓ Completed · −1</button>
-        <button type="button" data-st="cancelled" onclick="markLessonFromModal('cancelled')">↺ Cancelled · no charge</button>
-        <button type="button" data-st="no_show" onclick="markLessonFromModal('no_show')">✕ No-show · −1</button>
+        <button type="button" data-st="present" title="The lesson is held: one lesson comes off the student's package" onclick="markLessonFromModal('present')">✓ Completed · −1 lesson from package</button>
+        <button type="button" data-st="cancelled" title="Cancelled in time: nothing comes off the package" onclick="markLessonFromModal('cancelled')">↺ Cancelled · no charge</button>
+        <button type="button" data-st="no_show" title="The student did not come: one lesson comes off the package" onclick="markLessonFromModal('no_show')">✕ No-show · −1 lesson from package</button>
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Group</label>
-        <input class="form-input" id="f-group" placeholder="Group A"/>
+        <label class="form-label" for="f-group">Format</label>
+        <select class="form-select" id="f-group"><option value="">-</option><option value="1:1">1:1</option><option value="Group">Group</option></select>
       </div>
       <div class="form-group">
         <label class="form-label">Level</label>
@@ -821,15 +839,16 @@ a{text-decoration:none;color:inherit;}
     </div>
 
     <div class="form-group" style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-      <input type="checkbox" id="f-recurring" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" onchange="toggleRecurring(this.checked)">
+      <input type="checkbox" id="f-recurring" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" onchange="toggleRecurring(this.checked)">
       <label for="f-recurring" style="font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Recurring (repeats weekly)</label>
     </div>
 
     <!-- Specific date - shown only when recurring is OFF -->
     <div id="f-date-row" class="form-row" style="display:none;margin-bottom:14px;">
       <div class="form-group">
-        <label class="form-label"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Specific date</label>
-        <input class="form-input" id="f-specific-date" type="date"/>
+        <label class="form-label" for="f-specific-date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Specific date <span class="req" aria-hidden="true">*</span></label>
+        <input class="form-input" id="f-specific-date" type="date" aria-required="true" title="Type the date or pick it"/>
+        <div class="f-err" id="err-date" role="alert" hidden></div>
       </div>
       <div class="form-group" style="justify-content:flex-end;padding-bottom:2px;">
         <div style="font-size:11px;color:var(--text3);line-height:1.5;margin-top:auto;">
@@ -855,7 +874,7 @@ a{text-decoration:none;color:inherit;}
 <div id="toast"></div>
 <div class="slot-drag-tip" id="slot-drag-tip"></div>
 
-<script src="scripts/app-core.js?v=1357"></script>
+<script src="scripts/app-core.js?v=1358"></script>
 <script>
 const SCHEDULE_CACHE_KEY = 'teachedos_schedule_cache_v1';
 const {
@@ -899,7 +918,26 @@ function pastelFor(key) {
   return PASTELS[Math.abs(h) % PASTELS.length];
 }
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const HOUR_START = 7, HOUR_END = 21, PX_PER_HOUR = 56;   // ТЗ «Навигация и расписание» §3: 56px an hour
+const GRID_DEFAULT_START = 7, GRID_DEFAULT_END = 21;
+let HOUR_START = GRID_DEFAULT_START, HOUR_END = GRID_DEFAULT_END;
+const PX_PER_HOUR = 56;   // ТЗ «Навигация и расписание» §3: 56px an hour
+/* The visible hours follow the week (fixlist 3): a lesson before 07:00 or after the usual end widens the grid
+   so its block is drawn whole, with the name and the time, like any other; Open-for-booking windows too. */
+function fitGridRange() {
+  let lo = GRID_DEFAULT_START * 60, hi = GRID_DEFAULT_END * 60;
+  const dates = getWeekDates();
+  const note = (a, b) => { lo = Math.min(lo, Math.floor(a / 60) * 60); hi = Math.max(hi, Math.ceil(b / 60) * 60); };
+  schedule.forEach(sl => {
+    if (sl.specific_date && String(sl.specific_date).slice(0, 10) !== localYMD(dates[Number(sl.day)] || new Date(0))) return;
+    note(timeToMinutes(sl.start_time), timeToMinutes(sl.end_time));
+  });
+  (typeof BK_BLOCKS !== 'undefined' ? BK_BLOCKS : []).forEach(k => note(timeToMinutes(k.start_time), timeToMinutes(k.end_time)));
+  const a = Math.max(0, lo / 60), b = Math.min(24, hi / 60);
+  if (a === HOUR_START && b === HOUR_END) return false;
+  HOUR_START = a; HOUR_END = b;
+  buildTimeCol();
+  return true;
+}
 
 function effectiveScheduleZone() {
   return safeTimeZone(currentUser?.timezone || browserTimeZone());
@@ -1233,7 +1271,7 @@ async function init() {
   bindGridClicks();
   renderScheduleTimeZoneCard();
   updateWeekHeader();
-  await loadSchedule();
+  try { await loadSchedule(); } finally { document.body.classList.remove('sch-loading'); }
   if (weekOffset === 0) scrollToNow();
   loadBalances().then(loadLessonStatuses);
   loadStudentZones();
@@ -1462,8 +1500,8 @@ function checkFinishedLessons() {
   box.innerHTML = `<b>Lesson finished · ${esc(sl.title)}</b>
     <p>${esc(s.name)} has ${Number(s.lessons_left) || 0} lesson${Number(s.lessons_left) === 1 ? '' : 's'} left. Take one off?</p>
     <div class="ld-btns">
-      <button type="button" class="main" onclick="answerFinished('present')">✓ Completed · −1</button>
-      <button type="button" onclick="answerFinished('no_show')">✕ No-show · −1</button>
+      <button type="button" class="main" onclick="answerFinished('present')">✓ Completed · −1 lesson from package</button>
+      <button type="button" onclick="answerFinished('no_show')">✕ No-show · −1 lesson from package</button>
       <button type="button" onclick="answerFinished('cancelled')">↺ Cancelled</button>
       <button type="button" onclick="answerFinished('later')">Later</button>
     </div>`;
@@ -1821,6 +1859,7 @@ function scrollToNow() {
 // ── Grid rendering ────────────────────────────────────────────────────
 function buildTimeCol() {
   const col = document.getElementById('time-col');
+  col.innerHTML = '';
   for (let h = HOUR_START; h <= HOUR_END; h++) {
     const lbl = document.createElement('div');
     lbl.className = 'time-label';
@@ -1830,6 +1869,7 @@ function buildTimeCol() {
 }
 
 function renderGrid() {
+  fitGridRange();
   const weekDates = getWeekDates();
   const today = new Date(); today.setHours(0,0,0,0);
   for (let d = 0; d < 7; d++) {
@@ -1931,7 +1971,7 @@ function openPlannerAt(day, startMin) {
     start_time: minutesToTime(start),
     end_time: minutesToTime(end),
     specific_date: weekDate ? localYMD(weekDate) : '',
-    recurring: true,
+    recurring: false,
     color: selectedColor || '',
   });
 }
@@ -2304,11 +2344,20 @@ function openModal(slot = null, preset = null) {
   document.getElementById('modal-delete-btn').hidden = !isEdit;
   setScheduleSaveBusy(false);
   document.getElementById('f-title').value = data.title || '';
-  const startDay = Number(data.day ?? ((new Date().getDay() + 6) % 7));
+  /* a new class from the toolbar takes its date from the week on screen: today when this week is shown,
+     otherwise the Monday of the shown week (a click on the grid brings its own day and time) */
+  const shown = getWeekDates(), todayKey = localYMD(new Date());
+  const defaultDate = shown.some(d => localYMD(d) === todayKey) ? todayKey : localYMD(shown[0]);
+  const defaultDay = (new Date(defaultDate + 'T00:00:00').getDay() + 6) % 7;
+  const startDay = Number(data.day ?? defaultDay);
   selectedDays = new Set([startDay]);
+  clearFieldErrors();
   document.getElementById('f-start').value = data.start_time?.slice(0,5) || '09:00';
   document.getElementById('f-end').value   = data.end_time?.slice(0,5)   || '10:30';
-  document.getElementById('f-group').value = data.group_name || '';
+  const fmt = document.getElementById('f-group'), fmtValue = String(data.group_name || '').trim();
+  fmt.querySelectorAll('option[data-extra]').forEach(o => o.remove());
+  if (fmtValue && ![...fmt.options].some(o => o.value === fmtValue)) { const o = document.createElement('option'); o.value = o.textContent = fmtValue; o.dataset.extra = '1'; fmt.appendChild(o); }
+  fmt.value = fmtValue;
   document.getElementById('f-level').value = data.level || '';
   document.getElementById('f-room').value        = data.room  || '';
   // a lesson without its own link follows the regular one
@@ -2319,12 +2368,12 @@ function openModal(slot = null, preset = null) {
   document.getElementById('f-student').value     = data.journal_id || '';
   syncStatusButtons(isEdit ? slot : null);
 
-  const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : (data.recurring !== false);
+  const isRecurring = isEdit ? (slot.recurring !== false && !slot.specific_date) : data.recurring === true;
   document.getElementById('f-recurring').checked = isRecurring;
 
   // Specific date
   const specificDate = data.specific_date ? data.specific_date.slice(0, 10) : '';
-  document.getElementById('f-specific-date').value = specificDate || localYMD(new Date());
+  document.getElementById('f-specific-date').value = specificDate || defaultDate;
   document.getElementById('f-date-row').style.display = isRecurring ? 'none' : 'flex';
   document.getElementById('f-days-group').style.display = isRecurring ? '' : 'none';
   renderDayChips();
@@ -2342,8 +2391,8 @@ function openModal(slot = null, preset = null) {
 const LESSON_PRESETS = {
   'online-one': { title: '1:1 English lesson', group_name: '1:1', level: 'B1', room: 'Online', duration: 60, color: '#CFEAFB' },
   'online-group': { title: 'Group English lesson', group_name: 'Group', level: 'B1', room: 'Online', duration: 60, color: '#E2D7F8' },
-  offline: { title: 'Classroom English lesson', group_name: 'Class', level: 'B1', room: 'Classroom', duration: 60, color: '#DEE9CB' },
-  club: { title: 'Speaking club', group_name: 'Speaking Club', level: 'B1', room: 'Online', duration: 75, color: '#F9DCC8' },
+  offline: { title: 'Classroom English lesson', group_name: 'Group', level: 'B1', room: 'Classroom', duration: 60, color: '#DEE9CB' },
+  club: { title: 'Speaking club', group_name: 'Group', level: 'B1', room: 'Online', duration: 75, color: '#F9DCC8' },
 };
 
 function applyLessonPreset(key) {
@@ -2368,11 +2417,14 @@ function setScheduleSaveBusy(isBusy) {
   if (!button) return;
   if (isBusy) {
     button.dataset.idleLabel = button.textContent;
+    button.dataset.busy = '1';
     button.textContent = 'Saving…';
     button.disabled = true;
   } else {
+    button.dataset.busy = '';
     button.textContent = button.dataset.idleLabel || (editingId ? 'Save Changes' : 'Add Class');
     button.disabled = false;
+    if (typeof paintClash === 'function') paintClash();   // a clash keeps the button off
   }
 }
 
@@ -2381,40 +2433,59 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.g
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target === e.currentTarget) closeModal(); }
 
+/* required fields: a short line under the field, the field outlined, the first one focused; the toast stays as the fallback */
+const FIELD_ERR = { 'f-title': 'err-title', 'f-start': 'err-start', 'f-end': 'err-end', 'f-specific-date': 'err-date' };
+function fieldErr(id, msg) {
+  const inp = document.getElementById(id), box = document.getElementById(FIELD_ERR[id]);
+  if (!inp) return;
+  inp.classList.toggle('is-invalid', !!msg); inp.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  if (box) { box.textContent = msg || ''; box.hidden = !msg; }
+}
+function clearFieldErrors() { Object.keys(FIELD_ERR).forEach(id => fieldErr(id, '')); }
+document.addEventListener('input', e => { if (FIELD_ERR[e.target.id]) fieldErr(e.target.id, ''); });
+document.addEventListener('change', e => {
+  // typed values are checked when the field is left: nothing is dropped silently
+  const t = e.target;
+  if ((t.id === 'f-start' || t.id === 'f-end') && !t.value) fieldErr(t.id, 'Enter a time like 09:30');
+  if (t.id === 'f-specific-date' && !t.value) fieldErr(t.id, 'Enter a date');
+});
+
 async function saveClass() {
+  clearFieldErrors();
   const title = document.getElementById('f-title').value.trim();
   const start = document.getElementById('f-start').value;
   const end   = document.getElementById('f-end').value;
-  if (!title) { toast('Title is required','err'); return; }
-  if (!start || !end || start >= end) { toast('Check start/end time','err'); return; }
-
   const isRecurring = document.getElementById('f-recurring').checked;
+  const bad = [];
+  if (!title) { fieldErr('f-title', 'Title is required'); bad.push('f-title'); }
+  if (!start) { fieldErr('f-start', 'Enter a start time like 09:30'); bad.push('f-start'); }
+  if (!end) { fieldErr('f-end', 'Enter an end time like 10:30'); bad.push('f-end'); }
+  if (start && end && start >= end) { fieldErr('f-end', 'The end must be after the start'); bad.push('f-end'); }
+  if (!isRecurring && !document.getElementById('f-specific-date').value) { fieldErr('f-specific-date', 'Pick the date of the lesson'); bad.push('f-specific-date'); }
+  if (bad.length) {
+    toast(!title ? 'Title is required' : (!isRecurring && !document.getElementById('f-specific-date').value) ? 'Please pick a date' : 'Check start/end time', 'err');
+    document.getElementById(bad[0]).focus();
+    return;
+  }
+
   let specificDate = null;
   let days = [...selectedDays].sort((a, b) => a - b);
 
   if (!isRecurring) {
     specificDate = document.getElementById('f-specific-date').value;
-    if (!specificDate) { toast('Please pick a date','err'); return; }
     // Derive day-of-week from the specific date
     const d = new Date(specificDate + 'T00:00:00');
     days = [(d.getDay() + 6) % 7];
   }
   if (!days.length) { toast('Pick at least one day','err'); return; }
 
-  // Conflict detection, for every picked day
-  const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-  const newStart = toMin(start), newEnd = toMin(end);
-  const conflicts = days.map(day => schedule.find(s => {
-    if (String(s.id) === String(editingId)) return false;
-    if (s.day !== day) return false;
-    // For specific-date events, only conflict if same date or both recurring
-    if (specificDate && s.specific_date && s.specific_date.slice(0,10) !== specificDate) return false;
-    const sS = toMin(s.start_time), sE = toMin(s.end_time);
-    return newStart < sE && newEnd > sS;
-  })).filter(Boolean);
-  if (conflicts.length) {
-    const list = conflicts.map(c => `"${c.title}" (${DAY_NAMES[c.day]} ${c.start_time.slice(0,5)}-${c.end_time.slice(0,5)})`).join(', ');
-    if (!confirm(`⚠️ Time conflict with ${list}. Save anyway?`)) return;
+  // A taken time is refused out loud: the same check as the warning under the button (lessons and Busy time)
+  const clashes = typeof formClashes === 'function' ? formClashes() : [];
+  if (clashes.length) {
+    fieldErr('f-start', 'This time is already taken');
+    toast('This time is already taken', 'err');
+    document.getElementById('f-start').focus();
+    return;
   }
 
   // The regular link: saved to the profile once; lessons that use it keep no
@@ -2549,10 +2620,12 @@ async function toggleLiveSlot(id, goLive) {
 setInterval(() => { updateNowLine(); renderUpNext(); renderScheduleTimeZoneCard(); }, 60000);
 
 init();
+setTimeout(() => document.body.classList.remove('sch-loading'), 9000);   // never leave the skeleton up
 
 function exportICS() {
   if (!hasExportsAccess()) { toast(upgradeMessage('exports')); return; }
-  if (!schedule.length) { alert('No classes to export.'); return; }
+  if (!schedule.length) { toast('No classes to export yet', 'err'); return; }
+  try {
   const days = ['MO','TU','WE','TH','FR','SA','SU'];
   const pad2 = n => String(n).padStart(2,'0');
   const escapeIcs = value => String(value || '')
@@ -2619,22 +2692,25 @@ function exportICS() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'teachedos-schedule.ics';
-  a.click();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Calendar file downloaded', 'ok');
+  } catch (err) { toast('Could not make the calendar file', 'err'); }
 }
 </script>
-<script src="scripts/schedule-booking.js?v=1357"></script>
-<script src="scripts/schedule-plus.js?v=1357"></script>
-<script src="scripts/schedule-calm.js?v=1357"></script>
-<script src="pwa.js?v=1357"></script>
-<script src="scripts/nav-boost.js?v=1357" defer></script>
-<script src="scripts/mobile-perf.js?v=1357" defer></script>
-<script src="scripts/mobile-nav.js?v=1357"></script>
-<script src="scripts/autogrow.js?v=1357" defer></script>
-<script src="pwa-boot.js?v=1357" defer></script>
-<script src="scripts/mobile-zoom-guard.js?v=1357" defer></script>
-  <script src="scripts/signin-entry.js?v=1357" defer></script>
-<script src="scripts/nav-bell.js?v=1357" defer></script>
+<script src="scripts/schedule-booking.js?v=1358"></script>
+<script src="scripts/schedule-plus.js?v=1358"></script>
+<script src="scripts/schedule-calm.js?v=1358"></script>
+<script src="pwa.js?v=1358"></script>
+<script src="scripts/nav-boost.js?v=1358" defer></script>
+<script src="scripts/mobile-perf.js?v=1358" defer></script>
+<script src="scripts/mobile-nav.js?v=1358"></script>
+<script src="scripts/autogrow.js?v=1358" defer></script>
+<script src="pwa-boot.js?v=1358" defer></script>
+<script src="scripts/mobile-zoom-guard.js?v=1358" defer></script>
+  <script src="scripts/signin-entry.js?v=1358" defer></script>
+<script src="scripts/nav-bell.js?v=1358" defer></script>
 <div class="lesson-done" id="lesson-done" role="status" aria-live="polite" hidden></div>
-<script src="scripts/ds-v1.js?v=1357" defer></script>
+<script src="scripts/ds-v1.js?v=1358" defer></script>
 </body>
 </html>

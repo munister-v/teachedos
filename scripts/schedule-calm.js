@@ -26,7 +26,11 @@
   css.textContent = `
 .cls-block.cc{padding:5px 8px;display:flex;flex-direction:column;gap:2px}
 .cc-line{display:flex;align-items:baseline;gap:5px;min-width:0;font-size:12.5px;line-height:1.25;font-weight:700;color:#fff}
-.cc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.cls-block.cc .cc-nm{min-width:0;max-width:100%}
+.cls-block.cc .cc-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:100%}
+.cls-block.cc .cc-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-acts button svg,.cc-del svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:6px}
+.cc-acts button{display:flex;align-items:center}
 .cc-dot{opacity:.7;flex:none}
 .cc-time{flex:none;font-weight:600;opacity:.88;font-variant-numeric:tabular-nums}
 .cc-sub{font-size:11px;font-weight:550;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -115,6 +119,19 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
     if (!st) return null;
     return { status: st, charged: !!(lessonCharged && lessonCharged[key]) };
   }
+
+  /* the card's actions: the platform's own line icons, never emoji (fixlist 7) */
+  const svgI = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const IC = {
+    board: svgI('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+    edit: svgI('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>'),
+    msg: svgI('<path d="M21 12a8 8 0 01-8 8H4l2-3a8 8 0 1115-5z"/>'),
+    video: svgI('<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3"/>'),
+    stop: svgI('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+    again: svgI('<path d="M4 12a8 8 0 0114-5l2 2M20 4v5h-5M20 12a8 8 0 01-14 5l-2-2M4 20v-5h5"/>'),
+    hw: svgI('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>'),
+    trash: svgI('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+  };
 
   /* ── Level 1: the chip ──────────────────────────────────────────────── */
   const origBuild = buildBlock;
@@ -265,14 +282,14 @@ body.sp-finding .cc-ghost,.day-col.drag-over .cc-ghost{display:none}
       <div class="cc-when">${esc(when)}${slot.group_name && who(slot) !== slot.group_name ? ' · ' + esc(slot.group_name) : ''}</div>
       <div class="cc-hw" data-hw><span class="cc-pill">Homework…</span></div>
       <div class="cc-acts">
-        ${slot.board_id ? '<button type="button" class="main" data-a="board">🔗 Open board</button>' : '<button type="button" class="main" data-a="edit">✏️ Add a board</button>'}
-        <button type="button" data-a="msg">💬 Message</button>
-        ${meet || slot.is_live ? `<button type="button" data-a="live">${slot.is_live ? '⏹ End live' : meet ? '🎥 Join call' : 'Go live'}</button>` : ''}
-        <button type="button" data-a="edit">↻ Reschedule</button>
-        <button type="button" data-a="hw">📝 Homework</button>
+        ${slot.board_id ? `<button type="button" class="main" data-a="board">${IC.board}Open board</button>` : `<button type="button" class="main" data-a="edit">${IC.edit}Add a board</button>`}
+        <button type="button" data-a="msg">${IC.msg}Message</button>
+        ${meet || slot.is_live ? `<button type="button" data-a="live">${slot.is_live ? IC.stop + 'End live' : meet ? IC.video + 'Join call' : IC.video + 'Go live'}</button>` : ''}
+        <button type="button" data-a="edit">${IC.again}Reschedule</button>
+        <button type="button" data-a="hw">${IC.hw}Homework</button>
       </div>
       ${outcomeHtml}
-      <button type="button" class="cc-del" data-a="del">🗑 Delete lesson</button>
+      <button type="button" class="cc-del" data-a="del">${IC.trash}Delete lesson</button>
       <div class="cc-msg" hidden>
         <textarea placeholder="Message to ${esc(who(slot))}…"></textarea>
         <div class="cc-msg-row"><button type="button" data-m="cancel">Cancel</button><button type="button" class="main" data-m="send">Send</button></div>
