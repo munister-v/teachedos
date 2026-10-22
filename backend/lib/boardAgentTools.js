@@ -114,4 +114,4 @@ async function addWords(db, teacherId, boardId, words) {
   return { ok: true, added, skipped: list.length - added };
 }
 
-module.exports = { boardStudents, readResults, webSearch, runReads, addWords };
+module.exports = { boardStudents, readResults, readCard, webSearch, runReads, addWords };
