@@ -1,6 +1,6 @@
 # Deployment
 
-Production runs on a VPS (AlmaLinux) at teached.tech:
+Production runs on a VPS (AlmaLinux) at teached.tech, shared with other projects:
 - **Frontend** static files: `/var/www/teached` (served by nginx).
 - **Backend** API: `/opt/teachedos/backend`, run by systemd unit `teached-api.service` on port 4000 (nginx proxies `/api`). Env in `/opt/teachedos/backend/.env`.
 
@@ -8,13 +8,34 @@ Production runs on a VPS (AlmaLinux) at teached.tech:
 A systemd timer polls `main` every 2 minutes and deploys on new commits:
 - `/opt/teachedos/deploy.sh` - fetches `origin/main`, and on change rsyncs `backend/` (keeping `.env`/`node_modules`), runs `npm install`, rsyncs the frontend, and restarts `teached-api.service`.
 - `teached-deploy.service` + `teached-deploy.timer` drive it; last-deployed commit is tracked in `/opt/teachedos/.deployed_sha`.
-- Log: `/var/log/teached-deploy.log`. Pre-deploy backups: `/root/teached-backups/`.
+- Log: `/var/log/teached-deploy.log`. Pre-deploy backups: `/opt/teachedos/deploy-backups/` (newest 8 kept).
 
 The versioned deploy implementation is `ops/deploy.sh`. The server copy at
 `/opt/teachedos/deploy.sh` is kept in sync with it. Frontend and backend code
 are mirrored with a clean sync so stale VPS-only files cannot survive a
 release; `.env`, `node_modules`, database files and uploads stay outside the
 release. Each run creates a rollback archive in `/root/teached-backups/`.
+
+## Access model (since 2026-10-22)
+
+TeachEd does **not** run as root. The API (`teached-api.service`) and the
+auto-deploy (`teached-deploy.service`) both run as the unprivileged system
+user `teached`, which owns `/opt/teachedos` and `/var/www/teached`. Anyone who
+can push `main` therefore gets the rights of that user only, not of the server.
+
+- People get a shell as `teached` (their public key in
+  `/home/teached/.ssh/authorized_keys`), never root.
+- `sudo` for `teached` is limited to `systemctl restart teached-api.service`
+  and `teached-logs [N]` (last N lines of the TeachEd journal).
+- sshd forbids tunnels, port/agent/X11 forwarding for `teached`, so the shell
+  cannot reach other projects' localhost-only services.
+- The versioned config is in `ops/access/` (systemd drop-ins, sudoers, sshd
+  snippet, `teached-logs`). `migrate-to-teached-user.sh` is the one-off move
+  from root; it rolls back by itself if `/health` does not answer.
+- Revoke someone: delete their line from `/home/teached/.ssh/authorized_keys`.
+- Rollback to root: remove the `user.conf` drop-ins in
+  `/etc/systemd/system/teached-{api,deploy}.service.d/`, `daemon-reload`,
+  restart `teached-api`.
 
 Before publishing a change locally, run:
 

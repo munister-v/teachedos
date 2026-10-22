@@ -3,7 +3,7 @@
 # by the release operator and kept versioned with the application source.
 set -euo pipefail
 
-exec 9>/var/lock/teached-deploy.lock
+exec 9>"${LOCK:-/var/lock/teached-deploy.lock}"
 flock -n 9 || exit 0
 
 REPO=${REPO:-/opt/teachedos/repo}
@@ -11,7 +11,7 @@ BACKEND=${BACKEND:-/opt/teachedos/backend}
 FRONTEND=${FRONTEND:-/var/www/teached}
 MARKER=${MARKER:-/opt/teachedos/.deployed_sha}
 LOG=${LOG:-/var/log/teached-deploy.log}
-BACKUPS=${BACKUPS:-/root/teached-backups}
+BACKUPS=${BACKUPS:-/opt/teachedos/deploy-backups}
 FORCE_DEPLOY=${FORCE_DEPLOY:-0}
 
 log() { echo "$(date '+%F %T') $*" >> "$LOG" 2>/dev/null || true; }
@@ -40,6 +40,7 @@ fi
 
 log "new commit $REMOTE (deployed: $DEPLOYED) - deploying with clean sync"
 git reset --hard --quiet "$REMOTE"
+git clean -fdq
 
 # Backend runtime keeps only its secret env, dependencies and database data.
 rsync -a --delete \
@@ -52,7 +53,7 @@ rsync -a --delete \
 rsync -a --delete --delete-excluded \
   --exclude='.git/' --exclude='.github/' --exclude='backend/' \
   --exclude='node_modules/' --exclude='.claude/' --exclude='.vscode/' \
-  --exclude='ops/' --exclude='ng/' --exclude='*.md' --exclude='*.mjs' \
+  --exclude='ops/' --exclude='ng/' --exclude='tests/' --exclude='*.md' --exclude='*.mjs' \
   --exclude='*.map' --exclude='*.ts' --exclude='*.scss' --exclude='*.lock' \
   --exclude='*.yaml' --exclude='*.yml' --exclude='*.bak' --exclude='*.bak_*' \
   --exclude='render.yaml' \
@@ -87,7 +88,13 @@ if [[ "$FORCE_DEPLOY" != 1 && "$DEPLOYED" != none ]] && git cat-file -e "$DEPLOY
   BACKEND_CHANGED=0
 fi
 if [[ "$BACKEND_CHANGED" == 1 ]]; then
-  systemctl restart teached-api.service
+  # Runs as the unprivileged `teached` user in production; sudoers allows
+  # exactly this one command (see ops/access/teached.sudoers).
+  if [[ $EUID -eq 0 ]]; then
+    systemctl restart teached-api.service
+  else
+    sudo -n /usr/bin/systemctl restart teached-api.service
+  fi
 else
   log "backend unchanged since $DEPLOYED - API not restarted"
 fi

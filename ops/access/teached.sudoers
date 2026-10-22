@@ -1,0 +1,5 @@
+# /etc/sudoers.d/teached  (mode 0440, check with `visudo -cf`)
+# The only things `teached` may do as root: restart its own API and read
+# its own logs. No shell, no other services, no wildcards on systemctl.
+teached ALL=(root) NOPASSWD: /usr/bin/systemctl restart teached-api.service
+teached ALL=(root) NOPASSWD: /usr/local/bin/teached-logs, /usr/local/bin/teached-logs [0-9]*

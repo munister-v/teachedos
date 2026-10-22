@@ -1,0 +1,8 @@
+#!/bin/bash
+# /usr/local/bin/teached-logs [lines]  (root:root 0755)
+# Last N lines of the TeachEd API/deploy journal. Used via sudo so the
+# `teached` user does not need the systemd-journal group, which would let
+# it read the logs of every other project on this server.
+n=${1:-200}
+[[ $n =~ ^[0-9]{1,5}$ ]] || n=200
+exec /usr/bin/journalctl -u teached-api.service -u teached-deploy.service --no-pager -n "$n"
