@@ -694,7 +694,7 @@
       const av = '<span class="ava" style="background:' + AVA[(d.with.length) % 4] + '">' + esc2(ini(d.with)) + '</span>';
       if (d.state === 'incoming') return '<div class="duel"><div class="dt">INVITE · EXPIRES IN ' + hoursLeft(d.expires_at) + '</div><div class="db">' + av + '<div class="who"><b>' + esc2(d.with) + ' challenges you</b><span>' + esc2(d.game_label) + ' · same words for both</span></div></div><div class="db"><button class="dbtn lime" data-play="' + esc2(d.id) + '">Accept duel</button><button class="dbtn ghost" data-decline="' + esc2(d.id) + '" title="Gone for good">Decline</button></div></div>';
       if (d.state === 'your_move') return '<div class="duel"><div class="dt">ACTIVE · YOUR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + (d.their_score != null ? 'he played: ' + d.their_score + '/' + d.total + ' · your turn' : 'your turn') + '</span></div><button class="dbtn" data-play="' + esc2(d.id) + '">Play</button></div></div>';
-      if (d.state === 'waiting') return '<div class="duel"><div class="dt">WAITING · THEIR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>you scored ' + d.my_score + '/' + d.total + ' · waiting for ' + esc2(d.with) + '</span></div></div></div>';
+      if (d.state === 'waiting') return '<div class="duel"><div class="dt">WAITING · THEIR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>you scored ' + d.my_score + '/' + d.total + ' · waiting for ' + esc2(d.with) + '</span></div>' + (d.i_challenged ? '<button class="dbtn" data-share-invite="' + esc2(d.id) + '">Share challenge</button>' : '') + '</div></div>';
       if (d.state === 'finished') return '<div class="duel"><div class="dt">' + (d.won === true ? 'YOU WON' : d.won === false ? 'LOST THIS ONE' : 'A DRAW') + '</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + d.my_score + ' : ' + d.their_score + (d.won === true ? ' · +60 XP' : d.won === false ? ' · +10 XP' : ' · +30 XP') + '</span></div>' + (d.won === true ? '<button class="dbtn" data-share="' + esc2(d.id) + '">Share</button>' : '') + '<button class="dbtn" data-rematch="' + esc2(d.id) + '">Rematch</button></div></div>';
       return '';
     };
@@ -716,6 +716,7 @@
       if (t.dataset.frOff) return frApi('/' + encodeURIComponent(t.dataset.frOff), 'DELETE').then(() => reloadChallenges());
       if (t.dataset.play) return playDuel(t.dataset.play);
       if (t.dataset.share) return shareCard('duel', 'duel-result', { ref: t.dataset.share });
+      if (t.dataset.shareInvite) return shareCard('duelinvite', 'duel-result', { ref: t.dataset.shareInvite });
       if (t.dataset.decline) return chApi('/duels/' + encodeURIComponent(t.dataset.decline) + '/decline', 'POST').then(reloadChallenges);
       if (t.dataset.rematch) return chApi('/duels/' + encodeURIComponent(t.dataset.rematch) + '/rematch', 'POST').then(r => { if (!r.ok) alert(r.d.error); reloadChallenges(); });
       if (t.id === 'throwBtn') return throwSheet();
@@ -816,6 +817,10 @@
           if (!s.ok) { body.innerHTML = '<div class="ssub">' + esc2(s.d.error || 'Could not send') + '</div>'; return; }
           const res = s.d.result;
           body.innerHTML = '<h3>' + s.d.score + ' of ' + s.d.total + '</h3><p class="ssub">' + (res ? (res.draw ? 'A draw — +30 XP each.' : res.you_won ? 'You won — +60 XP. The bank is yours.' : 'Not this time — +10 XP for playing. Ask for a rematch.') : 'Your score is in. ' + esc2(r.d.with) + ' has 24 hours to answer.') + '</p><button class="send" id="dDone">Back to challenges</button>';
+          if (res === null || res === undefined) {
+            body.querySelector('#dDone').insertAdjacentHTML('beforebegin', '<button class="send" id="dInv" style="margin-bottom:10px">Share the challenge</button>');
+            body.querySelector('#dInv').onclick = () => shareCard('duelinvite', 'duel-result', { ref: id });
+          }
           if (res && res.you_won) {
             burstConfetti(80);
             body.querySelector('#dDone').insertAdjacentHTML('beforebegin', '<button class="send" id="dShare" style="margin-bottom:10px">Share the win</button>');
@@ -1641,10 +1646,29 @@
     paintArt(el.querySelector('.pxart'));
     el.querySelector('button').onclick = () => shareCard(kind, 'hub-today');
   }
+  /* wave 3: whatever else is true today (server's /api/cards/available) becomes one more banner */
+  const BANNER = {
+    words: ['crown', 'You mastered a whole set of words.', 'Share it'],
+    costreak: ['bolt', 'Two duels this week with the same friend — invite them to a shared streak.', 'Share the invite'],
+    comeback: ['bolt', 'Welcome back — a day done after a pause.', 'Share my comeback'],
+    perfectweek: ['crown', 'A perfect week: something done every single day.', 'Share my week'],
+    wordmarathon: ['crown', 'Your Word Bank is a marathon now.', 'Share my words'],
+    anniversary: ['crown', 'A TeachEd milestone — a year, or a hundred lessons.', 'Share it'],
+    together: ['heart', 'A lesson done together — a card for you and your teacher.', 'Share the lesson'],
+  };
+  let ecAt = 0;
+  function extraCards() {
+    if (Date.now() - ecAt < 4000) return; ecAt = Date.now();
+    json('/api/cards/available').then(d => {
+      const have = new Set(((d && d.kinds) || []).map(k => k.kind));
+      Object.keys(BANNER).forEach(k => cardBanner('cb-' + k, have.has(k), BANNER[k][0], BANNER[k][1], BANNER[k][2], k));
+    });
+  }
   function weekCardToday(x) {
     if (!x) return;
     cardBanner('weekShare', x.week_xp >= 50, 'crown', '<b>Your week: ' + num(x.week_xp) + ' XP.</b> That is worth a card — share it with friends or family.', 'Share my week', 'week');
     cardBanner('lvlShare', !!x.level_moment, 'crown', '<b>You are now ' + esc2(x.level_moment ? x.level_moment.level_to : '') + '.</b> Your teacher confirmed it — tell someone.', 'Share my level', 'levelup');
+    extraCards();
     cardBanner('streakShare', MILES.includes(STREAK.n), 'bolt', '<b>' + STREAK.n + ' days in a row.</b> A streak like this is rare — share it.', 'Share my streak', 'streak');
   }
   /* ── 2 / 11. On top of the Word Bank: the new words from the teacher; under the board: my finds, with dates ── */

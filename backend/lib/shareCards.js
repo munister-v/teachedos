@@ -22,6 +22,20 @@ const KINDS = {
   pulse: { audience: 'teacher', mode: 'brag' },
   parentreport: { audience: 'teacher', mode: 'invite', private: true },   // no page, no code, never stored
   welcome: { audience: 'teacher', mode: 'invite' },
+  // wave 3
+  words: { audience: 'student', mode: 'brag' },
+  costreak: { audience: 'student', mode: 'invite' },
+  duelinvite: { audience: 'student', mode: 'invite' },
+  comeback: { audience: 'student', mode: 'brag' },
+  perfectweek: { audience: 'student', mode: 'brag' },
+  wordmarathon: { audience: 'student', mode: 'brag' },
+  anniversary: { audience: 'either', mode: 'brag' },        // a student's or a teacher's, by who asks
+  together: { audience: 'joint', mode: 'brag', either: true },
+  game: { audience: 'teacher', mode: 'invite' },
+  milestone: { audience: 'teacher', mode: 'brag' },
+  authorweek: { audience: 'teacher', mode: 'brag' },
+  wordday: { audience: 'teacher', mode: 'brag' },
+  gratitude: { audience: 'teacher', mode: 'brag' },
 };
 const STREAK_MILESTONES = [7, 14, 30, 60, 100];
 const PULSE_MIN_STUDENTS = 3;       // below that a class "aggregate" is one person's data
@@ -90,12 +104,13 @@ async function wordsetSnap(db, user, body) {
 }
 
 /* a teacher's published lesson: the catalogue fields and how many colleagues took it */
-async function lessonSnap(db, user, ref) {
+async function lessonSnap(db, user, ref, kind = 'lesson') {
   const { rows: [a] } = await db.query(
     `SELECT a.id, a.kind, a.title, a.level, a.skill, a.description, a.tags,
             (SELECT COUNT(DISTINCT c.user_id)::int FROM library_copies c WHERE c.assignment_id = a.id) AS taken
        FROM assignments a WHERE a.id::text = $1 AND a.user_id = $2 AND a.visibility = 'community' AND a.hidden_at IS NULL`, [clip(ref, 40), user.id]);
-  if (!a) return { error: 'Publish the lesson to Community first', status: 404 };
+  if (!a) return { error: 'Publish the ' + kind + ' to Community first', status: 404 };
+  if (kind === 'game' && a.kind !== 'game') return { error: 'This is not a game', status: 400 };
   const { rows: [t] } = await db.query('SELECT name, community_bio FROM users WHERE id = $1', [user.id]);
   const tags = (Array.isArray(a.tags) ? a.tags : []).map(x => clip(x, 16)).filter(Boolean);
   const chips = [a.level, a.skill, ...tags].map(x => clip(x, 16)).filter(Boolean).slice(0, 4);
@@ -182,18 +197,39 @@ async function welcomeSnap(db, user, body) {
   return { ref: j.id, snap: { teacherName: first(t && t.name), teacherTagline: 'ENGLISH TEACHER', studentName: first(j.name), join: 'join.html?t=' + encodeURIComponent(token) } };
 }
 
+async function anniversarySnap(db, user, audience, sbits, tbits, w3) {
+  const a = await w3.anniversaryState(db, user);
+  if (!a) return { error: 'An anniversary card opens after a year on TeachEd' + (audience === 'student' ? ' or 100 lessons' : ''), status: 409 };
+  return { ref: a.ref, snap: { ...(audience === 'student' ? sbits : tbits), audience, bigValue: a.big, label: a.label, facts: a.facts } };
+}
+
 async function create(db, user, body = {}) {
   const kind = String(body.kind || '');
   const def = KINDS[kind];
   if (!def) return { error: 'This card is not open yet', status: 400 };
-  if (def.audience === 'teacher' && !['teacher', 'admin'].includes(user.role)) return { error: 'Teachers only', status: 403 };
+  const isTeacher = ['teacher', 'admin'].includes(user.role);
+  if (def.audience === 'teacher' && !isTeacher) return { error: 'Teachers only', status: 403 };
   if (def.audience === 'student' && user.role !== 'student') return { error: 'Students only', status: 403 };
+  const audience = def.audience === 'either' ? (isTeacher ? 'teacher' : 'student') : def.audience;
+  const w3 = require('./shareCardsWave3');
+  const sbits = audience === 'student' ? await studentBits(db, user) : null;
+  const tname = async () => { const { rows: [t] } = await db.query('SELECT name FROM users WHERE id = $1', [user.id]); return { teacherName: first(t && t.name), teacherTagline: 'ENGLISH TEACHER' }; };
+  const tbits = audience === 'teacher' ? await tname() : null;
   const built = kind === 'week' ? await weekSnap(db, user) : kind === 'duel' ? await duelSnap(db, user, body.ref)
-    : kind === 'wordset' ? await wordsetSnap(db, user, body) : kind === 'lesson' ? await lessonSnap(db, user, body.ref)
+    : kind === 'wordset' ? await wordsetSnap(db, user, body) : (kind === 'lesson' || kind === 'game') ? await lessonSnap(db, user, body.ref, kind)
     : kind === 'streak' ? await streakSnap(db, user) : kind === 'levelup' ? await levelupSnap(db, user)
-    : kind === 'pulse' ? await pulseSnap(db, user) : kind === 'welcome' ? await welcomeSnap(db, user, body) : await parentreportSnap(db, user, body);
+    : kind === 'pulse' ? await pulseSnap(db, user) : kind === 'welcome' ? await welcomeSnap(db, user, body)
+    : kind === 'parentreport' ? await parentreportSnap(db, user, body)
+    : kind === 'words' ? await w3.wordsSnap(db, user, body, sbits) : kind === 'costreak' ? await w3.costreakSnap(db, user, sbits)
+    : kind === 'duelinvite' ? await w3.duelinviteSnap(db, user, body.ref, sbits) : kind === 'comeback' ? await w3.comebackSnap(db, user, sbits)
+    : kind === 'perfectweek' ? await w3.perfectweekSnap(db, user, sbits) : kind === 'wordmarathon' ? await w3.wordmarathonSnap(db, user, sbits)
+    : kind === 'together' ? await w3.togetherSnap(db, user, body)
+    : kind === 'milestone' ? await w3.milestoneSnap(db, user, tbits) : kind === 'authorweek' ? await w3.authorweekSnap(db, user, tbits)
+    : kind === 'wordday' ? await w3.worddaySnap(db, user, body, tbits) : kind === 'gratitude' ? await w3.gratitudeSnap(db, user, body, tbits)
+    : kind === 'anniversary' ? await anniversarySnap(db, user, audience, sbits, tbits, w3)
+    : { error: 'This card is not open yet', status: 400 };
   if (built.error) return built;
-  if (def.private) return { code: null, kind, mode: def.mode, audience: def.audience, private: true, snapshot: built.snap };
+  if (def.private) return { code: null, kind, mode: def.mode, audience, private: true, snapshot: built.snap };
   // the same card asked twice (a second tap on Share) is the same link
   if (built.ref) {
     const { rows: [have] } = await db.query(
@@ -201,13 +237,13 @@ async function create(db, user, body = {}) {
         AND created_at > NOW() - INTERVAL '1 day' ORDER BY created_at DESC LIMIT 1`, [user.id, kind, built.ref]);
     if (have) {
       await db.query('UPDATE share_cards SET snapshot = $2 WHERE code = $1', [have.code, JSON.stringify(built.snap)]);
-      return { code: have.code, kind, mode: def.mode, audience: def.audience, snapshot: built.snap };
+      return { code: have.code, kind, mode: def.mode, audience, snapshot: built.snap };
     }
   }
   const c = code();
   await db.query('INSERT INTO share_cards (code, owner_id, kind, mode, ref, snapshot) VALUES ($1,$2,$3,$4,$5,$6)',
     [c, user.id, kind, def.mode, built.ref || null, JSON.stringify(built.snap)]);
-  return { code: c, kind, mode: def.mode, audience: def.audience, snapshot: built.snap };
+  return { code: c, kind, mode: def.mode, audience, snapshot: built.snap };
 }
 
 /* public: what the recipient's page shows; the full word list only for a word set (that is its action) */
@@ -216,8 +252,8 @@ async function read(db, c) {
     `UPDATE share_cards SET views = views + 1 WHERE code = $1 AND revoked_at IS NULL RETURNING code, kind, mode, ref, snapshot, created_at`,
     [clip(c, 16).toLowerCase()]);
   if (!r) return null;
-  const out = { code: r.code, kind: r.kind, mode: r.mode, audience: (KINDS[r.kind] || {}).audience, snapshot: r.snapshot, created_at: r.created_at };
-  if (r.kind === 'lesson') out.lesson_id = r.ref;
+  const out = { code: r.code, kind: r.kind, mode: r.mode, audience: (r.snapshot && r.snapshot.audience) || (KINDS[r.kind] || {}).audience, snapshot: r.snapshot, created_at: r.created_at };
+  if (r.kind === 'lesson' || r.kind === 'game') out.lesson_id = r.ref;
   return out;
 }
 
@@ -249,4 +285,4 @@ async function addWordset(db, user, c) {
   return { ok: true, added, total: (r.snapshot.words || []).length };
 }
 
-module.exports = { PULSE_MIN_STUDENTS, create, read, mine, revoke, addWordset, KINDS, SURFACES, WEEK_MIN_XP };
+module.exports = { PULSE_MIN_STUDENTS, available: (db, u) => require('./shareCardsWave3').available(db, u), create, read, mine, revoke, addWordset, KINDS, SURFACES, WEEK_MIN_XP };

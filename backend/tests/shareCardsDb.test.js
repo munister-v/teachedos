@@ -63,14 +63,14 @@ test('word set: the owner\'s own words, added once by a friend; a revoked page i
   assert.equal(await cards.read(pool, c.code), null);
 });
 
-test('lesson: only a published lesson of this teacher; types of later waves are refused', async t => {
+test('lesson: only a published lesson of this teacher; an unknown type is refused', async t => {
   if (!dbUp) return t.skip('no database');
   const { rows: [l] } = await pool.query(`INSERT INTO assignments (user_id, title, level, visibility, published_at) VALUES ($1,'Fashion','B2','community',NOW()) RETURNING id`, [teacher.id]);
   const { rows: [p] } = await pool.query(`INSERT INTO assignments (user_id, title, visibility) VALUES ($1,'Private','private') RETURNING id`, [teacher.id]);
   const c = await cards.create(pool, teacher, { kind: 'lesson', ref: l.id });
   assert.equal(c.snapshot.title, 'Fashion'); assert.equal(c.snapshot.usedByCount, 0);
   assert.equal((await cards.create(pool, teacher, { kind: 'lesson', ref: p.id })).status, 404);
-  assert.equal((await cards.create(pool, a, { kind: 'comeback' })).status, 400);
+  assert.equal((await cards.create(pool, a, { kind: 'nonsense' })).status, 400);
 });
 
 test('wave 2: streak and level-up open on their trigger; pulse is aggregates and needs three; the parent report is private; welcome carries the join link', async t => {
@@ -103,3 +103,45 @@ test('wave 2: streak and level-up open on their trigger; pulse is aggregates and
   const w = await cards.create(pool, teacher, { kind: 'welcome', ref: j.id });
   assert.match(w.snapshot.join, /^join\.html\?t=/); assert.equal(w.snapshot.studentName, 'x');
 });
+
+test('wave 3: each card opens only on its trigger; consent and the opponent rules hold; `available` offers only true cards', async t => {
+  if (!dbUp) return t.skip('no database');
+  const iso = d => new Date(Date.now() - d * 864e5);
+  // a word set of five, all mastered; marathon at 100
+  for (const w of ['a1', 'a2', 'a3', 'a4', 'a5']) await pool.query(`INSERT INTO vocabulary (user_id, word, translation, kind, source_title, learned) VALUES ($1,$2,'t','word','Trip set',TRUE)`, [b.id, w]);
+  const wd = await cards.create(pool, b, { kind: 'words' });
+  assert.equal(wd.snapshot.bigValue, '5'); assert.match(wd.snapshot.facts[0], /Trip set/);
+  assert.equal((await cards.create(pool, b, { kind: 'wordmarathon' })).status, 409, '100 words not reached');
+  // comeback: a pause of 4 days, then today with 10 XP
+  assert.equal((await cards.create(pool, b, { kind: 'comeback' })).status, 409);
+  await pool.query(`INSERT INTO xp_events (user_id, kind, ref, xp, label, created_at) VALUES ($1,'treat','cb1',5,'T',$2),($1,'lucky','cb2',60,'L',NOW()),($1,'treat','cb0',5,'T',$3)`, [b.id, iso(5), iso(5)]).catch(() => {});
+  await pool.query(`INSERT INTO xp_events (user_id, kind, ref, xp, label, created_at) VALUES ($1,'homework','cb9',20,'H',$2)`, [b.id, iso(9)]);
+  const cb = await cards.create(pool, b, { kind: 'comeback' });
+  assert.equal(cb.snapshot.unit, 'days'); assert.ok(Number(cb.snapshot.bigValue) >= 3);
+  // duel invite: only my own open challenge; a friend's name appears only between friends
+  const { rows: [d] } = await pool.query(`INSERT INTO duels (challenger_id, opponent_id, game, status, questions, expires_at) VALUES ($1,$2,'verb-hunt','pending','[1,2]'::jsonb, NOW() + INTERVAL '1 day') RETURNING id`, [a.id, b.id]);
+  assert.equal((await cards.create(pool, b, { kind: 'duelinvite', ref: d.id })).status, 404);
+  const di = await cards.create(pool, a, { kind: 'duelinvite', ref: d.id });
+  assert.equal(di.mode, 'invite'); assert.equal(di.snapshot.partnerName, undefined, 'not friends: no name'); assert.ok(di.snapshot.invite);
+  assert.ok(!JSON.stringify(di.snapshot).includes(b.id), 'the opponent\'s id never rides on the card');
+  // thank-you only with permission; word of the day numbers itself
+  assert.equal((await cards.create(pool, teacher, { kind: 'gratitude', fields: { quote: 'Great', author: 'Mum' } })).status, 400);
+  const g = await cards.create(pool, teacher, { kind: 'gratitude', fields: { quote: 'Great teacher', author: 'Vlad\'s mum', consent: true } });
+  assert.equal(g.snapshot.consentGiven, true);
+  const w1 = await cards.create(pool, teacher, { kind: 'wordday', fields: { word: 'serendipity', definition: 'the luck of finding what you were not looking for', example: 'Pure serendipity.' } });
+  const w2 = await cards.create(pool, teacher, { kind: 'wordday', fields: { word: 'lantern', definition: 'a lamp' } });
+  assert.equal(w1.snapshot.collectionNo, 1); assert.equal(w2.snapshot.collectionNo, 2); assert.ok(w1.snapshot.definition.length <= 2);
+  // milestone and anniversary are closed for a new teacher; available lists only the true ones
+  assert.equal((await cards.create(pool, teacher, { kind: 'milestone' })).status, 409);
+  assert.equal((await cards.create(pool, teacher, { kind: 'anniversary' })).status, 409);
+  const av = (await cards.available(pool, teacher)).map(k => k.kind);
+  assert.deepEqual(av.sort(), ['gratitude', 'wordday']);
+  const avs = (await cards.available(pool, b)).map(k => k.kind);
+  assert.ok(avs.includes('words') && avs.includes('comeback') && !avs.includes('wordmarathon'));
+  // a game card needs a published game
+  const { rows: [gm] } = await pool.query(`INSERT INTO assignments (user_id, kind, title, visibility, published_at) VALUES ($1,'game','Spin it','community',NOW()) RETURNING id`, [teacher.id]);
+  const { rows: [ls] } = await pool.query(`INSERT INTO assignments (user_id, kind, title, visibility, published_at) VALUES ($1,'lesson','Not a game','community',NOW()) RETURNING id`, [teacher.id]);
+  assert.equal((await cards.create(pool, teacher, { kind: 'game', ref: gm.id })).snapshot.title, 'Spin it');
+  assert.equal((await cards.create(pool, teacher, { kind: 'game', ref: ls.id })).status, 400);
+});
+

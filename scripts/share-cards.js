@@ -103,13 +103,43 @@
         txt(64, 892, 35, 700, G, 'Your hub is ready: words, duels and our lessons live there', ' opacity="0.8"') +
         (action ? band(action, url, 950) : '') + footer(card), 'Welcome');
     }
+    if (card.kind === 'milestone' || card.kind === 'authorweek' || card.kind === 'anniversary') {
+      const big = String(s.bigValue);
+      return svg('<rect width="' + W + '" height="' + H + '" fill="' + LIME + '"/>' + header(card) + photo(src, 140, 430, uid) +
+        txt(64, 830, big.length > 4 ? 150 : 200, 800, G, esc(big)) + txt(64, 920, 52, 800, G, esc(fit(s.label, 34))) +
+        txt(64, 990, 34, 700, G, esc(fit((s.facts || []).join(' · '), 56)), ' opacity="0.8"') + footer(card), s.label);
+    }
+    if (card.kind === 'together') {
+      const gid = uid + 'g';
+      return svg(grad(gid, TURQ, PINK) + '<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>' + header(card) + photo(src, 140, 470, uid) +
+        txt(64, 740, 62, 800, G, 'Lesson complete —') + txt(64, 818, 62, 800, G, 'together') +
+        txt(64, 940, s.lessonTitle.length > 18 ? 56 : 76, 800, G, esc(fit(s.lessonTitle, 28))) +
+        txt(64, 1010, 35, 700, G, esc((s.facts || []).join(' · ')), ' opacity="0.8"') + footer(card), 'Lesson complete together');
+    }
+    if (card.kind === 'wordday') {
+      return svg('<rect width="' + W + '" height="' + H + '" fill="' + SAND + '"/>' + header(card) + photo(src, 140, 300, uid) +
+        txt(64, 620, s.word.length > 12 ? 76 : 104, 800, G, esc(s.word)) +
+        txt(64, 682, 36, 600, G, esc([s.transcription, s.partOfSpeech].filter(Boolean).join(' · ')), ' opacity="0.65"') +
+        '<rect x="64" y="716" width="420" height="14" fill="' + LIME + '"/>' +
+        (s.definition || []).map((l, i) => txt(64, 806 + i * 58, 44, 700, G, esc(l))).join('') +
+        (s.example ? txt(64, 1010, 34, 600, G, '“' + esc(s.example) + '”', ' opacity="0.8"') : '') +
+        txt(64, 1096, 29, 600, G, 'Word № ' + s.collectionNo + ' in my collection · ' + esc(url), ' opacity="0.7"') + footer(card), s.word);
+    }
+    if (card.kind === 'gratitude') {
+      const lines = wrap('“' + s.quote + '”', 24);
+      return svg('<rect width="' + W + '" height="' + H + '" fill="' + PINK_SOFT + '"/>' + header(card) + photo(src, 140, 380, uid) +
+        lines.map((l, i) => txt(64, 640 + i * 72, 54, 800, G, esc(l))).join('') +
+        txt(64, 640 + lines.length * 72 + 30, 36, 700, G, '— ' + esc(s.quoteAuthor), ' opacity="0.75"') +
+        txt(64, 960, 32, 600, G, 'Published with permission.', ' opacity="0.7"') + txt(64, 1010, 32, 600, G, 'Thank you for trusting me with your English.', ' opacity="0.7"') + footer(card), 'Thank you');
+    }
     // student stat cards: week / streak / words / duel / levelup / costreak / duelinvite / comeback / perfectweek / wordmarathon
     const dark = card.kind === 'comeback', ink = dark ? CREAM : G, gid = uid + 'g';
     return svg(grad(gid, dark ? BLUE : TURQ, card.kind === 'costreak' ? PINK : dark ? TURQ : LIME) +
       '<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>' + header(card, dark) + photo(src, 140, 470, uid) +
       txt(64, 730, 58, 800, ink, esc(s.headline)) +
-      txt(64, 905, 165, 800, ink, esc(s.bigValue) + (s.unit ? '<tspan font-size="70" dx="14">' + esc(s.unit) + '</tspan>' : '')) +
+      txt(64, 905, String(s.bigValue).length > 9 ? 96 : 165, 800, ink, esc(s.bigValue) + (s.unit ? '<tspan font-size="70" dx="14">' + esc(s.unit) + '</tspan>' : '')) +
       txt(64, 982, 35, 700, ink, esc((s.facts || []).join(' · ')), ' opacity="0.8"') +
+      (s.partnerName && !action && (card.kind === 'costreak' || card.kind === 'duelinvite') ? txt(64, 1040, 35, 700, ink, card.kind === 'costreak' ? 'Together with ' + esc(s.partnerName) : 'Challenge sent to ' + esc(s.partnerName)) : '') +
       (action ? band(action, url, 1010) : '') + footer(card, dark), (s.headline || '') + ': ' + (s.bigValue || '') + ' ' + (s.unit || ''));
   }
 
@@ -157,7 +187,18 @@
     if (card.kind === 'week') return 'My week in English: ' + s.bigValue + ' XP on TeachEd';
     if (card.kind === 'duel') return 'Won a duel on TeachEd: ' + s.bigValue;
     if (card.kind === 'wordset') return s.setTitle + ' - ' + s.totalWords + ' words. Add them to your Word Bank';
-    if (card.kind === 'lesson') return s.title + ' - take it to your board';
+    if (card.kind === 'lesson' || card.kind === 'game') return s.title + (card.kind === 'game' ? ' - play it' : ' - take it to your board');
+    if (card.kind === 'words') return 'A whole word set mastered on TeachEd: ' + s.bigValue + ' words';
+    if (card.kind === 'costreak') return 'Duel me on TeachEd - let us start a shared streak';
+    if (card.kind === 'duelinvite') return 'I challenge you to a duel on TeachEd: ' + s.bigValue;
+    if (card.kind === 'comeback') return 'I am back on TeachEd after ' + s.bigValue + ' days';
+    if (card.kind === 'perfectweek') return 'A perfect week on TeachEd: 7 of 7';
+    if (card.kind === 'wordmarathon') return s.bigValue + ' words in my Word Bank on TeachEd';
+    if (card.kind === 'anniversary' || card.kind === 'milestone') return s.bigValue + ' ' + s.label;
+    if (card.kind === 'authorweek') return s.bigValue + ' colleagues took my lessons this week on TeachEd';
+    if (card.kind === 'together') return 'Lesson complete - together on TeachEd';
+    if (card.kind === 'wordday') return 'Word of the day: ' + s.word;
+    if (card.kind === 'gratitude') return '“' + s.quote + '”';
     if (card.kind === 'streak') return s.bigValue + ' days in a row on TeachEd';
     if (card.kind === 'levelup') return 'New level on TeachEd: ' + s.bigValue;
     if (card.kind === 'pulse') return 'My class this week: ' + s.weekXp + ' XP on TeachEd';
@@ -199,18 +240,26 @@
     document.addEventListener('keydown', onKey);
     back.querySelector('.shs-close').onclick = close; back.onclick = e => { if (e.target === back) close(); };
     let card, note = '';
-    if (opts.askNote) {
-      // one step first: the teacher's line for the parent (optional), then the card
-      note = await new Promise(res => {
-        back.querySelector('.shs-body').innerHTML = '<p class="shs-note" style="margin:0 0 8px;color:#0B1026;font-weight:700">A short line for the parent (optional)</p>' +
-          '<textarea id="shsNote" maxlength="140" rows="3" style="width:100%;box-sizing:border-box;border-radius:14px;border:1.5px solid rgba(11,16,38,.14);padding:12px;font:600 15px Manrope,sans-serif" placeholder="Strong month - speaking is braver every week."></textarea>' +
+    let fields = null;
+    const defs = opts.fields || (opts.askNote ? [{ key: 'note', label: 'A short line for the parent (optional)', max: 140, area: true, placeholder: 'Strong month - speaking is braver every week.' }] : null);
+    if (defs) {
+      // one step first: the person fills in what the card needs, then the card is made
+      fields = await new Promise(res => {
+        back.querySelector('.shs-body').innerHTML = defs.map(d => d.check
+          ? '<label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0;font:700 14px Manrope,sans-serif"><input type="checkbox" data-k="' + esc(d.key) + '" style="margin-top:3px"><span>' + esc(d.label) + '</span></label>'
+          : '<p class="shs-note" style="margin:12px 0 6px;color:#0B1026;font-weight:700">' + esc(d.label) + '</p>' + (d.area ? '<textarea rows="3"' : '<input type="text"') + ' data-k="' + esc(d.key) + '" maxlength="' + (d.max || 120) + '" placeholder="' + esc(d.placeholder || '') + '" style="width:100%;box-sizing:border-box;border-radius:14px;border:1.5px solid rgba(11,16,38,.14);padding:12px;font:600 15px Manrope,sans-serif">' + (d.area ? '</textarea>' : '')).join('') +
           '<div class="shs-actions"><button class="shs-btn shs-btn-primary" id="shsMake">Make the card</button></div>';
-        back.querySelector('#shsMake').onclick = () => res(back.querySelector('#shsNote').value.trim());
+        back.querySelector('#shsMake').onclick = () => {
+          const out = {};
+          back.querySelectorAll('[data-k]').forEach(el => { out[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value.trim(); });
+          res(out);
+        };
       });
+      note = fields.note || '';
       back.querySelector('.shs-body').innerHTML = '<div class="shs-preview"></div>';
     }
     try {
-      const r = await opts.api('/api/cards', { method: 'POST', body: { kind: opts.kind, ref: opts.ref, title: opts.title, words: opts.words, description: opts.description, note } });
+      const r = await opts.api('/api/cards', { method: 'POST', body: { kind: opts.kind, ref: opts.ref, title: opts.title, words: opts.words, description: opts.description, note, fields } });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || 'Could not make the card');
       card = d;
@@ -251,5 +300,23 @@
     draw();
   }
 
-  window.TeachEdShare = { open, render, photoFor, toPng, event, inviteAction, KICKER, POOL, ACTION };
+  /* the person's own cards, each one can be taken down: the page stops working, a picture already saved stays with whoever got it */
+  async function manage(opts) {
+    ensureStyle();
+    const back = document.createElement('div'); back.className = 'shs-backdrop';
+    back.innerHTML = '<div class="shs-sheet"><div class="shs-head"><span class="shs-title">My shared cards</span><button class="shs-close" aria-label="Close">✕</button></div><div class="shs-body">Loading…</div></div>';
+    document.body.appendChild(back);
+    const close = () => back.remove(); back.querySelector('.shs-close').onclick = close; back.onclick = e => { if (e.target === back) close(); };
+    const body = back.querySelector('.shs-body');
+    const load = async () => {
+      const r = await opts.api('/api/cards/mine'); const d = await r.json().catch(() => ({}));
+      const live = ((d && d.cards) || []).filter(c => !c.revoked_at);
+      body.innerHTML = live.length ? live.map(c => '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(11,16,38,.08)"><div style="flex:1;min-width:0"><b>' + esc(c.headline || c.set_title || c.title || KICKER[c.kind] || c.kind) + '</b><div style="font-size:12.5px;opacity:.6">' + esc(KICKER[c.kind] || c.kind) + ' · ' + new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' · opened ' + c.views + '×</div></div><button class="shs-btn" data-rm="' + esc(c.code) + '">Remove</button></div>').join('') +
+        '<p class="shs-note">Removing stops the page. A picture someone already saved stays with them.</p>' : '<p class="shs-note">No cards shared yet.</p>';
+      body.querySelectorAll('[data-rm]').forEach(b => { b.onclick = async () => { if (!confirm('Remove this card’s page? The link stops working.')) return; await opts.api('/api/cards/' + encodeURIComponent(b.dataset.rm), { method: 'DELETE' }); load(); }; });
+    };
+    load();
+  }
+
+  window.TeachEdShare = { manage, open, render, photoFor, toPng, event, inviteAction, KICKER, POOL, ACTION };
 })();

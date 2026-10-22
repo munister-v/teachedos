@@ -228,7 +228,7 @@ async function listDuels(db, userId) {
       id: r.id, game: r.game, game_label: duel.GAMES[r.game].label, state, total: r.total, shared: r.shared_words,
       with: firstName(mine === 'challenger' ? r.oname : r.cname), with_id: mine === 'challenger' ? r.opponent_id : r.challenger_id,
       my_score: r[mine + '_score'], their_score: r[theirs + '_score'], their_ms: theyPlayed ? r[theirs + '_ms'] : null,
-      won: r.winner_id ? r.winner_id === userId : null, expires_at: r.expires_at, created_at: r.created_at,
+      i_challenged: r.challenger_id === userId, won: r.winner_id ? r.winner_id === userId : null, expires_at: r.expires_at, created_at: r.created_at,
     };
   });
 }

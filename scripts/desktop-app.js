@@ -2131,16 +2131,27 @@ function studentsShareCard(kind, journalId) {
   window.TeachEdShare.open({ kind, ref: journalId, api, surface: 'student-card', askNote: kind === 'parentreport' });
 }
 window.studentsShareCard = studentsShareCard;
-/* the class week: a strip on the dashboard once there are three students with accounts, and the Monday note opens it */
-function pulseStrip(api) {
-  const host = document.getElementById('mp-next-lesson');
-  if (!host || document.getElementById('mp-pulse') || !window.TeachEdShare) return;
-  const el = document.createElement('div'); el.id = 'mp-pulse';
-  el.style.cssText = 'margin:12px 0;padding:14px 18px;border-radius:18px;background:#24282C;color:#FBF7EC;display:flex;align-items:center;gap:14px;font:700 14px Manrope,sans-serif';
-  el.innerHTML = '<span style="flex:1">Your class week is ready to share — totals only, no names.</span><button type="button" style="border:0;border-radius:99px;background:#D5F568;color:#24282C;font:800 13.5px Manrope,sans-serif;padding:10px 16px;cursor:pointer">Share class week</button>';
-  host.after(el);
-  el.querySelector('button').onclick = () => window.TeachEdShare.open({ kind: 'pulse', api, surface: 'dashboard' });
-}
+/* share cards on the dashboard: one strip of the cards that are true for this teacher right now - the class week
+   (three students with accounts), a milestone, the author of the week, an anniversary, a lesson done together -
+   plus the two they write themselves (word of the day, a thank-you with permission) and the list to take cards down */
+const CARD_CHIPS = {
+  pulse: 'Share class week', milestone: 'Share my milestone', authorweek: 'Share author of the week', anniversary: 'Share my anniversary',
+  together: 'Share last lesson', wordday: 'Word of the day', gratitude: 'Thank-you card',
+};
+const CARD_FORMS = {
+  wordday: [
+    { key: 'word', label: 'The word', max: 40, placeholder: 'serendipity' },
+    { key: 'transcription', label: 'Transcription (optional)', max: 40, placeholder: '/ˌser.ənˈdɪp.ə.ti/' },
+    { key: 'partOfSpeech', label: 'Part of speech (optional)', max: 16, placeholder: 'noun' },
+    { key: 'definition', label: 'What it means', max: 120, placeholder: 'the luck of finding what you were not looking for' },
+    { key: 'example', label: 'An example (optional)', max: 90, placeholder: 'Meeting her was pure serendipity.' },
+  ],
+  gratitude: [
+    { key: 'quote', label: 'The words, exactly as they wrote them', max: 140, area: true, placeholder: 'My son asks for English homework himself now.' },
+    { key: 'author', label: 'Who said it', max: 40, placeholder: 'Vlad’s mum' },
+    { key: 'consent', check: true, label: 'They agreed that I publish this' },
+  ],
+};
 function pulseInit() {
   if (!window.TeachEdShare || !_authToken) return;
   const api = (path, opts = {}) => fetch(API_BASE + path, {
@@ -2148,9 +2159,22 @@ function pulseInit() {
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
+  const open = kind => window.TeachEdShare.open({ kind, api, surface: 'dashboard', fields: CARD_FORMS[kind] });
   const linked = (Array.isArray(STUDENTS) ? STUDENTS : []).filter(x => x && x.id && x.journal_id).length;
-  if (linked >= 3) pulseStrip(api);
-  if (new URLSearchParams(location.search).get('share') === 'pulse') window.TeachEdShare.open({ kind: 'pulse', api, surface: 'dashboard' });
+  if (new URLSearchParams(location.search).get('share') === 'pulse') open('pulse');
+  const host = document.getElementById('mp-next-lesson');
+  if (!host || document.getElementById('mp-pulse')) return;
+  api('/api/cards/available').then(r => (r.ok ? r.json() : null)).then(d => {
+    if (!d || document.getElementById('mp-pulse')) return;
+    const kinds = (linked >= 3 ? ['pulse'] : []).concat((d.kinds || []).map(k => k.kind));
+    const el = document.createElement('div'); el.id = 'mp-pulse';
+    el.style.cssText = 'margin:12px 0;padding:14px 18px;border-radius:18px;background:#24282C;color:#FBF7EC;font:700 14px Manrope,sans-serif';
+    const chip = 'border:0;border-radius:99px;background:#D5F568;color:#24282C;font:800 13px Manrope,sans-serif;padding:9px 15px;cursor:pointer;margin:4px 6px 0 0';
+    el.innerHTML = '<div style="margin-bottom:6px">Cards to share — pictures with a link, your name first.</div>' + kinds.map(k => '<button type="button" style="' + chip + '" data-k="' + k + '">' + CARD_CHIPS[k] + '</button>').join('') +
+      '<button type="button" style="' + chip.replace('#D5F568', 'transparent').replace('#24282C', '#FBF7EC') + ';border:1.5px solid rgba(251,247,236,.3)" data-k="_mine">My cards</button>';
+    host.after(el);
+    el.onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === '_mine') window.TeachEdShare.manage({ api }); else open(b.dataset.k); };
+  }).catch(() => {});
 }
 window.addEventListener('load', () => setTimeout(pulseInit, 1500));
 /* Parental consent and erasure (E5): the teacher records who agreed; a minor without it
@@ -3879,13 +3903,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1356" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1357" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1356" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1357" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace
