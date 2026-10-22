@@ -81,9 +81,11 @@ test('sharing: a set and a progress card are real links with the owner\'s invita
   const add = await friends.addSet(pool, cara, s.token);
   assert.deepEqual([add.added, add.total], [6, 6]);
   assert.equal((await friends.addSet(pool, cara, s.token)).added, 0, 'nothing twice');
-  const p = await friends.createShare(pool, anna, 'progress', {});
+  const mine = (await pool.query(`SELECT word FROM vocabulary WHERE user_id = $1 AND kind = 'word' LIMIT 1`, [anna.id])).rows[0];
+  const p = await friends.createShare(pool, anna, 'progress', { recent: [mine ? mine.word : 'x', 'not-my-word'] });
   const pc = await friends.readShare(pool, p.token);
-  assert.deepEqual(Object.keys(pc.payload).sort(), ['badges', 'level', 'streak', 'words', 'xp']);
+  assert.deepEqual(Object.keys(pc.payload).sort(), ['badges', 'level', 'recent', 'streak', 'words', 'xp']);
+  assert.deepEqual(pc.payload.recent, mine ? [mine.word] : [], 'only words from the owner\'s own bank go on the card');
   assert.equal(await friends.readShare(pool, 'missing'), null);
 });
 

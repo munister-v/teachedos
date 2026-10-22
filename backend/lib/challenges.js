@@ -81,6 +81,26 @@ async function completeChallenge(db, user, id, answer) {
 }
 
 /* The week's XP of the student and the class (Monday to Sunday in the student's own zone). */
+/* What counts in the sprint: every point of the week, whatever paid it. The list is the real price
+   list of the platform (lib/xp.js, lib/today.js, lib/hubcontent.js, lib/duel.js), so the plate on
+   the sprint never promises what does not pay; duels are listed only when the student can duel. */
+const SPRINT_REWARD = 50;
+function earnList(canDuel) {
+  const hub = require('./hubcontent'), today = require('./today');
+  return [
+    { what: 'Review a word in your Word Bank', xp: '+2 to +8', note: 'an overdue word pays more' },
+    { what: 'Finish a read and pass its quiz', xp: '+' + hub.QUIZ_XP },
+    { what: 'Keep a word from a read', xp: '+' + hub.WORD_XP },
+    { what: 'Homework handed in', xp: '+' + xp.RULES.homework.xp },
+    { what: 'Quiz on your board', xp: '+' + xp.RULES.quiz.xp, note: '+' + xp.RULES.quiz_strong.xp + ' more at 80%' },
+    { what: 'Lesson attended', xp: '+' + xp.RULES.lesson.xp },
+    { what: 'Today’s lucky task', xp: '+' + today.LUCKY_BASE_XP + ' to +' + Math.round(today.LUCKY_BASE_XP * today.LUCKY_BONUS) },
+    { what: 'Treat of the day kept', xp: '+' + today.TREAT_XP },
+    { what: 'Teacher’s challenge of the day', xp: '×' + TODAY_BONUS + ' on the day' },
+    ...(canDuel ? [{ what: 'Duel', xp: '+' + duel.WIN_XP + ' win · +' + duel.DRAW_XP + ' draw · +' + duel.LOSE_XP + ' played' }] : []),
+  ];
+}
+
 async function sprint(db, user) {
   const tz = tzOf(user);
   const today = dayIn(tz);
@@ -98,7 +118,12 @@ async function sprint(db, user) {
   board.forEach((b, i) => { b.rank = i + 1; });
   const me = board.find(b => b.me);
   const above = board[me.rank - 2] || null;
-  return { goal: SPRINT_GOAL, xp: me.xp, rank: me.rank, class_size: board.length, ends_in_days: 6 - dow, behind: above ? { name: above.name, xp: above.xp - me.xp } : null, board: board.slice(0, 6) };
+  // the week's reward: reaching the goal pays a bonus once a week
+  let reward_paid = false;
+  if (me.xp >= SPRINT_GOAL) reward_paid = await xp.award(db, user.id, 'sprint', monday, SPRINT_REWARD, 'Weekly sprint goal reached') || true;
+  else reward_paid = (await db.query(`SELECT 1 FROM xp_events WHERE user_id = $1 AND kind = 'sprint' AND ref = $2`, [user.id, monday])).rows.length > 0;
+  return { goal: SPRINT_GOAL, xp: me.xp, rank: me.rank, class_size: board.length, ends_in_days: 6 - dow, behind: above ? { name: above.name, xp: above.xp - me.xp } : null, board: board.slice(0, 6),
+           reward: { xp: SPRINT_REWARD, done: reward_paid }, earn: earnList(mates.length > 0) };
 }
 
 /* ── duels ─────────────────────────────────────────────────────────────── */
@@ -172,6 +197,13 @@ async function submitDuel(db, user, id, choices, ms) {
     const winner = await finishDuel(db, f);
     result = { winner_id: winner, you_won: winner === user.id, draw: !winner };
   } else if (side === 'challenger') await db.query(`UPDATE duels SET status = 'active' WHERE id = $1 AND status = 'pending'`, [d.id]);
+  /* the bell of the other player: a new duel for them, or their duel answered */
+  try {
+    const { createNotification } = require('../routes/notifications');
+    const other = side === 'challenger' ? d.opponent_id : d.challenger_id, me = firstName(user.name), game = duel.GAMES[d.game].label;
+    if (result) await createNotification(other, 'duel', me + ' answered your duel', game + ' · ' + (result.draw ? 'a draw' : result.you_won ? me + ' won this one - ask for a rematch' : 'you won'), 'student-hub.html#challenges');
+    else if (side === 'challenger') await createNotification(other, 'duel', me + ' challenges you to a duel', game + ' · same words for both · 24 hours to answer', 'student-hub.html#challenges');
+  } catch (_) {}
   if (score === d.questions.length) await db.query(`INSERT INTO user_badges (user_id, badge) VALUES ($1,'secret') ON CONFLICT DO NOTHING`, [user.id]).catch(() => {});
   await evaluateBadges(db, user.id);
   return { score, total: d.questions.length, result };
@@ -230,10 +262,12 @@ async function evaluateBadges(db, userId) {
   return fresh;
 }
 
-async function badges(db, userId) {
+/* badges for duels are shown only when the student has someone to duel (or already earned them) */
+const DUEL_BADGES = new Set(['first_blood', 'revenger']);
+async function badges(db, userId, canDuel = true) {
   const { rows } = await db.query('SELECT badge, earned_at FROM user_badges WHERE user_id = $1', [userId]);
   const got = new Map(rows.map(r => [r.badge, r.earned_at]));
-  return BADGES.map(b => ({ key: b.key, title: got.has(b.key) || !b.secret ? b.title : 'Secret', hint: got.has(b.key) || !b.secret ? b.hint : '???', earned: got.has(b.key), at: got.get(b.key) || null }));
+  return BADGES.filter(b => canDuel || !DUEL_BADGES.has(b.key) || got.has(b.key)).map(b => ({ key: b.key, title: got.has(b.key) || !b.secret ? b.title : 'Secret', hint: got.has(b.key) || !b.secret ? b.hint : '???', earned: got.has(b.key), at: got.get(b.key) || null }));
 }
 
 /* "Close" on a duel invite: it is declined and gone from this student's list for good, with one tap */

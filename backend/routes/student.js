@@ -594,12 +594,48 @@ router.get('/wordbank', requireAuth, async (req, res) => {
     let tz = String(req.user.timezone || 'Europe/Kyiv');
     try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch (_) { tz = 'UTC'; }
     const { rows } = await pool.query(
-      `SELECT id, word, translation, example, source_title, source_type, created_at, reps, ease, interval_days, lapses, due_at, learned, last_reviewed_at
-         FROM vocabulary WHERE user_id = $1 AND kind = 'word' ORDER BY created_at DESC LIMIT 600`, [req.user.id]);
+      `SELECT v.id, v.word, v.translation, v.example, v.source_title, v.source_type, v.created_at, v.reps, v.ease, v.interval_days, v.lapses, v.due_at, v.learned, v.last_reviewed_at,
+              v.sent_by, t.name AS teacher_name
+         FROM vocabulary v LEFT JOIN users t ON t.id = v.sent_by
+        WHERE v.user_id = $1 AND v.kind = 'word' ORDER BY v.created_at DESC LIMIT 600`, [req.user.id]);
     res.json(wordbank.board(rows, tz));
   } catch (err) {
     console.error('[student/wordbank]', err.message);
     res.status(500).json({ error: 'Could not load the Word Bank' });
+  }
+});
+
+/* The lesson card on Today (hub fixlist §1): is the teacher on the student's board right now, which
+   board "My board" opens, and - for an hour or six after a lesson - what the lesson left: its new words.
+   The schedule itself comes from /dashboard; this is the live part, asked again every minute. */
+router.get('/lesson-now', requireAuth, async (req, res) => {
+  try {
+    const { rows: boards } = await pool.query(
+      `SELECT b.id, b.user_id AS owner_id, u.name AS teacher_name FROM board_collaborators bc
+         JOIN boards b ON b.id = bc.board_id JOIN users u ON u.id = b.user_id
+        WHERE bc.user_id = $1 AND b.trashed_at IS NULL ORDER BY bc.is_home DESC, b.updated_at DESC LIMIT 20`, [req.user.id]);
+    const online = boards.length ? await require('../ws').onlineUserIdsAsync(boards.map(b => b.id)) : new Set();
+    // the teacher is "on the lesson" when the board's owner holds a socket of one of the student's boards
+    const live = boards.find(b => online.has(String(b.owner_id)));
+    const { rows: [last] } = await pool.query(
+      `SELECT s.board_id, s.started_at, s.ended_at, u.name AS teacher_name FROM lesson_sessions s JOIN users u ON u.id = s.teacher_id
+        WHERE $1 = ANY(s.students) AND s.ended_at IS NOT NULL AND s.ended_at > NOW() - INTERVAL '6 hours'
+        ORDER BY s.ended_at DESC LIMIT 1`, [req.user.id]);
+    let after = null;
+    if (last && !live) {
+      const { rows: words } = await pool.query(
+        `SELECT id, word, translation FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND sent_by IS NOT NULL
+            AND created_at >= $2::timestamptz - INTERVAL '10 minutes' ORDER BY created_at DESC LIMIT 30`, [req.user.id, last.started_at]);
+      after = { ended_at: last.ended_at, teacher: String(last.teacher_name || 'your teacher').split(/\s+/)[0], board_id: last.board_id, words };
+    }
+    res.json({
+      my_board: boards[0] ? boards[0].id : null,
+      teacher_here: !!live, live_board: live ? live.id : null, teacher: live ? String(live.teacher_name || '').split(/\s+/)[0] : null,
+      after,
+    });
+  } catch (err) {
+    console.error('[student/lesson-now]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -614,6 +650,13 @@ router.post('/today/lucky/pull', requireAuth, async (req, res) => {
     if (out.error) return res.status(out.status || 400).json({ error: out.error });
     res.json(out);
   } catch (err) { console.error('[student/lucky]', err.message); res.status(500).json({ error: 'Server error' }); }
+});
+router.post('/today/lucky/answer', requireAuth, async (req, res) => {
+  try {
+    const out = await today.answerLucky(pool, req.user, req.body && req.body.choice);
+    if (out.error) return res.status(out.status || 400).json({ error: out.error });
+    res.json(out);
+  } catch (err) { console.error('[student/lucky/answer]', err.message); res.status(500).json({ error: 'Server error' }); }
 });
 router.post('/today/treat/keep', requireAuth, async (req, res) => {
   try { res.json(await today.keepTreat(pool, req.user)); }

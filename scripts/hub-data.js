@@ -7,6 +7,8 @@
   'use strict';
   const token = localStorage.getItem('teachedos_token');
   if (!token) { location.href = 'index.html'; return; }
+  // another account signed in in another tab: this page never mixes the two - it starts again
+  window.addEventListener('storage', e => { if (e.key === 'teachedos_token' && e.newValue !== token) location.reload(); });
   const api = window.TeachEdApp.createApiClient(() => token);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const set = (sel, fn) => $$(sel).forEach(fn);
@@ -249,21 +251,8 @@
     });
   }
 
-  function nextLesson(dash) {
-    const card = $$('.uncard[data-t="lesson"]')[0];
-    if (!card) return;
-    const box = card.querySelector('div[style*="flex"]');
-    const s = dash && dash.schedule && dash.schedule[0];
-    if (!s || !s.start_at) { box.innerHTML = '<b>No lesson booked</b><span>Your next lesson shows up here</span>'; return; }
-    const at = new Date(s.start_at);
-    const days = Math.round((new Date(at).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
-    const when = days <= 0 ? 'today' : days === 1 ? 'tomorrow' : 'in ' + days + ' days';
-    const b = document.createElement('b');
-    b.textContent = at.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ' + at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · ' + (s.title || s.group_name || 'Lesson');
-    const sp = document.createElement('span');
-    sp.textContent = 'Next lesson · ' + when + (s.teacher_name ? ' · with ' + s.teacher_name : '');
-    box.innerHTML = ''; box.append(b, sp);
-  }
+  /* the lesson card on Today: see lessonCard() - the schedule from /dashboard, the live part from /lesson-now */
+  function nextLesson(dash) { DASH = dash || {}; lessonCard(); pollLesson(); }
 
   function today(words, inbox) {
     const pg = document.getElementById('pg-today');
@@ -294,7 +283,7 @@
     const deck = pg.querySelector('.cbody');
     if (deck) deck.innerHTML = '<b>' + (rows.length ? 'Your day, in ' + plural(rows.length, 'move') : 'Nothing due today') + '</b><span>' + (rows.length ? 'About ' + mins + ' minutes — then you are free' : 'Enjoy the quiet') + '</span>';
     const pill = pg.querySelector('.minpill'); if (pill) pill.textContent = plural(rows.length, 'task') + (rows.length ? ' · ≈' + mins + ' min' : '');
-    hide(pg, '.pixchip, #luckyCard, #wnStrip, .lpop');
+    hide(pg, '.pixchip, #luckyCard, #wnStrip');   // not .lpop: the Lucky Task opens in it (a hidden pop-up made Pull dead)
     // Treat of the day: a word from the student's own notebook, not a sample.
     const treat = pg.querySelector('#treat');
     if (treat) {
@@ -347,16 +336,16 @@
     }
     const l = NODE_AT[NODE_AT.length - 1]; return { left: l[1], bottom: l[2] };
   }
+  let XPLAST = null;
   function xpPaint(x) {
     if (!x) return;
     const L = x.level, inBand = L.in_band;
     set('.sprof .spxp', e => { e.textContent = num(x.total) + ' XP'; e.style.display = ''; });
     set('.sprof .spinfo span', e => { if (!/^with /.test(e.textContent)) e.textContent = L.from + ' · Explorer'; });
-    set('.streakpill', e => { e.appendChild(document.createTextNode(' · ' + num(x.total) + ' XP')); });
+    set('.streakpill', e => { const t = e.lastChild; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(/ · [\d,]+ XP$/, '') + ' · ' + num(x.total) + ' XP'; });
     set('.ministreak .ms-sub', e => { e.textContent = num(x.total) + ' XP · ' + L.from + ' → ' + L.to + ' · ' + L.pct + '%'; });
     set('.ministreak .segbar i', e => { e.style.width = L.pct + '%'; });
-    set('.uncard[data-t="streak"] div[style*="flex"] span', e => { e.textContent = num(inBand) + ' / ' + num(L.band_xp) + ' XP'; });
-    set('.uncard[data-t="streak"] .mini i', e => { e.style.width = L.pct + '%'; });
+    XPLAST = x;
 
     const pg = document.getElementById('pg-progress');
     if (!pg) return;
@@ -365,7 +354,7 @@
     if (grid) { grid.style.display = ''; grid.querySelectorAll(':scope > .panel').forEach(pn => { pn.style.display = ''; pn.style.gridColumn = ''; }); }
     const sub = pg.querySelector('.edhead .sub'); if (sub) sub.textContent = 'Your climb from ' + L.from + ' to ' + L.to + ' — honestly measured';
     const meta = pg.querySelector('.edhead .meta');
-    if (meta && !/XP total/.test(meta.textContent)) meta.insertAdjacentHTML('afterbegin', '<b>' + num(x.total) + '</b> XP total<br>');
+    if (meta) { const t0 = meta.querySelector('b[data-xp]'); if (t0) t0.textContent = num(x.total); else meta.insertAdjacentHTML('afterbegin', '<b data-xp="1">' + num(x.total) + '</b> XP total<br>'); }
     const kk = pg.querySelector('.mapband .mkick'); if (kk) kk.innerHTML = 'LEVEL PATH · ' + L.from + ' &rarr; ' + L.to;
 
     // nodes: passed or ahead by the real XP, the flag at its real place
@@ -410,7 +399,7 @@
     // this week
     const todayIdx = x.week.findIndex(d => d.day === new Date().toLocaleDateString('en-CA'));
     const pt = pg.querySelector('.grid2c .panel .ptitle');
-    if (pt) pt.innerHTML = '+' + num(x.week_xp) + ' XP <span class="todaytag">+' + num(x.today) + ' today</span>';
+    if (pt) pt.innerHTML = '+' + num(x.week_xp) + ' XP this week <span class="todaytag">+' + num(x.today) + ' today</span>';
     const bars = pg.querySelector('#bars');
     if (bars) {
       const max = Math.max(20, ...x.week.map(d => d.xp));
@@ -425,24 +414,8 @@
       pg.querySelectorAll('.barlabels span').forEach((e, i) => e.classList.toggle('tb', i === todayIdx));
     }
 
-    // wins: what paid XP lately
-    const wins = pg.querySelector('.wins13');
-    if (wins) {
-      wins.querySelectorAll('.wrow').forEach(r => r.remove());
-      const art = { homework: 'crown', quiz: 'bolt', quiz_strong: 'bolt', lesson: 'heart', word_kept: 'spark' };
-      const k = wins.querySelector('.kick2'); if (k) k.textContent = 'WINS & XP · RECENT';
-      if (!x.recent.length) wins.insertAdjacentHTML('beforeend', '<div class="wrow"><div><b>Nothing yet</b><div class="wsub">Your first finished task pays your first XP</div></div></div>');
-      x.recent.forEach(w => {
-        const row = document.createElement('div'); row.className = 'wrow';
-        row.innerHTML = '<span class="medal"><span class="pxart"></span></span><div><b></b></div><span class="wxp"></span><span class="wdate"></span>';
-        row.querySelector('b').textContent = w.label;
-        row.querySelector('.wxp').textContent = '+' + w.xp + ' XP';
-        row.querySelector('.wdate').textContent = new Date(w.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-        const a = row.querySelector('.pxart'); a.dataset.art = art[w.kind] || 'spark'; a.dataset.color = '#D3F26A'; a.dataset.px = '3';
-        wins.appendChild(row);
-        paintArt(a);
-      });
-    }
+    // the journal: every payment, the same rows as the total and "today"
+    journalPaint(x);
   }
 
 
@@ -481,12 +454,15 @@
     const h1 = wb.querySelector('h1'), out = h1 && h1.querySelector('.out');
     if (out) { out.textContent = b.total; h1.lastChild.textContent = b.total === 1 ? ' word' : ' words'; }
     const meta = wb.querySelector('.hdr .meta');
-    if (meta) meta.innerHTML = '<b>' + plural(fl, 'flight') + ' today</b> · ' + b.arrived.length + ' mastered<br>every word here is flying to your long-term memory';
-    const chip = wb.querySelector('.fchip[data-f="review"]'); if (chip) chip.textContent = 'Due · ' + fl;
+    const C = b.counts || { total: b.total, teacher_new: 0, due_today: fl };
+    if (meta) meta.innerHTML = '<div class="wb3"><div><b>' + C.total + '</b><span>Total words</span></div><div><b>' + C.teacher_new + '</b><span>New from teacher</span></div><div><b>' + C.due_today + '</b><span>Review today</span></div></div>';
+    const chip = wb.querySelector('.fchip[data-f="review"]'); if (chip) chip.textContent = 'Review today · ' + fl;
     const ms = wb.querySelectorAll('.scol .ms');
     if (ms[0]) ms[0].innerHTML = '<b>' + b.total + '</b><span>words in the bank</span>';
-    if (ms[1]) ms[1].innerHTML = '<b style="color:#FF4E00">' + plural(fl, 'flight') + ' today</b><span>the board below is calling</span>';
+    if (ms[1]) ms[1].innerHTML = '<b style="color:#FF4E00">' + fl + ' to review today</b><span>the board below is calling</span>';
+    // the menu badge is "review today", the same number as in the header
     set('.nav .nbadge', e => { if (/Word Bank/.test(e.parentNode.textContent)) { e.textContent = fl; e.style.display = fl ? '' : 'none'; } });
+    wbBlocks(wb, b);
     // the boarding pass: the first flight of the day
     const spot = b.queue[0] || b.air[0] || b.arrived[0];
     if (spot) {
@@ -527,6 +503,7 @@
       nb.textContent = fl ? 'Board now · start sprint' : 'Nothing to board';
       nb.disabled = !fl;
       nb.addEventListener('click', () => sprint());
+      nb.title = 'Review today’s words';
     }
     wb.querySelectorAll('.fchip[data-f]').forEach(c => {
       const nc = c.cloneNode(true); c.replaceWith(nc);
@@ -563,7 +540,9 @@
       h += queue.map(rowHtml).join('');
       if (showQ && !queue.length && !q) h += '<div class="bnote">The board is clear — no flights today. Nice.</div>';
       if (air.length) h += '<div class="bsec"><span>IN THE AIR · ' + air.length + '</span><span class="bsec-n">on schedule — tap a flight for its example</span></div>' + air.slice(0, 20).map(rowHtml).join('');
-      if (showAir && b.tomorrow && !q) h += '<div class="bnote">' + (b.queued ? '+' + plural(b.queued, 'new word') + ' wait for a free seat — ' + b.queued + ' board tomorrow. ' : '') + 'The bank keeps everything safe until check-in.</div>';
+      const wait = showAir ? (b.waiting || []).filter(hit) : [];
+      if (wait.length) h += '<div class="bsec"><span>WAITING FOR A SEAT · ' + wait.length + '</span><span class="bsec-n">new words board five a day — these are next</span></div>' + wait.slice(0, 30).map(rowHtml).join('');
+      if (showAir && b.tomorrow && !q && !wait.length) h += '<div class="bnote">The bank keeps everything safe until check-in.</div>';
       if (arr.length) h += '<div class="arr20"><span class="arr-t">ARRIVED · LONG-TERM MEMORY</span>' + arr.slice(0, 24).map(w => '<span class="achip">' + esc2(w.word) + ' ✓</span>').join('') +
         '<span class="arr-n">' + plural(b.arrived.length, 'word') + ' home' + (b.next_recheck_days ? ' · next re-check in ' + plural(b.next_recheck_days, 'day') : '') + '</span></div>';
     }
@@ -572,7 +551,7 @@
     const toRead = dep.querySelector('#wbToRead'); if (toRead) toRead.onclick = () => goTo(1);
     dep.querySelectorAll('.xrow').forEach(r => r.addEventListener('click', e => {
       const say = e.target.closest('[data-say]');
-      if (say) { try { const u = new SpeechSynthesisUtterance(say.dataset.say); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} return; }
+      if (say) { window.__hubSay(say.dataset.say); return; }
       const del = e.target.closest('[data-del]');
       if (del) {
         const nm = r.querySelector('.w').childNodes[0].textContent;
@@ -598,16 +577,16 @@
     setTimeout(() => json('/api/student/wordbank').then(nb => { if (nb && !document.querySelector('#sheetWrap.open')) wordBank(nb); }), 900);
   }
   /* the sprint: flip cards from today's queue; every answer is a real repetition */
-  function sprint() {
+  function sprint(only) {
     const wrap = document.getElementById('sheetWrap'), pb = document.getElementById('sProg'), body = document.getElementById('sBody');
-    if (!wrap || !WB || !WB.queue.length) return;
-    const deck = WB.queue.slice(0, 20);
+    const deck = (only && only.length ? only : (WB ? WB.queue : [])).slice(0, 20);
+    if (!wrap || !deck.length) return;
     let i = 0, got = 0, xpSum = 0, flipped = false;
     wrap.classList.add('open');
     const finish = () => {
       pb.textContent = 'SESSION COMPLETE';
       body.innerHTML = '<div class="done"><div class="dn">Done</div><p>' + got + ' of ' + deck.length + ' solid · <b>+' + xpSum + ' XP</b> banked.<br>The rest come back right on schedule.</p></div><div class="srow"><button class="gotit" id="bClose">Back to my words</button></div>';
-      body.querySelector('#bClose').onclick = () => { wrap.classList.remove('open'); refreshAfterReview(); };
+      body.querySelector('#bClose').onclick = () => { wrap.classList.remove('open'); refreshAfterReview(); refreshStreak(); };
       burstConfetti(80);
     };
     const show = () => {
@@ -697,14 +676,16 @@
     const mood = (b, i) => b.me ? (S.behind ? S.behind.xp + ' XP behind ' + S.behind.name : 'leading the class') : (b.xp >= S.goal ? 'goal reached' : b.xp >= S.goal * 0.8 ? 'almost there' : i === 0 ? 'on fire' : 'steady');
     const sprintHtml = '<section class="panel"><div class="ptitle">WEEKLY · WORD SPRINT</div>' +
       '<div class="wbar"><i style="width:' + Math.min(100, Math.round(S.xp / S.goal * 100)) + '%"></i></div>' +
-      '<div class="wmeta"><span><b>' + S.xp + '</b> / ' + S.goal + ' XP</span><span>' + (S.ends_in_days ? 'ends in ' + plural(S.ends_in_days, 'day') : 'ends today') + '</span></div>' +
+      '<div class="wmeta"><span><b>' + S.xp + '</b> / ' + S.goal + ' XP this week</span><span>' + (S.ends_in_days ? 'ends in ' + plural(S.ends_in_days, 'day') : 'ends today') + '</span></div>' +
+      (S.reward ? '<div class="sp-rew">' + (S.reward.done ? '✓ Week reward earned: +' + S.reward.xp + ' XP' : 'Reach ' + S.goal + ' and the week pays a +' + S.reward.xp + ' XP bonus · ' + Math.max(0, S.goal - S.xp) + ' to go') + '</div>' : '') +
+      (S.earn ? '<details class="sp-earn"><summary>How to earn points</summary><ul>' + S.earn.map(e => '<li><span>' + esc2(e.what) + (e.note ? '<small>' + esc2(e.note) + '</small>' : '') + '</span><b>' + esc2(e.xp) + '</b></li>').join('') + '</ul><div class="sp-rew">Every point of the week counts in the sprint.</div></details>' : '') +
       (S.class_size < 2 ? '<div class="dnote" style="margin-top:14px">No classmates yet — when your teacher puts more students in your class, the ranking shows up here.</div>'
         : rows.map((b, i) => '<div class="wrow' + (b.me ? ' me' : '') + '"><span class="ava" style="background:' + AVA[i % 4] + '">' + esc2(b.me ? ini(document.querySelector('.sprof .spinfo b')?.textContent || 'You') + '' : ini(b.name)) + '</span><div class="who"><b>' +
           esc2(b.me ? 'You · #' + b.rank : b.name + (b.level ? ' · ' + b.level : '')) + '</b><span>' + esc2(mood(b, i)) + '</span></div><span class="xp">' + b.xp + '</span></div>').join('')) + '</section>';
-    const live = h.duels.filter(d => ['incoming', 'your_move', 'waiting'].includes(d.state) && !laterIds.has(d.id) || d.state === 'your_move' || d.state === 'waiting');
+    const live = h.duels.filter(d => ['incoming', 'your_move', 'waiting'].includes(d.state));
     const block = d => {
       const av = '<span class="ava" style="background:' + AVA[(d.with.length) % 4] + '">' + esc2(ini(d.with)) + '</span>';
-      if (d.state === 'incoming') return '<div class="duel"><div class="dt">INCOMING · EXPIRES IN ' + hoursLeft(d.expires_at) + '</div><div class="db">' + av + '<div class="who"><b>' + esc2(d.with) + ' challenges you</b><span>' + esc2(d.game_label) + ' · same words for both</span></div></div><div class="db"><button class="dbtn lime" data-play="' + esc2(d.id) + '">Accept duel</button><button class="dbtn ghost" data-later="' + esc2(d.id) + '">Later</button><button class="dbtn ghost" data-decline="' + esc2(d.id) + '">Decline</button></div></div>';
+      if (d.state === 'incoming') return '<div class="duel"><div class="dt">INVITE · EXPIRES IN ' + hoursLeft(d.expires_at) + '</div><div class="db">' + av + '<div class="who"><b>' + esc2(d.with) + ' challenges you</b><span>' + esc2(d.game_label) + ' · same words for both</span></div></div><div class="db"><button class="dbtn lime" data-play="' + esc2(d.id) + '">Accept duel</button><button class="dbtn ghost" data-decline="' + esc2(d.id) + '" title="Gone for good">Decline</button></div></div>';
       if (d.state === 'your_move') return '<div class="duel"><div class="dt">ACTIVE · YOUR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + (d.their_score != null ? 'he played: ' + d.their_score + '/' + d.total + ' · your turn' : 'your turn') + '</span></div><button class="dbtn" data-play="' + esc2(d.id) + '">Play</button></div></div>';
       if (d.state === 'waiting') return '<div class="duel"><div class="dt">WAITING · THEIR MOVE</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>you scored ' + d.my_score + '/' + d.total + ' · waiting for ' + esc2(d.with) + '</span></div></div></div>';
       if (d.state === 'finished') return '<div class="duel"><div class="dt">' + (d.won === true ? 'YOU WON' : d.won === false ? 'LOST THIS ONE' : 'A DRAW') + '</div><div class="db">' + av + '<div class="who"><b>vs ' + esc2(d.with) + ' · ' + esc2(d.game_label) + '</b><span>' + d.my_score + ' : ' + d.their_score + (d.won === true ? ' · +60 XP' : d.won === false ? ' · +10 XP' : ' · +30 XP') + '</span></div><button class="dbtn" data-rematch="' + esc2(d.id) + '">Rematch</button></div></div>';
@@ -714,9 +695,12 @@
     const duelHtml = '<section class="panel"><div class="ptitle">DUELS<span class="pxart" data-art="swords" data-color="#1E2231" data-px="2"></span></div>' +
       (shown.length ? shown.map(block).join('') : '<div class="dnote">No duels yet. Throw one — the winner takes the bank.</div>') +
       '<button class="throw" id="throwBtn"' + (h.classmates.length ? '' : ' disabled') + '>Throw a duel <span>→</span></button><div class="dnote">' +
-      (h.classmates.length ? 'Seed sets are built from words you both have — nobody brings outside words.' : 'Invite a friend below, and the first duel is one tap away.') + '</div></section>';
+      (h.classmates.length ? 'Seed sets are built from words you both have — nobody brings outside words.' : 'Invite a friend below, and the first duel is one tap away.') + '</div>' +
+      '<label class="dnote" style="display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:10px"><input type="checkbox" id="dInv"' + (h.duel_invites ? ' checked' : '') + '> Let friends send me duel invites</label></section>';
     cols.innerHTML = sprintHtml + duelHtml + '<section class="panel" id="frPanel"><div class="ptitle">FRIENDS</div><div class="dnote">Loading…</div></section>';
     friendsPanel(cols.querySelector('#frPanel'));
+    const inv = cols.querySelector('#dInv');
+    if (inv) inv.onchange = () => chApi('/settings', 'PUT', { duel_invites: inv.checked }).then(r => { if (!r.ok) inv.checked = !inv.checked; else CH.duel_invites = inv.checked; });
     cols.onclick = e => {
       const t = e.target.closest('button'); if (!t) return;
       if (t.dataset.frDuel) return throwSheet(t.dataset.frDuel);
@@ -724,7 +708,6 @@
       if (t.dataset.frSet) return shareSet();
       if (t.dataset.frOff) return frApi('/' + encodeURIComponent(t.dataset.frOff), 'DELETE').then(() => reloadChallenges());
       if (t.dataset.play) return playDuel(t.dataset.play);
-      if (t.dataset.later) { laterIds.add(t.dataset.later); return challenges(CH); }
       if (t.dataset.decline) return chApi('/duels/' + encodeURIComponent(t.dataset.decline) + '/decline', 'POST').then(reloadChallenges);
       if (t.dataset.rematch) return chApi('/duels/' + encodeURIComponent(t.dataset.rematch) + '/rematch', 'POST').then(r => { if (!r.ok) alert(r.d.error); reloadChallenges(); });
       if (t.id === 'throwBtn') return throwSheet();
@@ -737,27 +720,8 @@
       (IMG[b.key] ? '<img class="bimg" src="img/hub/' + IMG[b.key] + '.webp" alt="">' : '<span class="bimg" style="display:grid;place-items:center;font:800 28px Manrope,sans-serif;color:#1E2231">' + esc2(ini(b.title)) + '</span>') +
       '<b>' + esc2(b.title) + '</b><i>' + esc2(b.hint) + '</i></div>').join('');
 
-    // the invite pop-up: the first duel thrown at the student that is still unanswered
-    const pop = document.getElementById('duelPop');
-    const inc = h.duels.find(d => d.state === 'incoming' && !laterIds.has(d.id));
-    if (pop) {
-      if (!inc) { pop.classList.remove('open'); pop.style.display = 'none'; }
-      else {
-        pop.style.display = ''; pop.classList.add('open');
-        pop.querySelector('.dtitle').textContent = inc.with + ' challenges you';
-        pop.querySelector('.dsub').innerHTML = '<b>' + esc2(inc.game_label) + '</b> · built from words you both have<br>Winner takes the bank · <b>+60 XP</b>';
-        const t = pop.querySelector('#dpTimer'); if (t) t.parentNode.innerHTML = 'Expires in ' + hoursLeft(inc.expires_at).toLowerCase();
-        const pls = pop.querySelectorAll('.dvs .p');
-        if (pls[0]) { pls[0].querySelector('.ava2').textContent = ini(inc.with); pls[0].querySelector('.pinfo').firstChild.textContent = inc.with; pls[0].querySelector('.pinfo span').textContent = 'your classmate'; }
-        if (pls[1]) pls[1].querySelector('.pinfo span').textContent = '#' + S.rank + ' in class';
-        const rep = (id, fn) => { const el = pop.querySelector(id); if (!el) return; const n = el.cloneNode(true); el.replaceWith(n); n.onclick = fn; };
-        rep('#dpAccept', () => { pop.classList.remove('open'); pop.style.display = 'none'; playDuel(inc.id); });
-        rep('#dpLater', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; });
-        // X closes this invitation for good (it used to come back on every visit)
-        rep('#dpX', () => { laterIds.add(inc.id); pop.classList.remove('open'); pop.style.display = 'none'; chApi('/duels/' + encodeURIComponent(inc.id) + '/close', 'POST').then(reloadChallenges); });
-        rep('#dpOff', () => chApi('/settings', 'PUT', { duel_invites: false }).then(() => { pop.classList.remove('open'); pop.style.display = 'none'; alert('Duel invites are off. You can turn them on again from this screen.'); }));
-      }
-    }
+    // invitations live in the list above, never in a pop-up (fixlist §8)
+    const pop = document.getElementById('duelPop'); if (pop) { pop.classList.remove('open'); pop.style.display = 'none'; }
     set('.nav button', b => {
       const nb = b.querySelector('.nbadge');
       if (nb && /Challenges/.test(b.textContent)) {
@@ -799,18 +763,10 @@
       shareLink(location.origin + r.d.path, 'A word set: ' + title);
     });
   }
-  function shareProgress(btn) {
-    btn.disabled = true;
-    frApi('/share', 'POST', { kind: 'progress' }).then(r => {
-      btn.disabled = false;
-      if (!r.ok) return alert(r.d.error || 'Could not make the link');
-      shareLink(location.origin + r.d.path, 'My English progress on TeachEd');
-    });
-  }
   (function wireShare() {
     const b = document.getElementById('shareBtn'); if (!b) return;
     const n = b.cloneNode(true); b.replaceWith(n);
-    n.addEventListener('click', () => shareProgress(n));
+    n.addEventListener('click', () => shareProgressSheet(n));
   })();
   function throwSheet(pre) {
     if (!CH || !CH.classmates.length) return;
@@ -882,12 +838,21 @@
           row.className = 'planrow' + (r.state === 'done' ? ' done' : '');
           row.innerHTML = '<span class="pnum">' + (i + 1) + '</span><div class="pmain"><b>' + esc2(r.title) + '</b><span>' + esc2(r.why) + '</span></div><span class="pmeta">' + esc2(r.meta) + '</span><button class="pbtn ' + (i === 0 ? 'lime' : 'line') + '"' + (r.state === 'done' ? ' disabled' : '') + '>' + esc2(r.state === 'done' ? '✓ Done' : r.label) + '</button>';
           const b = row.querySelector('button');
-          b.addEventListener('click', e => { e.stopPropagation(); if (r.href) location.href = r.href; else navTo(r.go); });
+          b.addEventListener('click', e => {
+            e.stopPropagation();
+            if (r.practice === 'teacher') return practiseTeacher(TODAY && TODAY.teacher_words ? TODAY.teacher_words.ids : null);
+            if (r.kind === 'lucky' && !r.go) return openLucky();       // the 30-second task answers in the pop-up
+            if (r.kind === 'treat') return smallestStep();
+            if (r.href) location.href = r.href; else navTo(r.go);
+          });
+          if (r.kind === 'lucky' && r.state === 'revealed' && !r.go) b.textContent = 'Answer';
         }
         plan.appendChild(row);
       });
       const pullBtn = plan.querySelector('#luckyPull'); if (pullBtn) pullBtn.addEventListener('click', openLucky);
     }
+    TODAY = t;
+    teacherBanner(t);
     const mins = t.minutes;
     const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';
     const end = pg.querySelector('.planend'); if (end) end.textContent = rows.length ? 'That’s the whole day. Everything else can wait — and it will, happily.' : 'All clear — nothing due today.';
@@ -910,21 +875,30 @@
     const tr = pg.querySelector('#treat'), T = t.treat;
     if (tr && T) {
       tr.style.display = '';
-      tr.querySelector('.tk').lastChild.textContent = 'TREAT OF THE DAY';
+      tr.querySelector('.tk').lastChild.textContent = T.from ? 'TREAT OF THE DAY · FOR YOUR LEVEL AND INTERESTS' : 'TREAT OF THE DAY · FOR YOUR LEVEL';
       tr.querySelector('.tw').textContent = T.word;
       tr.querySelector('.tt').textContent = T.meaning + (T.example ? ' · “' + T.example + '”' : '');
       const hear = fresh(tr.querySelector('#tHear'));
-      hear.addEventListener('click', e => { e.stopPropagation(); try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(T.word); u.lang = 'en-US'; speechSynthesis.speak(u); } catch (_) {} });
+      hear.setAttribute('aria-label', 'Say “' + T.word + '” out loud');
+      hear.addEventListener('click', e => { e.stopPropagation(); if (!say(T.word)) toastAt(hear, 'This browser has no voice for English'); });
       const keep = fresh(tr.querySelector('#tKeep')); keep.style.display = '';
-      if (T.saved) { keep.textContent = '✓ Kept'; keep.disabled = true; }
+      let noteEl = tr.querySelector('.treat-note');
+      const where = () => {
+        if (!noteEl) { noteEl = document.createElement('div'); noteEl.className = 'treat-note'; tr.querySelector('.tt').after(noteEl); }
+        noteEl.innerHTML = 'The word is in your Word Bank · <a data-finds="1">My finds</a>';
+        noteEl.querySelector('a').onclick = e => { e.stopPropagation(); goTo(2); setTimeout(() => { const f = document.getElementById('wbFinds'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120); };
+      };
+      if (T.saved) { keep.textContent = '✓ In your Word Bank'; keep.disabled = true; where(); }
       else {
+        if (noteEl) noteEl.remove(), noteEl = null;
         keep.textContent = '+ Keep';
         keep.addEventListener('click', e => {
           e.stopPropagation(); keep.disabled = true;
           api('/api/student/today/treat/keep', { method: 'POST' }).then(r => r.json()).then(d => {
-            keep.textContent = '✓ Kept'; burstConfetti(50);
-            if (d && d.xp) json('/api/student/xp').then(xpPaint);
+            keep.textContent = '✓ In your Word Bank'; where(); burstConfetti(50);
+            toastAt(keep, (d && d.xp ? '+' + d.xp + ' XP · ' : '') + 'saved to My finds');
             json('/api/student/wordbank').then(b => b && wordBank(b));
+            refreshStreak();
           }).catch(() => { keep.disabled = false; });
         });
       }
@@ -935,42 +909,78 @@
   }
   let TODAY = null;
   const reloadToday = () => json('/api/student/today').then(todayPaint);
+  /* The Lucky Task: one pull a day opens a 30-second task from the student's own words - pick the meaning
+     of the word that is about to slip. The points and the streak day are shown the moment it is answered. */
   function openLucky() {
     const pop0 = document.getElementById('luckyPop');
     if (!pop0 || !TODAY || !TODAY.lucky) return;
-    const pop = fresh(pop0), L = TODAY.lucky;
+    const pop = fresh(pop0); let L = TODAY.lucky;
     const A = pop.querySelector('#lpA'), B = pop.querySelector('#lpB'), C = pop.querySelector('#lpC'), badge = pop.querySelector('#lpBadge'), slot = pop.querySelector('#lpSlot');
     const showStep = x => { [A, B, C].forEach(e => { e.style.display = 'none'; }); x.style.display = 'block'; };
     const close = () => { pop.classList.remove('open'); reloadToday(); };
     pop.querySelector('#lpX').onclick = close; pop.querySelector('#lpLater').onclick = close;
     pop.onclick = e => { if (e.target === pop) close(); };
     pop.querySelectorAll('.pxart').forEach(el => { if (!el.children.length) paintArt(el); });
+    const btns = C.querySelector('.lbtns'), chips = C.querySelector('.lchips');
+    const result = r => {
+      C.querySelector('.ltitle').textContent = r.correct ? 'Saved it!' : 'Now you know it';
+      C.querySelector('.lsub').innerHTML = '<b>' + esc2(r.word) + '</b> — ' + esc2(r.meaning);
+      chips.innerHTML = '<div class="lq-res"><span class="big">+' + r.xp + ' XP</span>' + (r.correct ? 'Right first time — the lucky bonus is yours.' : 'The task is done and paid.') +
+        (r.streak ? '<br>🔥 Today counts for your streak · ' + plural(r.streak, 'day') : '') + '</div>';
+      btns.style.display = ''; pop.querySelector('#lpStart').textContent = 'Done'; pop.querySelector('#lpLater').style.display = 'none';
+      pop.querySelector('#lpStart').onclick = close;
+    };
+    const quiz = task => {
+      badge.classList.remove('shake'); showStep(C);
+      C.querySelector('.ltitle').textContent = task.label;
+      C.querySelector('.lsub').textContent = task.hint || 'Pick the meaning.';
+      btns.style.display = 'none';
+      chips.innerHTML = '<div class="lq-opts">' + task.quiz.options.map((o, i) => '<button type="button" data-k="' + i + '">' + esc2(o) + '</button>').join('') + '</div>';
+      chips.querySelector('.lq-opts').onclick = e => {
+        const b = e.target.closest('[data-k]'); if (!b) return;
+        chips.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        api('/api/student/today/lucky/answer', { method: 'POST', body: { choice: +b.dataset.k } }).then(r => r.json().then(d => ({ ok: r.ok, d }))).then(res => {
+          if (!res.ok) { alert(res.d.error || 'Could not send'); return close(); }
+          const r = res.d;
+          chips.querySelectorAll('button').forEach((x, i) => { if (i === r.answer) x.classList.add('ok'); else if (x === b) x.classList.add('no'); });
+          if (r.correct) burstConfetti(90);
+          setTimeout(() => result(r), 700);
+          json('/api/student/xp').then(xpPaint); refreshStreak();
+        }).catch(() => { chips.querySelectorAll('button').forEach(x => { x.disabled = false; }); });
+      };
+    };
     const reveal = task => {
+      if (task.quiz) return quiz(task);
       badge.classList.remove('shake'); showStep(C);
       C.querySelector('.ltitle').textContent = task.label;
       C.querySelector('.lsub').textContent = task.hint || 'Finish it today and the bonus is yours.';
-      C.querySelector('.lchips').innerHTML = '<span class="lchip lime">+' + L.xp + ' XP</span><span class="lchip pink">LUCKY BONUS ×' + L.bonus + ' TODAY</span>';
-      burstConfetti(90);
+      chips.innerHTML = '<span class="lchip lime">+' + L.xp + ' XP</span><span class="lchip pink">LUCKY BONUS ×' + L.bonus + ' TODAY</span>';
+      btns.style.display = '';
       pop.querySelector('#lpStart').onclick = () => { pop.classList.remove('open'); reloadToday(); navTo(task.go); };
     };
     const start = () => {
-      if (L.state !== 'sealed') { showStep(C); return reveal(L.task); }
-      showStep(A); pop.classList.add('open');
+      if (L.state === 'done') {
+        showStep(C);
+        if (L.task && L.task.result) return result({ ...L.task.result, streak: STREAK.n });
+        C.querySelector('.ltitle').textContent = 'Today’s task is done'; C.querySelector('.lsub').textContent = 'A new one is sealed tomorrow.'; chips.innerHTML = ''; btns.style.display = 'none'; return;
+      }
+      if (L.state !== 'sealed') return reveal(L.task);
+      showStep(A);
     };
     pop.querySelector('#lpPull').onclick = () => {
       showStep(B); badge.classList.add('shake');
       api('/api/student/today/lucky/pull', { method: 'POST' }).then(r => r.json().then(d => ({ ok: r.ok, d }))).then(res => {
         if (!res.ok) { close(); alert(res.d.error || 'Could not pull'); return; }
-        const task = res.d.lucky.task, names = L.pool.length ? L.pool : [task.label];
+        const task = res.d.lucky.task, names = [task.quiz ? task.quiz.prompt : task.label, 'A word about to slip', 'Yesterday’s words', 'Your own Word Bank'];
         let i = 0, d = 70;
         const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         (function tick() {
           slot.textContent = names[i % names.length]; i++;
           d = Math.min(d * 1.22, 300);
           if (!reduce && d < 290) setTimeout(tick, d);
-          else setTimeout(() => { slot.textContent = task.label; reveal(task); TODAY.lucky = res.d.lucky; }, reduce ? 0 : 320);
+          else setTimeout(() => { L = TODAY.lucky = res.d.lucky; slot.textContent = task.label; reveal(task); }, reduce ? 0 : 320);
         })();
-      });
+      }).catch(() => { close(); });
     };
     pop.classList.add('open'); start();
   }
@@ -981,9 +991,9 @@
      three-question quiz that opens at 90%. */
   const PAL = [['#1E2231', '#F4F3EC'], ['#8B7CFF', '#fff'], ['#FF4FA3', '#fff'], ['#F6D8D8', '#1E2231'], ['#E9F5C4', '#1E2231'], ['#D5F6F2', '#1E2231']];
   const palOf = id => PAL[parseInt(String(id).replace(/[^0-9a-f]/gi, '').slice(0, 4) || '0', 16) % PAL.length];
-  let WR = null, wrRange = false, wrTopic = '', wrPoll = 0, wrPolls = 0, wrCatalog = null;
+  let WR = null, wrShift = '', wrTopic = '', wrPoll = 0, wrPolls = 0, wrCatalog = null;
   const hubApi = (path, method, body) => api('/api/hub' + path, { method: method || 'GET', body }).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: { error: 'Network error' } }));
-  const loadFeed = () => hubApi('/feed' + (wrRange ? '?range=1' : '')).then(r => { if (r.ok) watchPaint(r.d); });
+  const loadFeed = () => hubApi('/feed' + (wrShift ? '?shift=' + wrShift : '')).then(r => { if (r.ok) watchPaint(r.d); });
   function coverHtml(m, i) {
     const [bg, fg] = palOf(m.id), kick = (m.kicker || m.topic || (m.kind === 'watch' ? 'WATCH' : 'READ')).toUpperCase();
     const words = m.title.split(' '), half = Math.ceil(words.length / 2);
@@ -1020,7 +1030,8 @@
     const pg = document.getElementById('pg-watchread');
     if (!pg || !f) return;
     WR = f; ensureWrStyle();
-    const top = pg.querySelector('.topline .day'); if (top) top.textContent = 'WATCH & READ · FOR YOUR LEVEL ' + f.level;
+    const shown = f.shown_level || f.level;
+    const top = pg.querySelector('.topline .day'); if (top) top.textContent = 'WATCH & READ · ' + (f.shift ? 'SHOWING ' + shown : 'FOR YOUR LEVEL ' + f.level);
     const sub = pg.querySelector('.zsub2'); if (sub) sub.textContent = 'New every day, for your level and what you like. The game after each piece is built from its words — that is the point.';
     wrInterests(pg, f);
     const items = f.items.filter(m => !wrTopic || m.topic === wrTopic);
@@ -1046,16 +1057,22 @@
     // filters: the level, a wider range, and the topics the teachers used
     const chips = pg.querySelector('.chips');
     if (chips) {
-      chips.innerHTML = '<span class="chlab">LEVEL</span><button class="chip lvl' + (wrRange ? '' : ' on') + '" data-lv="0">' + esc2(f.level) + '</button><button class="chip lvl' + (wrRange ? ' on' : '') + '" data-lv="1">± one level</button>' +
+      const LV = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'], li = LV.indexOf(f.level);
+      const lvBtn = (k, label, off) => '<button class="chip lvl' + (wrShift === k ? ' on' : '') + '" data-lv="' + k + '"' + (off ? ' disabled style="opacity:.4"' : '') + '>' + label + '</button>';
+      chips.innerHTML = '<span class="chlab">LEVEL</span>' + lvBtn('easier', 'Easier' + (li > 0 ? ' · ' + LV[li - 1] : ''), li <= 0) + lvBtn('', 'My level · ' + esc2(f.level)) + lvBtn('harder', 'Harder' + (li >= 0 && li < 5 ? ' · ' + LV[li + 1] : ''), li >= 5) +
         (f.topics.length ? '<span class="chlab">TOPICS</span>' + f.topics.map(t => '<button class="chip' + (wrTopic === t ? ' on' : '') + '" data-tp="' + esc2(t) + '">' + esc2(t) + '</button>').join('') : '');
       chips.insertAdjacentHTML('beforeend', '<button class="chip" data-edit="1" title="Change what your feed is built from">My interests</button>');
       chips.onclick = e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.edit) { pg.dataset.wrEdit = pg.dataset.wrEdit === '1' ? '' : '1'; return watchPaint(WR); }
-        if (b.dataset.lv != null) { wrRange = b.dataset.lv === '1'; return loadFeed(); }
+        if (b.dataset.lv != null) { wrShift = b.dataset.lv; wrPolls = 0; chips.querySelectorAll('.lvl').forEach(x => x.classList.toggle('on', x === b)); return loadFeed(); }
         if (b.dataset.tp != null) { wrTopic = wrTopic === b.dataset.tp ? '' : b.dataset.tp; return watchPaint(WR); }
       };
     }
+    // the level switch says what it did, and an empty level says where the pieces come from instead
+    let sn = pg.querySelector('.wr-shiftnote');
+    const snText = f.shift ? (f.shift === 'easier' ? 'Showing easier pieces — ' : 'Showing harder pieces — ') + shown + (f.nearby ? ' is still being built, nearby levels fill in' : '') : (f.nearby ? 'Nothing at ' + f.level + ' yet — showing nearby levels while new pieces are built' : '');
+    if (snText && chips) { if (!sn) { sn = document.createElement('div'); sn.className = 'wr-shiftnote'; chips.after(sn); } sn.textContent = snText; } else if (sn) sn.remove();
     const grids = pg.querySelectorAll('.grid2');
     if (grids[0]) grids[0].innerHTML = watch.length ? watch.map(coverHtml).join('') : '<div class="zsub">Videos from your teacher show up here. Reads for you are below.</div>';
     if (grids[1]) grids[1].innerHTML = read.length ? read.map(coverHtml).join('') : '<div class="zsub">' + (f.building ? 'Putting your first reads together — a few seconds…' : 'Nothing new right now — check back tomorrow.') + '</div>';
@@ -1246,6 +1263,361 @@
   }
 
 
+
+  /* Styles for the parts below (lesson card, bell, teacher words, finds, journal, share card) */
+  (function () {
+    if (document.getElementById('hubFixStyle')) return;
+    const st = document.createElement('style'); st.id = 'hubFixStyle';
+    st.textContent = '' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .uncard[data-t="lesson"]{cursor:default;align-items:flex-start}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .uncard[data-t="lesson"]:hover{transform:none}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn{white-space:nowrap;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:99px;padding:9px 16px;font:800 13.5px Manrope,sans-serif;text-decoration:none;cursor:pointer;color:#1E2231;background:#F1F1E8}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn.go{background:#D3F26A}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn.go:hover{filter:brightness(.96)}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn.quiet{background:transparent;border:1.5px solid rgba(30,34,49,.16)}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-dot{width:9px;height:9px;border-radius:50%;background:#1E2231;box-shadow:0 0 0 0 rgba(30,34,49,.45);animation:lcp 1.6s infinite}@keyframes lcp{70%{box-shadow:0 0 0 9px rgba(30,34,49,0)}100%{box-shadow:0 0 0 0 rgba(30,34,49,0)}}' +
+      '@media (prefers-reduced-motion:reduce){:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-dot{animation:none}}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-my{font:800 12.5px Manrope,sans-serif;color:inherit;opacity:.65;text-decoration:underline;text-underline-offset:3px}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-words span{background:#E9F5C4;color:#1E2231;border-radius:99px;padding:4px 10px;font:700 12px Manrope,sans-serif}' +
+      'html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn{background:#141726;color:#F4F3EC}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn.go{background:#D3F26A;color:#1E2231}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-btn.quiet{background:transparent;border-color:rgba(244,243,236,.2)}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lc-dot{background:#1E2231}' +
+      '.sbell i{display:none;background:#FF4E00!important}.sbell.unread i{display:block}' +
+      '#hubBellM{display:none}@media(max-width:900px){#hubBellM{display:grid;place-items:center;position:fixed;z-index:80;top:12px;right:12px;width:42px;height:42px;border-radius:14px;background:#1E2231;cursor:pointer;box-shadow:0 8px 20px rgba(30,34,49,.25)}#hubBellM i{position:absolute;top:10px;right:11px;width:8px;height:8px;border-radius:50%}#bellPanel{top:62px}}' +
+      '#bellPanel{position:fixed;z-index:9200;left:16px;top:76px;width:min(380px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 100px));overflow:auto;background:#fff;color:#1E2231;border-radius:22px;box-shadow:0 24px 60px rgba(11,16,38,.28);font-family:Manrope,sans-serif;padding:16px 16px 10px}' +
+      '#bellPanel .bp-h{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:1.6px;color:#5D614B;margin:2px 4px 10px}#bellPanel .bp-x{border:0;background:#F1F1E8;width:30px;height:30px;border-radius:50%;cursor:pointer}' +
+      '#bellPanel .bp-row{display:flex;gap:12px;align-items:center;padding:11px 8px;border-radius:14px;cursor:pointer}#bellPanel .bp-row:hover{background:#F6F6EF}#bellPanel .bp-row.new b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF4E00;margin-left:7px;vertical-align:2px}' +
+      '#bellPanel .bp-ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:17px;background:#F6F6EF}#bellPanel .bp-t{flex:1;min-width:0}#bellPanel .bp-t b{display:block;font-size:14px}#bellPanel .bp-t span{display:block;font-size:12.5px;font-weight:600;opacity:.6;margin-top:2px}' +
+      '#bellPanel .bp-go{border:0;border-radius:99px;background:#D3F26A;font:800 12.5px Manrope,sans-serif;padding:8px 13px;cursor:pointer;flex:none}#bellPanel .bp-empty{text-align:center;padding:22px 10px 18px}#bellPanel .bp-empty b{display:block;font-size:17px}#bellPanel .bp-empty span{display:block;font-size:13px;opacity:.6;margin:4px 0 14px}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .twbar{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:14px 18px;border-radius:20px;background:#E9F5C4;color:#1E2231;font-family:Manrope,sans-serif}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .twbar p{flex:1;margin:0;font-size:14.5px;font-weight:600;line-height:1.45}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .twbar button{border:0;border-radius:99px;background:#1E2231;color:#F4F3EC;font:800 13.5px Manrope,sans-serif;padding:10px 17px;cursor:pointer;flex:none}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 div{background:#fff;border-radius:16px;padding:10px 14px;min-width:120px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 b{display:block;font-size:24px;font-weight:800;letter-spacing:-.5px;color:#1E2231}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 span{display:block;font-size:12px;font-weight:700;color:rgba(30,34,49,.6)}' +
+      'html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 div{background:#1E2231}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 b{color:#F4F3EC}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wb3 span{color:rgba(244,243,236,.62)}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock{margin:0 0 18px;padding:18px 20px;border-radius:22px;background:#fff;color:#1E2231;font-family:Manrope,sans-serif}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .k{font-size:11px;font-weight:800;letter-spacing:1.6px;color:#5D614B}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .row2{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .ws{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .ws span{background:#F6F6EF;border-radius:12px;padding:7px 11px;font-size:13.5px;font-weight:700}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .ws small{display:block;font-size:11.5px;font-weight:600;opacity:.6}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock.tw{background:#E9F5C4}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock.tw .ws span{background:#fff}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock button{border:0;border-radius:99px;background:#1E2231;color:#F4F3EC;font:800 13.5px Manrope,sans-serif;padding:10px 17px;cursor:pointer}' +
+      'html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock{background:#1E2231;color:#F4F3EC}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .ws span{background:#141726}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock.tw{background:#2B3320}html[data-hubtheme="dark"] :is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wbblock .k{color:rgba(244,243,236,.62)}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .jr-sum{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .jr-sum span{background:rgba(30,34,49,.06);border-radius:12px;padding:7px 11px;font-size:12.5px;font-weight:700}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .jr-sum b{font-size:15px}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .jr-day{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:1.4px;opacity:.6;margin:14px 2px 4px}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn{margin-top:12px;font-size:13px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn summary{cursor:pointer;font-weight:800;list-style:none}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn summary::-webkit-details-marker{display:none}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn summary::after{content:" ▾"}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn[open] summary::after{content:" ▴"}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn ul{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:5px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn li{display:flex;justify-content:space-between;gap:10px;font-weight:600}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn li b{white-space:nowrap}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-earn li small{display:block;opacity:.55;font-weight:600}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .sp-rew{margin-top:10px;font-size:12.5px;font-weight:700;opacity:.8}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-opts{display:grid;gap:8px;margin-top:14px;width:100%}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-opts button{border:2px solid transparent;border-radius:14px;background:#F6F6EF;font:700 14.5px Manrope,sans-serif;padding:12px 14px;cursor:pointer;text-align:left;color:#1E2231}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-opts button.ok{background:#E9F5C4;border-color:#8FAE2E}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-opts button.no{background:#F6D8D8;border-color:#E14E8F}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-res{width:100%;margin-top:14px;font-size:14px;font-weight:700;line-height:1.5}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .lq-res .big{font-size:26px;font-weight:800;letter-spacing:-.5px;display:block}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .wr-shiftnote{margin:-4px 0 14px;font:700 13px Manrope,sans-serif;opacity:.7}' +
+      '.sc-prev{margin-top:16px;border-radius:20px;overflow:hidden;background:#F6F6EF;aspect-ratio:4/5;max-height:62vh;display:grid;place-items:center}.sc-prev svg{width:100%;height:100%;display:block}' +
+      '.sc-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.sc-acts .wr-btn.line{background:#F1F1E8}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .treat-note{margin-top:8px;font:700 12.5px Manrope,sans-serif;opacity:.75}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .treat-note a{color:inherit;text-decoration:underline;cursor:pointer}' +
+      ':is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .uncard[data-t="streak"] .lc-btn{margin-top:8px}:is(#pg-today,#pg-watchread,#pg-wordbank,#pg-challenges,#pg-progress) .uncard[data-t="streak"].lit .eic{background:#FFE3C2!important}';
+    document.head.appendChild(st);
+  })();
+
+  /* Saying a word out loud, the same way everywhere (the treat, the Word Bank): an English voice when
+     the browser has one, and the queue reset first - a speak() right after cancel() is dropped by Chrome. */
+  function say(text) {
+    try {
+      const ss = window.speechSynthesis; if (!ss || !text) return false;
+      ss.cancel();
+      const u = new SpeechSynthesisUtterance(String(text)); u.lang = 'en-US'; u.rate = 0.95;
+      const vs = ss.getVoices(), v = vs.find(x => /^en[-_]US/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang));
+      if (v) u.voice = v;
+      setTimeout(() => { try { ss.resume(); ss.speak(u); } catch (_) {} }, 80);
+      return true;
+    } catch (_) { return false; }
+  }
+  try { window.speechSynthesis && window.speechSynthesis.getVoices(); } catch (_) {}
+  function toastAt(el, text) {
+    const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: 120 };
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
+    t.style.cssText = 'position:fixed;z-index:9600;left:' + Math.max(12, r.left - 20) + 'px;top:' + Math.max(12, r.top - 34) + 'px;background:#1E2231;color:#F4F3EC;font:800 13px Manrope,sans-serif;padding:8px 13px;border-radius:12px;pointer-events:none';
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+  }
+
+  /* ── 1. The lesson card: a button in three states, "My board" always, the lesson's words after it ── */
+  let DASH = null, LN = null;
+  const whenLabel = at => {
+    const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+    const d1 = new Date(at); d1.setHours(0, 0, 0, 0);
+    const days = Math.round((d1 - d0) / 864e5);
+    const t = at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return (days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : at.toLocaleDateString('en-GB', { weekday: 'long' })) + ', ' + t;
+  };
+  function lessonCard() {
+    const card = $$('.uncard[data-t="lesson"]')[0];
+    if (!card || !DASH) return;
+    const box = card.querySelector('div[style*="flex"]');
+    const s = DASH.schedule && DASH.schedule[0];
+    const now = Date.now();
+    const at = s && s.start_at ? new Date(s.start_at) : null, end = s && s.end_at ? new Date(s.end_at) : at && new Date(at.getTime() + 3600e3);
+    const myBoard = (LN && LN.my_board) || (DASH.boards && DASH.boards[0] && DASH.boards[0].id) || null;
+    const boardUrl = id => 'board.html?id=' + encodeURIComponent(id);
+    const lessonBoard = (s && s.board_id) || myBoard;
+    let title, sub, btn = '', extra = '';
+    if (LN && LN.teacher_here) {
+      title = (s && (s.title || s.group_name)) || 'Your lesson';
+      sub = (LN.teacher || 'Your teacher') + ' is on your board right now';
+      btn = '<a class="lc-btn go" href="' + boardUrl(LN.live_board) + '"><span class="lc-dot"></span>Teacher is in — join</a>';
+    } else if (at && now >= at.getTime() - 15 * 60e3 && now <= end.getTime()) {
+      title = whenLabel(at) + ' · ' + (s.title || s.group_name || 'Lesson');
+      sub = now < at.getTime() ? 'Starts in ' + Math.max(1, Math.round((at.getTime() - now) / 60e3)) + ' min' + (s.teacher_name ? ' · with ' + s.teacher_name : '') : 'On now' + (s.teacher_name ? ' · with ' + s.teacher_name : '');
+      btn = lessonBoard ? '<a class="lc-btn go" href="' + boardUrl(lessonBoard) + '">Join lesson</a>' : '';
+    } else if (LN && LN.after) {
+      const n = LN.after.words.length;
+      title = 'Lesson done' + (n ? ' — here are your new words' : '');
+      sub = n ? LN.after.teacher + ' sent ' + plural(n, 'word') + ' to your Word Bank' : 'Nice work with ' + LN.after.teacher + ' today';
+      if (n) {
+        extra = '<div class="lc-words">' + LN.after.words.slice(0, 6).map(w => '<span>' + esc2(w.word) + '</span>').join('') + (n > 6 ? '<span>+' + (n - 6) + '</span>' : '') + '</div>';
+        btn = '<button type="button" class="lc-btn go" data-lc="practise">Practise them</button>';
+      }
+    } else if (at) {
+      title = (s.title || s.group_name || 'Lesson') + (s.teacher_name ? ' · with ' + s.teacher_name : '');
+      sub = 'Next lesson';
+      btn = '<a class="lc-btn quiet" href="' + (lessonBoard ? boardUrl(lessonBoard) : '#') + '" title="The button lights up 15 minutes before the lesson">' + esc2(whenLabel(at)) + '</a>';
+    } else {
+      title = 'No lesson booked'; sub = 'Your next lesson shows up here';
+    }
+    box.innerHTML = '<b>' + esc2(title) + '</b><span>' + esc2(sub) + '</span>' + extra + '<div class="lc-acts">' + btn + (myBoard ? '<a class="lc-my" href="' + boardUrl(myBoard) + '">My board</a>' : '') + '</div>';
+    const pr = box.querySelector('[data-lc="practise"]'); if (pr) pr.onclick = e => { e.stopPropagation(); practiseTeacher(LN.after.words.map(w => w.id)); };
+  }
+  const pollLesson = () => json('/api/student/lesson-now').then(x => { if (x) { LN = x; lessonCard(); paintBellDot(); } });
+  setInterval(pollLesson, 60e3);
+  setInterval(lessonCard, 30e3);
+
+  /* ── 4. The bell: one list of what needs the student - the lesson soon, homework, the teacher's words, a friend's duel ── */
+  let NOTES = [], UNREAD = 0;
+  const LESSON_SEEN = 'hub_bell_lesson_seen';
+  function lessonSoon() {
+    const s = DASH && DASH.schedule && DASH.schedule[0];
+    if (LN && LN.teacher_here) return { key: 'live:' + LN.live_board, live: true, s };
+    if (!s || !s.start_at) return null;
+    const at = new Date(s.start_at), left = at - Date.now();
+    if (left > 24 * 3600e3 || left < -3600e3) return null;
+    return { key: 'soon:' + s.start_at, at, s, open: left <= 15 * 60e3 };
+  }
+  function paintBellDot() {
+    const ls = lessonSoon();
+    let seen = ''; try { seen = localStorage.getItem(LESSON_SEEN) || ''; } catch (_) {}
+    const on = UNREAD > 0 || !!(ls && ls.key !== seen);
+    $$('.sbell').forEach(b => b.classList.toggle('unread', on));
+  }
+  const refreshBell = () => json('/api/notifications').then(n => { if (!n) return; NOTES = n.notifications || []; UNREAD = n.unread || 0; paintBellDot(); });
+  const ICON = { lesson: '📅', homework: '📝', vocab: '📚', duel: '⚔️', writing: '✍️', recap: '📈', balance: '💳', level: '🏔️', schedule: '📅' };
+  function noteAction(n) {
+    const link = String(n.link || '');
+    if (n.type === 'vocab' || /#practise$/.test(link) || /student-hub\.html#wordbank$/.test(link)) return { label: 'Practise', run: () => practiseTeacher() };
+    if (n.type === 'duel' || /#challenges$/.test(link)) return { label: 'Open', run: () => goTo(3) };
+    if (/homework-do\.html/.test(link)) return { label: n.title === 'New homework' ? 'Start' : 'Open', run: () => { location.href = link; } };
+    if (/student\.html#homework$/.test(link)) return { label: 'Open', run: () => { location.href = 'homework-do.html'; } };
+    if (!link || /^\/?student(-hub)?\.html$/.test(link)) return null;
+    return { label: 'Open', run: () => { location.href = link.replace(/^\//, ''); } };
+  }
+  function openBell(e) {
+    if (e) e.stopPropagation();
+    let p = document.getElementById('bellPanel');
+    if (p) { p.remove(); return; }
+    p = document.createElement('div'); p.id = 'bellPanel'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Notifications');
+    const ls = lessonSoon(), rows = [];
+    if (ls) {
+      const b = (LN && (LN.live_board || LN.my_board)) || (ls.s && ls.s.board_id);
+      rows.push({ ic: '📅', fresh: true, t: ls.live ? 'Your teacher is on the lesson' : 'Lesson ' + whenLabel(ls.at).replace(/^(\w)/, c => c.toLowerCase()),
+        s: ls.live ? 'Join now — the board is open' : ((ls.s && (ls.s.title || ls.s.group_name)) || 'Lesson') + (ls.open ? ' · starts soon' : ''),
+        act: b && (ls.live || ls.open) ? { label: 'Join lesson', run: () => { location.href = 'board.html?id=' + encodeURIComponent(b); } } : { label: 'Open', run: () => { goTo(0); window.scrollTo(0, 0); } } });
+    }
+    NOTES.slice(0, 30).forEach(n => rows.push({ ic: ICON[n.type] || '🔔', fresh: !n.read, t: n.title, s: (n.body || '') + ' · ' + new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), act: noteAction(n) }));
+    p.innerHTML = '<div class="bp-h"><span>NOTIFICATIONS</span><button type="button" class="bp-x" aria-label="Close">✕</button></div>' +
+      (rows.length ? rows.map((r, i) => '<div class="bp-row' + (r.fresh ? ' new' : '') + '" data-i="' + i + '"><span class="bp-ic">' + r.ic + '</span><div class="bp-t"><b>' + esc2(r.t) + '</b><span>' + esc2(r.s) + '</span></div>' + (r.act ? '<button type="button" class="bp-go">' + esc2(r.act.label) + '</button>' : '') + '</div>').join('')
+        : '<div class="bp-empty"><b>All quiet for now</b><span>New homework, words from your teacher and duels show up here.</span><button type="button" class="bp-go" data-plan="1">To today’s plan</button></div>');
+    document.body.appendChild(p);
+    const close = () => { p.remove(); document.removeEventListener('click', outside, true); };
+    const outside = ev => { if (!p.contains(ev.target) && !ev.target.closest('.sbell')) close(); };
+    setTimeout(() => document.addEventListener('click', outside, true), 0);
+    p.querySelector('.bp-x').onclick = close;
+    p.onclick = ev => {
+      if (ev.target.closest('[data-plan]')) { close(); goTo(0); const pl = document.querySelector('#pg-today .plan'); if (pl) pl.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      const row = ev.target.closest('.bp-row'); if (!row) return;
+      const r = rows[+row.dataset.i]; if (r && r.act) { close(); r.act.run(); }
+    };
+    // opened = seen: the dot goes out
+    try { if (ls) localStorage.setItem(LESSON_SEEN, ls.key); } catch (_) {}
+    if (UNREAD) api('/api/notifications/read-all', { method: 'PATCH' }).then(() => { UNREAD = 0; NOTES.forEach(n => { n.read = true; }); paintBellDot(); });
+    else paintBellDot();
+  }
+  // phones: the sidebar (and its bell) is hidden below 900px, so the bell gets a corner of its own
+  if (!document.getElementById('hubBellM')) {
+    const bm = document.createElement('span'); bm.id = 'hubBellM'; bm.className = 'sbell';
+    bm.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i>';
+    document.body.appendChild(bm);
+  }
+  $$('.sbell').forEach(b => {
+    b.setAttribute('role', 'button'); b.setAttribute('aria-label', 'Notifications'); b.tabIndex = 0;
+    b.addEventListener('click', openBell);
+    b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBell(e); } });
+  });
+  setInterval(refreshBell, 120e3);
+
+  /* ── 2. Words from the teacher: practise exactly these, from the banner, the plan, the bell or the bank ── */
+  function practiseTeacher(ids) {
+    goTo(2); window.scrollTo(0, 0);
+    // straight to the words: the Word Airport welcome waits for another visit
+    const ob = document.getElementById('obWrap'); if (ob) ob.classList.remove('open');
+    const go = b => {
+      const set = new Set(ids || (b.teacher_new || []).map(w => w.id));
+      const all = [...b.queue, ...b.air, ...(b.waiting || []), ...b.arrived];
+      const deck = (b.teacher_new || []).filter(w => set.has(w.id)).concat(all.filter(w => set.has(w.id) && !(b.teacher_new || []).some(x => x.id === w.id)));
+      if (deck.length) sprint(deck); else if (b.queue.length) sprint();
+    };
+    json('/api/student/wordbank').then(b => { if (!b) return; wordBank(b); go(b); });
+  }
+  function teacherBanner(t) {
+    const pg = document.getElementById('pg-today'); if (!pg) return;
+    let bar = pg.querySelector('#twBar');
+    const tw = t && t.teacher_words;
+    if (!tw) { if (bar) bar.remove(); return; }
+    if (!bar) { bar = document.createElement('div'); bar.id = 'twBar'; bar.className = 'twbar'; const k = pg.querySelector('.kick'); k.parentNode.insertBefore(bar, k); }
+    bar.innerHTML = '<span class="pxart" data-art="heart" data-color="#E14E8F" data-px="3"></span><p><b>' + esc2(tw.teacher) + '</b> sent you ' + plural(tw.n, 'new word') + ': ' + tw.words.slice(0, 4).map(esc2).join(', ') + (tw.n > 4 ? ' and ' + (tw.n - 4) + ' more' : '') + '. They are on top of your Word Bank.</p><button type="button">Practise</button>';
+    paintArt(bar.querySelector('.pxart'));
+    bar.querySelector('button').onclick = () => practiseTeacher(tw.ids);
+  }
+
+  /* ── 6. The points journal: every payment, by day; its days add up to "today" and the total ── */
+  function journalPaint(x) {
+    const wins = document.querySelector('#pg-progress .wins13');
+    if (!wins || !x || !x.ledger) return;
+    wins.querySelectorAll('.wrow, .jr-sum, .jr-day').forEach(r => r.remove());
+    const k = wins.querySelector('.kick2'); if (k) k.textContent = 'POINTS JOURNAL · LAST 30 DAYS';
+    wins.insertAdjacentHTML('beforeend', '<div class="jr-sum"><span>Total <b>' + num(x.total) + '</b> XP</span><span>Today <b>+' + num(x.today) + '</b></span><span>This week <b>+' + num(x.week_xp) + '</b></span></div>');
+    if (!x.ledger.length) { wins.insertAdjacentHTML('beforeend', '<div class="wrow"><div><b>Nothing yet</b><div class="wsub">Your first finished task pays your first XP</div></div></div>'); return; }
+    const art = { homework: 'crown', quiz: 'bolt', quiz_strong: 'bolt', lesson: 'heart', word_kept: 'spark', word: 'spark', duel: 'bolt', lucky: 'spark', treat: 'heart', hubquiz: 'bolt', hubword: 'spark', badge: 'crown', sprint: 'crown', challenge: 'crown', level: 'crown' };
+    const days = new Map(); x.ledger.forEach(e => { if (!days.has(e.day)) days.set(e.day, []); days.get(e.day).push(e); });
+    const yest = new Date(x.today_day + 'T12:00:00'); yest.setDate(yest.getDate() - 1);
+    days.forEach((list, day) => {
+      const sum = list.reduce((n, e) => n + e.xp, 0);
+      const name = day === x.today_day ? 'TODAY' : day === yest.toLocaleDateString('en-CA') ? 'YESTERDAY' : new Date(day + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+      wins.insertAdjacentHTML('beforeend', '<div class="jr-day"><span>' + name + '</span><span>+' + num(sum) + ' XP</span></div>');
+      list.forEach(e => {
+        const row = document.createElement('div'); row.className = 'wrow';
+        row.innerHTML = '<span class="medal"><span class="pxart"></span></span><div><b></b></div><span class="wxp"></span>';
+        row.querySelector('b').textContent = e.label;
+        row.querySelector('.wxp').textContent = '+' + e.xp + ' XP';
+        const a = row.querySelector('.pxart'); a.dataset.art = art[e.kind] || 'spark'; a.dataset.color = '#D3F26A'; a.dataset.px = '3';
+        wins.appendChild(row); paintArt(a);
+      });
+    });
+    if (x.earlier_xp) wins.insertAdjacentHTML('beforeend', '<div class="jr-day"><span>EARLIER</span><span>+' + num(x.earlier_xp) + ' XP</span></div>');
+  }
+
+  /* ── 10. The streak card: a start that leads to the smallest real step, then a live "day N" ── */
+  let STREAK = { n: 0, today: false };
+  function streakCard() {
+    const card = $$('.uncard[data-t="streak"]')[0]; if (!card) return;
+    const box = card.querySelector('div[style*="flex"]'); if (!box) return;
+    const n = STREAK.n;
+    card.classList.toggle('lit', n > 0);
+    if (n > 0) {
+      box.innerHTML = '<b>🔥 Day ' + n + (n > 1 ? ' of your streak' : ' — your streak is on') + '</b><span>' + (STREAK.today ? 'Today counts ✓ — see you tomorrow' : 'Do one small thing today to keep it') + '</span>' + (STREAK.today ? '' : '<button type="button" class="lc-btn go" data-st="1">Keep it going</button>');
+    } else {
+      box.innerHTML = '<b>Start your streak</b><span>One small step today lights day 1</span><button type="button" class="lc-btn go" data-st="1">Start</button>';
+    }
+    const b = box.querySelector('[data-st]');
+    if (b) b.onclick = e => { e.stopPropagation(); smallestStep(); };
+  }
+  /* the smallest real step of the day: the treat when it is still there, else the first step of the plan */
+  function smallestStep() {
+    const tr = document.querySelector('#pg-today #treat');
+    const keep = tr && tr.querySelector('#tKeep');
+    if (keep && !keep.disabled && tr.style.display !== 'none') { tr.scrollIntoView({ behavior: 'smooth', block: 'center' }); keep.focus(); toastAt(keep, 'Keep today’s word — that is day 1'); return; }
+    const first = document.querySelector('#pg-today .plan .planrow:not(.done) button:not([disabled])');
+    if (first) first.click();
+  }
+  const actToday = pr => { const d = new Date().toLocaleDateString('en-CA'); return ((pr && pr.activity) || []).some(a => a.day === d && a.n > 0); };
+  const refreshStreak = () => json('/api/student/progress').then(pr => { if (!pr) return; STREAK = { n: Number(pr.streak) || 0, today: actToday(pr) }; progress(pr); streak(STREAK.n); streakCard(); json('/api/student/xp').then(xpPaint); });
+
+  /* ── 5. Share my progress: a real card - level, streak, points, last words - with a link and a picture ── */
+  let SHARE_URL = null;
+  function progressCardSvg(d) {
+    const e = t => esc2(t);
+    const words = d.words.slice(0, 5);
+    const chips = words.map((w, i) => {
+      const x = 80 + (i % 3) * 312, y = 990 + Math.floor(i / 3) * 96;
+      return '<rect x="' + x + '" y="' + y + '" width="292" height="74" rx="37" fill="#FFFFFF" fill-opacity=".92"/><text x="' + (x + 146) + '" y="' + (y + 47) + '" text-anchor="middle" font-size="' + (w.length > 14 ? 24 : 30) + '" font-weight="800" fill="#24282C">' + e(w.length > 20 ? w.slice(0, 19) + '…' : w) + '</text>';
+    }).join('');
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" font-family="Manrope, -apple-system, Segoe UI, Arial, sans-serif">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#57B8B2"/><stop offset="1" stop-color="#D5F568"/></linearGradient></defs>' +
+      '<rect width="1080" height="1350" fill="url(#g)"/>' +
+      '<g transform="translate(80,92)"><rect width="46" height="46" rx="12" fill="#24282C"/><rect x="11" y="11" width="10" height="10" fill="#D5F568"/><rect x="25" y="11" width="10" height="10" fill="#F2A7BB"/><rect x="11" y="25" width="10" height="10" fill="#D5F568"/><rect x="25" y="25" width="10" height="10" fill="#D5F568"/>' +
+      '<text x="64" y="35" font-size="34" font-weight="800" fill="#24282C">TeachEd</text></g>' +
+      '<text x="1000" y="128" text-anchor="end" font-size="24" font-weight="800" letter-spacing="4" fill="#24282C" fill-opacity=".7">MY PROGRESS</text>' +
+      '<text x="80" y="330" font-size="40" font-weight="800" fill="#24282C">' + e(d.name) + (d.level ? ' · ' + e(d.level) : '') + '</text>' +
+      '<text x="72" y="560" font-size="250" font-weight="800" letter-spacing="-10" fill="#24282C">' + e(num(d.xp)) + '</text>' +
+      '<text x="84" y="630" font-size="44" font-weight="800" fill="#24282C">XP earned learning English</text>' +
+      '<g font-size="36" font-weight="800" fill="#24282C">' +
+      '<rect x="80" y="700" width="292" height="150" rx="28" fill="#24282C"/><text x="112" y="775" font-size="64" fill="#D5F568">' + d.streak + '</text><text x="112" y="822" font-size="26" fill="#FFFFFF" fill-opacity=".8">' + (d.streak === 1 ? 'day streak' : 'days streak') + '</text>' +
+      '<rect x="392" y="700" width="292" height="150" rx="28" fill="#24282C"/><text x="424" y="775" font-size="64" fill="#D5F568">' + d.total + '</text><text x="424" y="822" font-size="26" fill="#FFFFFF" fill-opacity=".8">words in my bank</text>' +
+      '<rect x="704" y="700" width="296" height="150" rx="28" fill="#24282C"/><text x="736" y="775" font-size="64" fill="#D5F568">' + e(d.level || '—') + '</text><text x="736" y="822" font-size="26" fill="#FFFFFF" fill-opacity=".8">my level</text></g>' +
+      (words.length ? '<text x="80" y="950" font-size="26" font-weight="800" letter-spacing="3" fill="#24282C" fill-opacity=".75">WORDS I LEARNED LATELY</text>' + chips : '') +
+      '<line x1="80" y1="1222" x2="1000" y2="1222" stroke="#24282C" stroke-opacity=".2" stroke-width="2"/>' +
+      '<text x="80" y="1278" font-size="28" font-weight="800" fill="#24282C">' + e(d.name) + ' · student</text>' +
+      '<text x="1000" y="1278" text-anchor="end" font-size="28" font-weight="800" fill="#24282C">teached.tech</text></svg>';
+  }
+  function cardPng(svg) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => { const c = document.createElement('canvas'); c.width = 1080; c.height = 1350; c.getContext('2d').drawImage(img, 0, 0, 1080, 1350); c.toBlob(b => (b ? res(b) : rej(new Error('png'))), 'image/png'); };
+      img.onerror = () => rej(new Error('svg'));
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+  function shareProgressSheet(btn) {
+    ensureWrStyle();
+    const name = ((document.querySelector('.sprof .spinfo b') || {}).textContent || 'Me').trim().split(/\s+/)[0] || 'Me';
+    const b = WB || { total: 0, arrived: [], air: [] };
+    const recent = b.arrived.concat(b.air).filter(w => w.word).slice(0, 5).map(w => w.word);
+    const d = { name, level: (XPLAST && XPLAST.level && XPLAST.level.from) || '', xp: (XPLAST && XPLAST.total) || 0, streak: STREAK.n, total: b.total || 0, words: recent };
+    const svg = progressCardSvg(d);
+    const ov = document.createElement('div'); ov.className = 'wr-ov';
+    ov.innerHTML = '<div class="wr-pn"><button class="wr-x" aria-label="Close">✕</button><div class="wr-k">SHARE MY PROGRESS</div><div class="wr-t">Your card</div><div class="wr-m">Points, streak, level and your latest words — nothing else. The link opens your card and a free hub for a friend.</div>' +
+      '<div class="sc-prev">' + svg + '</div><div class="sc-acts"><button class="wr-btn" id="scCopy">Copy link</button><button class="wr-btn line" id="scPng">Picture</button></div><div class="wr-m" id="scNote" style="margin-top:10px"></div></div>';
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.querySelector('.wr-x').onclick = close; ov.onclick = e => { if (e.target === ov) close(); };
+    const note = t => { ov.querySelector('#scNote').textContent = t; };
+    const link = () => SHARE_URL ? Promise.resolve(SHARE_URL) : frApi('/share', 'POST', { kind: 'progress', recent }).then(r => { if (!r.ok) throw new Error(r.d.error || 'Could not make the link'); SHARE_URL = location.origin + r.d.path; return SHARE_URL; });
+    ov.querySelector('#scCopy').onclick = e => {
+      const bt = e.currentTarget; bt.disabled = true;
+      link().then(url => (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => { note('Link copied: ' + url); bt.textContent = '✓ Copied'; burstConfetti(50); }, () => { prompt('Copy this link:', url); note(url); }))
+        .catch(err => note(err.message)).then(() => { bt.disabled = false; });
+    };
+    ov.querySelector('#scPng').onclick = e => {
+      const bt = e.currentTarget; bt.disabled = true;
+      cardPng(svg).then(blob => {
+        const file = typeof File === 'function' ? new File([blob], 'teached-progress.png', { type: 'image/png' }) : null;
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: 'My English progress' }).then(() => burstConfetti(50), () => {});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'teached-progress.png'; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000); note('Picture saved — send it with the link.'); burstConfetti(50);
+      }).catch(() => note('The picture could not be made in this browser — the link works.')).then(() => { bt.disabled = false; });
+    };
+  }
+
+  window.__hubSay = say;
+
+  /* ── 2 / 11. On top of the Word Bank: the new words from the teacher; under the board: my finds, with dates ── */
+  function wbBlocks(wb, b) {
+    const dep = wb.querySelector('.dep16'); if (!dep) return;
+    let tw = wb.querySelector('#wbTeacher');
+    const list = b.teacher_new || [];
+    if (!list.length) { if (tw) tw.remove(); }
+    else {
+      if (!tw) { tw = document.createElement('div'); tw.id = 'wbTeacher'; tw.className = 'wbblock tw'; dep.parentNode.insertBefore(tw, dep); }
+      const names = [...new Set(list.map(w => String(w.teacher || 'your teacher').split(/\s+/)[0]))];
+      tw.innerHTML = '<div class="row2"><div><div class="k">NEW WORDS FROM ' + esc2(names.length === 1 ? names[0] : 'your teachers').toUpperCase() + ' · ' + list.length + '</div>' +
+        '<div style="font-size:13px;font-weight:600;opacity:.7;margin-top:4px">They board today, ahead of everything else.</div></div><button type="button" id="wbTwGo">Practise these words</button></div>' +
+        '<div class="ws">' + list.slice(0, 24).map(w => '<span>' + esc2(w.word) + (w.translation ? '<small>' + esc2(w.translation) + '</small>' : '') + '</span>').join('') + (list.length > 24 ? '<span>+' + (list.length - 24) + ' more</span>' : '') + '</div>';
+      tw.querySelector('#wbTwGo').onclick = () => sprint(list);
+    }
+    let fd = wb.querySelector('#wbFinds');
+    const finds = b.finds || [];
+    if (!finds.length) { if (fd) fd.remove(); return; }
+    if (!fd) { fd = document.createElement('div'); fd.id = 'wbFinds'; fd.className = 'wbblock'; dep.parentNode.insertBefore(fd, dep.nextSibling); }
+    const fdate = w => new Date(w.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    fd.innerHTML = '<div class="k">MY FINDS · ' + finds.length + '</div><div style="font-size:13px;font-weight:600;opacity:.7;margin-top:4px">Words you kept yourself — the treat of the day, reads, your own.</div>' +
+      '<div class="ws">' + finds.slice(0, 30).map(w => '<span>' + esc2(w.word) + '<small>' + esc2(fdate(w)) + ' · ' + esc2(w.from) + '</small></span>').join('') + '</div>';
+  }
+
   /* Phones: a bottom bar with the five screens, built from the sidebar's own buttons and kept in step with them */
   (function () {
     const nav = document.querySelector('.pg .nav'); if (!nav || document.getElementById('hubTabs')) return;
@@ -1293,9 +1665,11 @@
 
   Promise.all([pMe, pProgress]).then(([me, pr]) => {
     if (me && me.user) who(me.user);
-    streak(pr && Number(pr.streak) || 0);
+    STREAK = { n: pr && Number(pr.streak) || 0, today: actToday(pr) };
+    streak(STREAK.n); streakCard();
   });
-  Promise.all([pMe, pDash]).then(([me, dash]) => {
+  pDash.then(() => refreshBell());
+  const pSide = Promise.all([pMe, pDash]).then(([me, dash]) => {
     nextLesson(dash);
     const uid = me && me.user && me.user.id;
     return (uid ? json('/api/student/portal/' + encodeURIComponent(uid)) : Promise.resolve(null)).then(portal => sidebar(dash, portal));
@@ -1307,4 +1681,18 @@
   Promise.all([pToday, pVocab, pInbox, pMe, pDash]).then(([t]) => todayPaint(t));
   Promise.all([pFeed, pVocab]).then(([f]) => watchPaint(f));
   Promise.all([pGate, pXp, pProgress]).then(([g]) => gatePaint(g));
+
+  /* The screen is shown only when the student's own data is in (fixlist "!"): until then the neutral
+     skeleton, on a failed load an honest "didn't load - refresh". Nothing from the design's sample
+     or from anybody else is ever on screen between the two. */
+  const html = document.documentElement;
+  const failLoad = () => { const sk = document.getElementById('hubSkel'); if (sk && !html.classList.contains('hub-ready')) sk.classList.add('err'); };
+  Promise.all([pMe, pXp, pToday, pBank, pDash, pProgress, pChall, pVocab, pInbox]).then(all => {
+    if (all.some(x => !x) || !all[0].user) return failLoad();
+    // the paints hang on the same answers and have run by now; the sidebar waits for the balance too
+    pSide.catch(() => {}).then(() => setTimeout(() => {
+      if (!document.getElementById('hubSkel').classList.contains('err')) html.classList.add('hub-ready');
+    }, 30));
+  });
+  setTimeout(failLoad, 20000);
 })();

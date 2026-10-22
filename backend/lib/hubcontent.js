@@ -64,12 +64,17 @@ async function profileOf(db, userId) {
   return { chosen, scores, liked: chosen.filter(k => (scores[k] || 0) > HIDE_AT) };
 }
 
-async function feed(db, user, { range = false } = {}) {
+/* shift: '' - the student's own level; 'easier' / 'harder' - one level down or up, and the feed is
+   rebuilt from that level only (the teacher's picks stay on top whatever their level) */
+async function feed(db, user, { range = false, shift = '' } = {}) {
   const level = await levelOf(db, user.id);
   const teachers = await teachersOf(db, user.id);
   const prof = await profileOf(db, user.id);
   const li = LEVELS.indexOf(level);
   const near = r => Math.abs(LEVELS.indexOf(r.level) - li);
+  const step = shift === 'easier' ? -1 : shift === 'harder' ? 1 : 0;
+  const ti = Math.max(0, Math.min(LEVELS.length - 1, li + step));    // the level the feed is built at
+  const shown = LEVELS[ti];
   const cols = `m.id, m.kind, m.title, m.topic, m.kicker, m.level, m.minutes, m.source, m.interest, jsonb_array_length(m.words) AS words,
             COALESCE(p.pct, 0) AS pct, p.finished_at IS NOT NULL AS finished, p.quiz_score`;
   const join = 'LEFT JOIN hub_progress p ON p.material_id = m.id AND p.user_id = $1';
@@ -80,24 +85,32 @@ async function feed(db, user, { range = false } = {}) {
       WHERE m.source = 'auto' AND m.level = ANY($2::text[])
         AND NOT EXISTS (SELECT 1 FROM hub_dismissed d WHERE d.user_id = $1 AND d.material_id = m.id)
       ORDER BY m.created_at DESC LIMIT 80`,
-    [user.id, LEVELS.filter((l, i) => Math.abs(i - li) <= 1)])).rows;
+    [user.id, LEVELS.filter((l, i) => Math.abs(i - ti) <= 1)])).rows;
 
   const rank = r => {
     const interested = r.interest ? (prof.liked.includes(r.interest) ? 2 : prof.chosen.length ? 0 : 1) : 0;
     return (r.source === 'teacher' ? 100 : 0) + interested * 10 + (r.interest ? Math.max(-5, Math.min(5, prof.scores[r.interest] || 0)) : 0) + (near(r) === 0 ? 4 : 0) - (r.finished ? 50 : 0);
   };
-  const keep = r => (range ? near(r) <= 1 : near(r) <= 1) && !(r.interest && (prof.scores[r.interest] || 0) <= HIDE_AT);
-  const items = taught.concat(auto).filter(keep)
+  const liked = r => !(r.interest && (prof.scores[r.interest] || 0) <= HIDE_AT);
+  const at = r => Math.abs(LEVELS.indexOf(r.level) - ti);
+  // the teacher's picks (around the student's level); the platform's pieces at the chosen level (± one only on the old "range" link)
+  const mine = taught.filter(r => near(r) <= 1);      // a teacher's piece far from the student's level stays out
+  let pool = mine.concat(auto.filter(r => (range && !step ? at(r) <= 1 : at(r) === 0))).filter(liked);
+  // nothing built at this level yet: the nearest levels fill in, and the feed says so
+  const nearby = !pool.some(r => r.source !== 'teacher') && auto.some(liked);
+  if (nearby) pool = mine.concat(auto).filter(liked);
+  const items = pool
     .map(r => ({ ...r, near: near(r), words: Number(r.words), from_teacher: r.source === 'teacher' }))
     .sort((a, b) => rank(b) - rank(a)).slice(0, 60);
 
   // top the stock up in the background for the interests this student follows (or two broad ones)
   const want = (prof.liked.length ? prof.liked : ['science', 'travel']).slice().sort(() => Math.random() - .5).slice(0, 2);
-  const stocked = new Set(items.filter(i => !i.finished && i.near === 0 && i.interest).map(i => i.interest));
-  want.filter(k => !stocked.has(k) || items.length < 6).forEach(k => require('./hubauto').ensure(db, { level, interest: k }).catch(() => {}));
+  const stocked = new Set(items.filter(i => !i.finished && i.level === shown && i.interest).map(i => i.interest));
+  want.filter(k => !stocked.has(k) || items.length < 6).forEach(k => require('./hubauto').ensure(db, { level: shown, interest: k }).catch(() => {}));
 
   const topics = [...new Set(items.map(i => i.topic).filter(Boolean))].slice(0, 6);
-  return { level, items, topics, interests: prof.chosen, need_interests: !prof.chosen.length, building: items.filter(i => !i.finished).length < 4 };
+  return { level, shown_level: shown, shift: step < 0 ? 'easier' : step > 0 ? 'harder' : '', nearby,
+           items, topics, interests: prof.chosen, need_interests: !prof.chosen.length, building: items.filter(i => !i.finished).length < 4 };
 }
 
 /* the first visit's chips (skippable), and later changes: the student's own list of interests */
@@ -223,4 +236,4 @@ async function create(db, teacher, b) {
   return { id: m.id, words: words.length };
 }
 
-module.exports = { feed, setInterests, dismiss, detail, setProgress, keepWords, quizPlay, quizSubmit, create, parseWords, youtubeId, quizFor, levelOf, LEVELS, UNLOCK_PCT, QUIZ_XP, WORD_XP, WORD_XP_CAP };
+module.exports = { feed, profileOf, setInterests, dismiss, detail, setProgress, keepWords, quizPlay, quizSubmit, create, parseWords, youtubeId, quizFor, levelOf, LEVELS, UNLOCK_PCT, QUIZ_XP, WORD_XP, WORD_XP_CAP };

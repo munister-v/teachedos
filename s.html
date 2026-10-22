@@ -40,7 +40,8 @@ const t = (q.get('t') || '').toLowerCase(), body = $('#body');
     if (tok()) { const u = await me(); if (u && u.role === 'student') { $('#act').innerHTML = '<button id="add">Add to my Word Bank</button><div class="err" id="er"></div>'; $('#add').onclick = async () => { const a = await call('/api/friends/shared/' + encodeURIComponent(t) + '/add', { method: 'POST' }); if (a.ok) location.href = 'student-hub.html#wordbank'; else $('#er').textContent = a.d.error || 'Could not add'; }; } }
   } else {
     body.innerHTML = '<div class="k" style="margin-top:18px">' + from.toUpperCase() + '\'S PROGRESS</div><h1>' + from + ' is learning English</h1><div class="stats">' +
-      [[p.xp, 'points'], [p.streak + ' days', 'streak'], [p.words, 'words kept'], [p.level || '-', 'level']].map(x => '<div class="stat"><b>' + esc(x[0]) + '</b><span>' + x[1] + '</span></div>').join('') + '</div>' + join + '<div class="fine">Learn together: duels, shared streaks and sets of words.</div>';
+      [[p.xp, 'points'], [p.streak + ' days', 'streak'], [p.words, 'words kept'], [p.level || '-', 'level']].map(x => '<div class="stat"><b>' + esc(x[0]) + '</b><span>' + x[1] + '</span></div>').join('') + '</div>' +
+      (p.recent && p.recent.length ? '<div class="k" style="margin-top:18px">WORDS LEARNED LATELY</div><div class="words">' + p.recent.map(w => '<div class="w"><b>' + esc(w) + '</b></div>').join('') + '</div>' : '') + join + '<div class="fine">Learn together: duels, shared streaks and sets of words.</div>';
   }
 })();
 </script></body></html>

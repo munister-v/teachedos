@@ -45,8 +45,9 @@ router.delete('/teacher/:id', requireAuth, requireTeacher, wrap(async (req, res)
 router.get('/hub', requireAuth, wrap(async (req, res) => {
   const u = req.user;
   await ch.evaluateBadges(pool, u.id);
-  const [challenge, sprint, duels, badges, mates, inv] = await Promise.all([
-    ch.todaysChallenge(pool, u), ch.sprint(pool, u), ch.listDuels(pool, u.id), ch.badges(pool, u.id), ch.classmates(pool, u.id),
+  const mates = await ch.classmates(pool, u.id);
+  const [challenge, sprint, duels, badges, inv] = await Promise.all([
+    ch.todaysChallenge(pool, u), ch.sprint(pool, u), ch.listDuels(pool, u.id), ch.badges(pool, u.id, mates.length > 0),
     pool.query('SELECT duel_invites FROM users WHERE id = $1', [u.id]),
   ]);
   res.json({ challenge, sprint, duels, badges, classmates: mates, games: Object.entries(duel.GAMES).map(([key, g]) => ({ key, label: g.label, how: g.how })),

@@ -13,7 +13,7 @@ const reply = (res, out, code = 200) => out.error ? res.status(out.status || 400
 const UUID = /^[0-9a-f-]{36}$/i;
 
 /* ── the student: Watch & Read ─────────────────────────────────────────── */
-router.get('/feed', requireAuth, wrap(async (req, res) => res.json(await hub.feed(pool, req.user, { range: req.query.range === '1' }))));
+router.get('/feed', requireAuth, wrap(async (req, res) => res.json(await hub.feed(pool, req.user, { range: req.query.range === '1', shift: ['easier', 'harder'].includes(req.query.shift) ? req.query.shift : '' }))));
 
 router.post('/interests', requireAuth, wrap(async (req, res) => reply(res, await hub.setInterests(pool, req.user, req.body && req.body.interests))));
 router.post('/material/:id/dismiss', requireAuth, wrap(async (req, res) => {

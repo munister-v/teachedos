@@ -8,7 +8,8 @@
              DELAYED   was due yesterday
              LAST CALL was due two or more days ago - about to slip
              SCHEDULED in the future
-             QUEUED    a new word beyond today's cap
+             QUEUED    a new word beyond today's cap (words the teacher sent are never queued:
+                       they board the same minute, on top of the board)
    rarity    what the repetition pays: LAST CALL +8, DELAYED +5, BOARDING +3
              (+2 for a word that is new or learning), SCHEDULED +3, QUEUED +2
    The day is the student's own day (their time zone). */
@@ -47,16 +48,22 @@ const nextLabel = f => f.status === 'LAST CALL' || f.status === 'DELAYED' ? '—
   : f.in_days === 1 ? 'tomorrow' : 'in ' + f.in_days + ' days';
 
 function sourceLabel(r) {
+  if (r.source_type === 'PHRASE_OF_THE_DAY') return 'Treat of the day';
   const t = r.source_title ? String(r.source_title).slice(0, 40) : '';
   const kind = { HOMEWORK: 'Homework', LESSON_BOARD: 'Lesson', READING: 'Read', MANUAL: 'Your notebook' }[r.source_type] || 'Your notebook';
   return t && kind !== 'Your notebook' ? kind + ' · ' + t : kind;
 }
 
+/* "My finds": words the student kept on their own - the treat of the day, a read, a friend's set, by hand */
+const FIND_TYPES = new Set(['PHRASE_OF_THE_DAY', 'READING', 'MANUAL']);
+const fromTeacher = r => !!r.sent_by;
+const TEACHER_NEW_DAYS = 14;
+
 /* rows: vocabulary rows of one student (kind = 'word'); -> the whole board */
 function board(rows, tz, now = Date.now()) {
   const today = dayIn(now, tz);
   const prepared = rows.map(r => ({ r, stage: stageOf(r) }));
-  const fresh = prepared.filter(x => x.stage === 'new').sort((a, b) => new Date(a.r.created_at) - new Date(b.r.created_at));
+  const fresh = prepared.filter(x => x.stage === 'new' && !fromTeacher(x.r)).sort((a, b) => new Date(a.r.created_at) - new Date(b.r.created_at));
   const queued = new Set(fresh.slice(NEW_PER_DAY).map(x => x.r.id));
   const words = prepared.map(({ r }) => {
     const f = flight(r, today, tz, queued.has(r.id));
@@ -65,19 +72,28 @@ function board(rows, tz, now = Date.now()) {
       from: sourceLabel(r), stage: f.stage, status: f.status, xp: f.xp,
       legs: f.stage === 'mastered' ? LEGS : Math.min(LEGS, Math.max(Number(r.reps) || 0, f.stage === 'new' ? 0 : 1)),
       next: f.stage === 'mastered' ? 'Mastered' : nextLabel(f), overdue: f.overdue, in_days: f.in_days,
-      lapses: Number(r.lapses) || 0, due_at: r.due_at,
+      lapses: Number(r.lapses) || 0, due_at: r.due_at, created_at: r.created_at,
+      from_teacher: fromTeacher(r), teacher: fromTeacher(r) ? (r.teacher_name || 'Your teacher') : null,
+      find: !fromTeacher(r) && FIND_TYPES.has(r.source_type || 'MANUAL'),
     };
   });
+  /* new from the teacher: sent in the last two weeks and not practised yet - the block on top of the bank */
+  const teacherNew = words.filter(w => w.from_teacher && w.stage === 'new' && now - new Date(w.created_at) < TEACHER_NEW_DAYS * 864e5)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const finds = words.filter(w => w.find).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   const rank = w => ({ 'LAST CALL': 0, DELAYED: 1, BOARDING: 2 }[w.status]);
-  const queue = words.filter(w => rank(w) !== undefined).sort((a, b) => rank(a) - rank(b) || (a.stage === 'new') - (b.stage === 'new') || b.lapses - a.lapses || b.overdue - a.overdue);
+  const queue = words.filter(w => rank(w) !== undefined).sort((a, b) => (b.from_teacher && b.stage === 'new') - (a.from_teacher && a.stage === 'new') || rank(a) - rank(b) || (a.stage === 'new') - (b.stage === 'new') || b.lapses - a.lapses || b.overdue - a.overdue);
   const air = words.filter(w => w.status === 'SCHEDULED').sort((a, b) => a.in_days - b.in_days);
   const waiting = words.filter(w => w.status === 'QUEUED');
   const arrived = words.filter(w => w.stage === 'mastered');
   const nextRecheck = arrived.map(w => daysBetween(today, dayIn(w.due_at, tz))).filter(n => n > 0).sort((a, b) => a - b)[0] || null;
   return {
-    today, total: words.length, queue, air, queued: waiting.length, arrived, next_recheck_days: nextRecheck,
+    today, total: words.length, queue, air, queued: waiting.length, waiting, arrived, next_recheck_days: nextRecheck,
     tomorrow: air.filter(w => w.in_days === 1).length + waiting.length,
     flights_today: queue.length,
+    teacher_new: teacherNew, finds: finds.slice(0, 40),
+    // the three numbers in the bank's header; the menu badge is due_today
+    counts: { total: words.length, teacher_new: teacherNew.length, due_today: queue.length },
   };
 }
 

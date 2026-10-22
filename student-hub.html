@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><link rel="stylesheet" href="styles/fonts.css?v=1353"><title>TeachEd · Student Hub</title>
+<meta name="robots" content="noindex"><link rel="stylesheet" href="styles/fonts.css?v=1354"><title>TeachEd · Student Hub</title>
 <style>*{margin:0;box-sizing:border-box}
 body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F6F6EF}
 .pg{display:none;height:100vh}
@@ -121,6 +121,9 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 #hubTabs{display:none}
 @media(max-width:900px){
   html,body{overflow-x:hidden;max-width:100%}
+  /* each screen's own ".side"/".main" rules carry an id, so the plain ".side{display:none}" above lost to them */
+  .pg .side{display:none!important}
+  .pg .main{margin-left:0!important}
   .pxwave,[data-wave],[data-dots]{max-width:100%;overflow:hidden}
   .main{padding-bottom:96px}
   #hubTabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;background:#1E2231;padding:8px 6px calc(8px + env(safe-area-inset-bottom));gap:2px;box-shadow:0 -10px 30px rgba(30,34,49,.25)}
@@ -130,12 +133,38 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   #hubTabs button.on i{opacity:1}
   #hubTabs .tb-n{position:absolute;top:3px;right:8px;min-width:16px;height:16px;border-radius:99px;background:#FF4FA3;color:#fff;font-size:10px;line-height:16px;text-align:center;padding:0 4px}
 }
+</style>
+<style>
+/* Until the student's own data is in, the hub shows a neutral skeleton - no name, no numbers, nothing
+   from the design's sample - and a failed load says so instead of showing anything else (fixlist "!"). */
+#hubSkel{position:fixed;inset:0;z-index:9500;background:#F4F3EC;display:flex;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1E2231}
+html.hub-ready #hubSkel{display:none}
+html:not(.hub-ready) body{overflow:hidden}
+#hubSkel .sk-side{width:260px;flex:none;background:#1E2231;padding:28px 22px;display:flex;flex-direction:column;gap:14px}
+#hubSkel .sk-main{flex:1;padding:40px 44px;display:flex;flex-direction:column;gap:18px;min-width:0}
+#hubSkel .sk{border-radius:16px;background:linear-gradient(90deg,rgba(30,34,49,.07) 0%,rgba(30,34,49,.13) 40%,rgba(30,34,49,.07) 80%);background-size:300% 100%;animation:skw 1.4s ease-in-out infinite}
+#hubSkel .sk-side .sk{background:linear-gradient(90deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.13) 40%,rgba(255,255,255,.06) 80%);background-size:300% 100%}
+#hubSkel .sk-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@keyframes skw{0%{background-position:100% 0}100%{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){#hubSkel .sk{animation:none}}
+@media (max-width:900px){#hubSkel .sk-side{display:none}#hubSkel .sk-main{padding:24px 16px}#hubSkel .sk-row{grid-template-columns:1fr}}
+#hubSkel .sk-err{display:none;margin:auto;text-align:center;max-width:360px;padding:24px}
+#hubSkel.err .sk-side,#hubSkel.err .sk-main{display:none}
+#hubSkel.err .sk-err{display:block}
+#hubSkel .sk-err b{display:block;font-size:22px;font-weight:800;letter-spacing:-.3px}
+#hubSkel .sk-err p{margin:8px 0 18px;font-size:14.5px;font-weight:600;color:rgba(30,34,49,.6);line-height:1.5}
+#hubSkel .sk-err button{border:0;border-radius:99px;background:#D3F26A;color:#1E2231;font:800 15px Manrope,sans-serif;padding:13px 24px;cursor:pointer}
 </style></head><body>
+<div id="hubSkel" role="status" aria-live="polite" aria-label="Loading your hub">
+  <div class="sk-side"><div class="sk" style="height:34px;width:70%"></div><div class="sk" style="height:56px;margin-top:10px"></div><div class="sk" style="height:22px;width:40%;margin-top:14px"></div><div class="sk" style="height:38px"></div><div class="sk" style="height:38px"></div><div class="sk" style="height:38px"></div><div class="sk" style="height:38px"></div><div class="sk" style="height:38px"></div></div>
+  <div class="sk-main"><div class="sk" style="height:18px;width:180px"></div><div class="sk-row"><div class="sk" style="height:86px"></div><div class="sk" style="height:86px"></div><div class="sk" style="height:86px"></div></div><div class="sk" style="height:230px"></div><div class="sk" style="height:64px"></div><div class="sk" style="height:64px"></div><div class="sk" style="height:64px"></div></div>
+  <div class="sk-err"><b>Your hub didn’t load</b><p>Nothing is lost — the connection dropped while your words and plan were on their way.</p><button type="button" onclick="location.reload()">Refresh</button></div>
+</div>
 <section class="pg on" id="pg-today">
 <canvas id="fx"></canvas>
 <aside class="side">
   <div class="slogo"><span class="smark pxlogo"><i></i><i class="p"></i><i></i><i></i></span><div><b>TeachEd</b><span>STUDENT HUB</span></div><span class="sbell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i></span></div>
-  <div class="sprof"><span class="sava">AK</span><div class="spinfo"><b>Alex Kim</b><span>B2 · Explorer</span></div><span class="spxp">1,240 XP</span></div>
+  <div class="sprof"><span class="sava"></span><div class="spinfo"><b></b><span></span></div><span class="spxp"></span></div>
   <div class="navlbl">MENU</div>
   <nav class="nav">
 <button class="on"><span class="pxart navpx" data-art="spark" data-color="currentColor" data-px="3"></span>Today</button>
@@ -172,7 +201,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
   
   
-  <div class="pxwave" data-wave></div><div class="wnstrip" id="wnStrip"><span class="pxart" data-art="spark" data-color="#FF4FA3" data-px="3"></span><p><b>While you were away:</b> 2 new words are waiting in your Word Bank, Marta sent you a duel — she's been winning lately — and your flag moved 40 XP closer to Ridge Camp.</p><button id="wnOk">Caught up</button></div>
+  <div class="pxwave" data-wave></div><div class="wnstrip" id="wnStrip"><span class="pxart" data-art="spark" data-color="#FF4FA3" data-px="3"></span><p></p><button id="wnOk">Caught up</button></div>
 <div class="kick"><span class="pxart" data-art="bolt" data-color="#FF4FA3" data-px="3"></span><span>YOUR PLAN TODAY</span><a>≈15 min · then you are free</a></div>
 <div class="plan">
   <div class="planrow">
@@ -196,7 +225,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="planrow">
     <span class="pnum">4</span>
-    <div class="pmain"><b>Marta's duel · Verb Hunt</b><span>Expires in 23h — she's been winning lately. Just saying.</span></div>
+    <div class="pmain"><b></b><span></span></div>
     <span class="pmeta">Challenges · +60 XP</span>
     <button class="pbtn line" data-go="3">View</button>
   </div>
@@ -224,12 +253,12 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="lkick">LUCKY TASK · ONE PULL A DAY</div>
     <div id="lpA">
       <div class="ltitle">Something good is sealed in here</div>
-      <div class="lsub">Every morning one task gets picked for you and sealed. Pulling is free — finishing it pays a lucky bonus.</div>
+      <div class="lsub">One pull a day: a 30-second task from your own words. Right first time pays a lucky bonus — and the day counts for your streak.</div>
       <button class="lpull" id="lpPull">Pull today's task</button>
     </div>
     <div id="lpB" style="display:none">
       <div class="lslot" id="lpSlot">Voice-note story</div>
-      <div class="lsub">Picking from today's lessons, words and games…</div>
+      <div class="lsub">Picking from your own words…</div>
     </div>
     <div id="lpC" style="display:none">
       <div class="ltitle">Voice-note story</div>
@@ -244,7 +273,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <canvas id="fx"></canvas>
 <aside class="side">
   <div class="slogo"><span class="smark pxlogo"><i></i><i class="p"></i><i></i><i></i></span><div><b>TeachEd</b><span>STUDENT HUB</span></div><span class="sbell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i></span></div>
-  <div class="sprof"><span class="sava">AK</span><div class="spinfo"><b>Alex Kim</b><span>B2 · Explorer</span></div><span class="spxp">1,240 XP</span></div>
+  <div class="sprof"><span class="sava"></span><div class="spinfo"><b></b><span></span></div><span class="spxp"></span></div>
   <div class="navlbl">MENU</div>
   <nav class="nav">
 <button><span class="pxart navpx" data-art="spark" data-color="currentColor" data-px="3"></span>Today</button>
@@ -349,7 +378,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <section class="pg" id="pg-wordbank"><div class="page">
 <aside class="side">
   <div class="slogo"><span class="smark pxlogo"><i></i><i class="p"></i><i></i><i></i></span><div><b>TeachEd</b><span>STUDENT HUB</span></div><span class="sbell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i></span></div>
-  <div class="sprof"><span class="sava">AK</span><div class="spinfo"><b>Alex Kim</b><span>B2 · Explorer</span></div><span class="spxp">1,240 XP</span></div>
+  <div class="sprof"><span class="sava"></span><div class="spinfo"><b></b><span></span></div><span class="spxp"></span></div>
   <div class="navlbl">MENU</div>
   <nav class="nav">
 <button><span class="pxart navpx" data-art="spark" data-color="currentColor" data-px="3"></span>Today</button>
@@ -440,7 +469,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <section class="pg" id="pg-challenges"><div class="page">
 <aside class="side">
   <div class="slogo"><span class="smark pxlogo"><i></i><i class="p"></i><i></i><i></i></span><div><b>TeachEd</b><span>STUDENT HUB</span></div><span class="sbell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i></span></div>
-  <div class="sprof"><span class="sava">AK</span><div class="spinfo"><b>Alex Kim</b><span>B2 · Explorer</span></div><span class="spxp">1,240 XP</span></div>
+  <div class="sprof"><span class="sava"></span><div class="spinfo"><b></b><span></span></div><span class="spxp"></span></div>
   <div class="navlbl">MENU</div>
   <nav class="nav">
 <button><span class="pxart navpx" data-art="spark" data-color="currentColor" data-px="3"></span>Today</button>
@@ -473,32 +502,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="row"><span class="xpboost">+75 XP × 1.5 today</span><button class="accept" id="acceptBtn">Accept challenge</button></div>
   </section>
 
-  <div class="cols">
-    <section class="panel">
-      <div class="ptitle">WEEKLY · WORD SPRINT</div>
-      <div class="wbar"><i></i></div>
-      <div class="wmeta"><span><b>320</b> / 500 XP</span><span>ends Sunday</span></div>
-      <div class="wrow"><span class="ava" style="background:var(--pink)">M</span><div class="who"><b>Marta · B1</b><span>almost there</span></div><span class="xp">410</span></div>
-      <div class="wrow"><span class="ava" style="background:var(--turqs)">D</span><div class="who"><b>Denys · B2</b><span>on fire</span></div><span class="xp">365</span></div>
-      <div class="wrow"><span class="ava" style="background:var(--limet)">S</span><div class="who"><b>Sofiia · A2</b><span>steady</span></div><span class="xp">340</span></div>
-      <div class="wrow me"><span class="ava" style="background:var(--lime)">AK</span><div class="who"><b>You · #4</b><span>35 XP behind Sofiia</span></div><span class="xp">320</span></div>
-    </section>
-
-    <section class="panel">
-      <div class="ptitle">DUELS<span class="pxart" data-art="swords" data-color="#1E2231" data-px="2"></span></div>
-      <div class="duel">
-        <div class="dt">INCOMING · EXPIRES IN 24H</div>
-        <div class="db"><span class="ava" style="background:var(--pink)">M</span><div class="who"><b>Marta challenges you</b><span>Verb Hunt · loser buys nothing, winner takes the bank</span></div></div>
-        <div class="db"><button class="dbtn lime" id="duelAccept">Accept duel</button><button class="dbtn ghost" id="duelLater">Later</button></div>
-      </div>
-      <div class="duel">
-        <div class="dt">ACTIVE · YOUR MOVE</div>
-        <div class="db"><span class="ava" style="background:var(--turqs)">D</span><div class="who"><b>vs Denys · Sentence Cage</b><span>he played: 1:12 · your turn</span></div><button class="dbtn">Play</button></div>
-        <div class="react"><button data-r="👏">👏</button><button data-r="🔥">🔥</button><button data-r="😅">😅</button></div>
-      </div>
-      <button class="throw" id="throwBtn">Throw a duel <span>→</span></button><div class="dnote">Seed sets are built from words you both have — nobody brings outside words.</div>
-    </section>
-  </div>
+  <div class="cols"></div>
 
   <div class="stitle">Your badges</div>
   <div class="shelf">
@@ -519,9 +523,6 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <p class="ssub">Pick a classmate and a game. Same words for both — fair fight.</p>
     <div class="ptitle" style="margin-top:20px">OPPONENT</div>
     <div class="optrow" id="oppRow">
-      <button class="opt sel"><span class="ava" style="background:var(--pink)">M</span>Marta <small>B1</small></button>
-      <button class="opt"><span class="ava" style="background:var(--turqs)">D</span>Denys <small>B2</small></button>
-      <button class="opt"><span class="ava" style="background:var(--limet)">S</span>Sofiia <small>A2</small></button>
     </div>
     <div class="ptitle" style="margin-top:20px">GAME</div>
     <div class="optrow" id="gameRow">
@@ -540,19 +541,19 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 
 
-<div class="dpop open" id="duelPop">
+<div class="dpop" id="duelPop">
   <div class="dcard">
     <button class="dx" id="dpX">✕</button>
     <div class="dtop">
       <span class="dbadge"><span class="pxart" data-art="swords" data-color="#F4F3EC" data-px="4"></span></span>
       <div><div class="dkick">NEW DUEL INVITE</div><span class="dcount">Expires in <span id="dpTimer">23:41:12</span></span></div>
     </div>
-    <div class="dtitle">Marta challenges you</div>
+    <div class="dtitle"></div>
     <div class="dsub"><b>Verb Hunt</b> · built from your Word Bank words<br>Loser buys nothing — winner takes the bank · <b>+60 XP</b></div>
     <div class="dvs">
-      <div class="p"><span class="ava2" style="background:var(--pink);color:#fff">M</span><div class="pinfo">Marta<span>B2 · your classmate</span></div></div>
+      <div class="p"><span class="ava2" style="background:var(--pink);color:#fff"></span><div class="pinfo"><span></span></div></div>
       <span class="mid pxart" data-art="swords" data-color="#1E2231" data-px="3"></span>
-      <div class="p"><div class="pinfo" style="text-align:right">You<span>#4 in class</span></div><span class="ava2" style="background:var(--lime);color:var(--ink)">AK</span></div>
+      <div class="p"><div class="pinfo" style="text-align:right">You<span>#4 in class</span></div><span class="ava2" style="background:var(--lime);color:var(--ink)"></span></div>
     </div>
     <div class="dbtns"><button class="daccept" id="dpAccept">Accept duel</button><button class="dlater" id="dpLater">Later</button></div>
     <div class="dfoot" id="dpFoot">Only classmates from your teacher can invite you · <button id="dpOff">Turn off duel invites</button></div>
@@ -563,7 +564,7 @@ body{font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <canvas id="fx"></canvas>
 <aside class="side">
   <div class="slogo"><span class="smark pxlogo"><i></i><i class="p"></i><i></i><i></i></span><div><b>TeachEd</b><span>STUDENT HUB</span></div><span class="sbell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><i></i></span></div>
-  <div class="sprof"><span class="sava">AK</span><div class="spinfo"><b>Alex Kim</b><span>B2 · Explorer</span></div><span class="spxp">1,240 XP</span></div>
+  <div class="sprof"><span class="sava"></span><div class="spinfo"><b></b><span></span></div><span class="spxp"></span></div>
   <div class="navlbl">MENU</div>
   <nav class="nav">
 <button><span class="pxart navpx" data-art="spark" data-color="currentColor" data-px="3"></span>Today</button>
@@ -678,18 +679,7 @@ function burst(x,y,n=70){const ps=[];
     if(t<100)requestAnimationFrame(anim);else ctx.clearRect(0,0,cv.width,cv.height);})();}
 function toast(x,y,t){const el=document.createElement('div');el.className='toast';el.textContent=t;
   el.style.left=(x-30)+'px';el.style.top=(y-20)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1150);}
-root.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',e=>{
-  const r=c.getBoundingClientRect();burst(r.left+r.width/2,r.top+140,60);
-  toast(e.clientX,e.clientY,'Opens: '+c.dataset.t);}));
 
-root.querySelector('#tHear').addEventListener('click',e=>{e.stopPropagation();
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance('serendipity');u.lang='en-US';speechSynthesis.speak(u);}catch(_){}});
-root.querySelector('#tKeep').addEventListener('click',e=>{e.stopPropagation();
-  const b=e.currentTarget;if(b.dataset.done)return;b.dataset.done=1;b.textContent='✓ Kept';
-  const r=b.getBoundingClientRect();burst(r.left,r.width/2+r.left*0,50);toast(r.left,r.top,'+5 XP');});
-root.querySelector('#treat').addEventListener('click',()=>{toast(innerWidth/2,300,'A new treat every day');});
-root.querySelectorAll('.uncard').forEach(c=>c.addEventListener('click',e=>{
-  const r=c.getBoundingClientRect();burst(r.left+r.width/2,r.top,40);toast(e.clientX,e.clientY,'Opens: '+c.dataset.t);}));
 
 })();</script>
 <script>(function(){ const root=document.getElementById('pg-today');
@@ -1205,18 +1195,11 @@ root.querySelectorAll('.dep16 .xrow').forEach(r=>r.addEventListener('click',e=>{
 <script>(function(){ const root=document.getElementById('pg-challenges');
 
 function confetti(n){const C=['#D3F26A','#2DD4BF','#F6D8D8','#1E2231','#F3A46B'];for(let i=0;i<(n||70);i++){const d=document.createElement('div');d.className='confetti';d.style.left=(38+Math.random()*24)+'vw';d.style.background=C[i%C.length];document.body.appendChild(d);const dx=(Math.random()-.5)*260;d.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+dx+'px,'+(innerHeight*.75)+'px) rotate('+(Math.random()*720-360)+'deg)',opacity:0}],{duration:1300+Math.random()*700,easing:'cubic-bezier(.2,.8,.4,1)'}).onfinish=()=>d.remove();}}
-const ab=root.querySelector('#acceptBtn');
-ab.onclick=()=>{if(ab.classList.contains('done'))return;ab.classList.add('done');ab.textContent='Accepted ✓ · in your plan';confetti(80);};
-root.querySelector('#duelAccept').onclick=e=>{e.target.textContent='Accepted ✓';e.target.disabled=true;confetti(40);};
-root.querySelector('#duelLater').onclick=e=>{e.target.closest('.duel').style.opacity=.45;e.target.textContent='Saved for later';};
-root.querySelectorAll('.react button').forEach(b=>b.onclick=()=>{root.querySelectorAll('.react button').forEach(x=>x.classList.remove('sent'));b.classList.add('sent');});
 const wrap=root.querySelector('#sheetWrap');
-root.querySelector('#throwBtn').onclick=()=>wrap.classList.add('open');
 root.querySelector('#sheetX').onclick=()=>wrap.classList.remove('open');
 wrap.addEventListener('click',e=>{if(e.target===wrap)wrap.classList.remove('open');});
 function pick(id){const r=document.getElementById(id);r.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{r.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');});}
 pick('oppRow');pick('gameRow');
-root.querySelector('#sendDuel').onclick=e=>{wrap.classList.remove('open');const t=root.querySelector('#throwBtn');t.innerHTML='Duel sent ✓ · waiting for an answer';confetti(60);};
 
 })();</script>
 <script>(function(){ const root=document.getElementById('pg-challenges');
@@ -1697,64 +1680,7 @@ html[data-hubtheme="dark"] #pg-today,html[data-hubtheme="dark"] #pg-watchread,ht
 })();
 </script>
 
-<style>
-#duelToast{position:fixed;right:22px;bottom:22px;width:336px;background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(11,16,38,.28),0 4px 14px rgba(11,16,38,.12);z-index:9000;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0B1026;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,.9,.25,1.2),opacity .35s}
-#duelToast.show{transform:translateY(0);opacity:1;pointer-events:auto}
-#duelToast .dt-head{display:flex;align-items:center;gap:10px;padding:14px 16px 0}
-#duelToast .dt-av{width:40px;height:40px;border-radius:50%;background:#FF4FA3;color:#fff;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none}
-#duelToast .dt-name{font-weight:800;font-size:14.5px;line-height:1.2}
-#duelToast .dt-meta{font-size:12px;font-weight:600;color:rgba(11,16,38,.5)}
-#duelToast .dt-x{margin-left:auto;border:0;background:#F6F6EF;width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;color:rgba(11,16,38,.6);flex:none}
-#duelToast .dt-body{padding:10px 16px 0;font-size:13.5px;font-weight:600;line-height:1.5;color:rgba(11,16,38,.78)}
-#duelToast .dt-chip{display:inline-block;background:#FDEBD3;color:#8A5A00;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;margin-top:8px}
-#duelToast .dt-actions{display:flex;gap:8px;padding:14px 16px 16px}
-#duelToast .dt-acc{flex:1;border:0;background:#D3F26A;color:#0B1026;font:800 14px Manrope,sans-serif;padding:11px;border-radius:12px;cursor:pointer}
-#duelToast .dt-lat{border:1.5px solid #E7E4CF;background:#fff;font:800 14px Manrope,sans-serif;padding:11px 18px;border-radius:12px;cursor:pointer;color:#0B1026}
-#duelToast .dt-done{padding:16px;font-size:14px;font-weight:700;line-height:1.5;display:none}
-</style>
-<div id="duelToast" role="dialog" aria-label="Duel invite">
-  <div class="dt-head">
-    <div class="dt-av">M</div>
-    <div><div class="dt-name">Marta</div><div class="dt-meta">your classmate · now</div></div>
-    <button class="dt-x" id="dtClose">✕</button>
-  </div>
-  <div class="dt-body" id="dtBody">challenges you to <b>Verb Hunt</b> — built from your Word Bank words. Loser buys nothing, winner takes the bank.<br><span class="dt-chip">+60 XP · expires in 24h</span></div>
-  <div class="dt-actions" id="dtActions">
-    <button class="dt-acc" id="dtAccept">Accept duel</button>
-    <button class="dt-lat" id="dtLater">Later</button>
-  </div>
-  <div class="dt-done" id="dtDone">Accepted. The duel is waiting in Challenges — Marta has been notified. Politely.</div>
-</div>
-<script>
-(function(){
-  var toast = document.getElementById('duelToast');
-  function curPg(){ var p = document.querySelector('.pg.on'); return p ? p.id : ''; }
-  function hide(){ toast.classList.remove('show'); }
-  setTimeout(function(){ if (curPg() !== 'pg-challenges') toast.classList.add('show'); }, 2400);
-  document.getElementById('dtClose').addEventListener('click', hide);
-  document.getElementById('dtLater').addEventListener('click', hide);
-  document.getElementById('dtAccept').addEventListener('click', function(){
-    document.getElementById('dtBody').style.display = 'none';
-    document.getElementById('dtActions').style.display = 'none';
-    document.getElementById('dtDone').style.display = 'block';
-    var colors = ['#D3F26A','#FF4FA3','#8B7CFF','#2DD4BF'];
-    for (var i = 0; i < 26; i++){
-      var el = document.createElement('i');
-      var sz = 5 + Math.random() * 6;
-      el.style.cssText = 'position:fixed;right:' + (60 + Math.random() * 220) + 'px;bottom:120px;width:' + sz + 'px;height:' + sz + 'px;background:' + colors[i % 4] + ';z-index:9001;pointer-events:none';
-      document.body.appendChild(el);
-      (function(n){
-        var dx = (Math.random() - .5) * 260, dy = -(90 + Math.random() * 200), r = Math.random() * 260;
-        n.animate([{transform:'translate(0,0) rotate(0)', opacity:1},{transform:'translate(' + dx + 'px,' + dy + 'px) rotate(' + r + 'deg)', opacity:0}], {duration: 900 + Math.random() * 500, easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish = function(){ n.remove(); };
-      })(el);
-    }
-    setTimeout(hide, 3400);
-  });
-  document.addEventListener('click', function(e){
-    if (e.target.closest && e.target.closest('nav.nav')) setTimeout(function(){ if (curPg() === 'pg-challenges') hide(); }, 60);
-  });
-})();
-</script>
-<script src="scripts/app-core.js?v=1353"></script>
-<script src="scripts/hub-data.js?v=1353"></script>
+
+<script src="scripts/app-core.js?v=1354"></script>
+<script src="scripts/hub-data.js?v=1354"></script>
 </body></html>

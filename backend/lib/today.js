@@ -5,7 +5,7 @@
 const xp = require('./xp');
 const wordbank = require('./wordbank');
 const challenges = require('./challenges');
-const { phraseFor, localDay } = require('./phrases');
+const { phraseFor, localDay, PHRASES } = require('./phrases');
 const hub = require('./hubcontent');
 
 const LUCKY_BASE_XP = 50, LUCKY_BONUS = 1.5, TREAT_XP = 5;
@@ -47,6 +47,12 @@ async function luckyState(db, user, ctx) {
   const base = { xp: Math.round(LUCKY_BASE_XP * LUCKY_BONUS), base_xp: LUCKY_BASE_XP, bonus: LUCKY_BONUS, pool };
   if (!pull) return { state: 'sealed', ...base };
   const meta = { kind: pull.kind, need: pull.need, label: pull.label };
+  /* the 30-second task from the student's own words is answered right in the pop-up (answerLucky) */
+  if (RECALL.has(pull.kind)) {
+    const q = parseRef(pull.ref);
+    if (pull.completed_at) return { state: 'done', task: { ...meta, progress: 1, result: q.result || null }, ...base };
+    return { state: 'revealed', task: { ...meta, progress: 0, hint: 'Pick the meaning — about thirty seconds.', quiz: { prompt: q.word, options: q.options, word_id: q.word_id || null } }, ...base };
+  }
   const go = ({ words: 'wordbank', homework: 'homework', challenge: 'challenges', read: 'watchread', treat: 'today' })[pull.kind];
   if (!pull.completed_at) {
     const { rows: [c] } = await db.query(
@@ -63,52 +69,122 @@ async function luckyState(db, user, ctx) {
   return { state: 'done', task: { ...meta, go, progress: pull.need }, ...base };
 }
 
+/* The task of the day is a 30-60 second action from the student's own material: the word that is
+   about to be forgotten (overdue first, then the one forgotten most often), its meaning picked from
+   four. A student with too few words gets the phrase of the day instead. */
+const RECALL = new Set(['recall', 'phrase']);
+const parseRef = r => { try { return JSON.parse(r) || {}; } catch (_) { return {}; } };
+const shuffle = (arr, seed) => arr.map((x, i) => ({ x, k: hash(seed + ':' + i) })).sort((a, b) => a.k - b.k).map(o => o.x);
+function recallTask(ctx, seed, level) {
+  const all = [...ctx.wb.queue, ...ctx.wb.air, ...(ctx.wb.waiting || [])].filter(w => w.translation && w.translation.trim());
+  const edge = all.filter(w => w.status === 'LAST CALL' || w.status === 'DELAYED')
+    .concat(all.filter(w => w.stage !== 'new').sort((a, b) => b.lapses - a.lapses || (a.in_days || 0) - (b.in_days || 0)))
+    .concat(all);
+  const pick = edge[0];
+  const others = [...new Set(all.filter(w => pick && w.id !== pick.id && w.translation.toLowerCase() !== pick.translation.toLowerCase()).map(w => w.translation))];
+  if (pick && others.length >= 3) {
+    const options = shuffle([pick.translation, ...shuffle(others, seed).slice(0, 3)], seed + pick.id);
+    const w = String(pick.word).slice(0, 60);
+    return { kind: 'recall', label: pick.stage === 'new' ? 'Quick: what does “' + w + '” mean?' : 'Save “' + w + '” before it slips', ref: { word_id: pick.id, word: pick.word, options, answer: options.indexOf(pick.translation) } };
+  }
+  const p = phraseFor(level, localDay(ctx.tz));
+  const pool = Object.values(PHRASES).flat().map(x => x[1]).filter(m => m !== p.meaning);
+  const options = shuffle([p.meaning, ...shuffle(pool, seed).slice(0, 3)], seed + p.phrase);
+  return { kind: 'phrase', label: 'What does “' + p.phrase + '” mean?', ref: { word: p.phrase, options, answer: options.indexOf(p.meaning) } };
+}
+
 async function pullLucky(db, user) {
   const ctx = await context(db, user);
   const tz = challenges.tzOf(user), day = challenges.dayIn(tz);
   const have = await db.query('SELECT 1 FROM lucky_pulls WHERE user_id = $1 AND day = $2::date', [user.id, day]);
   if (have.rows.length) return { error: 'One pull a day - today’s task is already yours', status: 409 };
-  const cands = luckyCandidates(ctx);
-  if (!cands.length) return { error: 'Nothing to pull from today yet', status: 409 };
-  // the platform's own tasks (read, phrase) fill in only when nothing from the student's own work is there to pull
-  const own = cands.filter(c => c.kind !== 'read' && c.kind !== 'treat');
-  const from = own.length ? own : cands;
-  const pick = from[hash(user.id + day) % from.length];
-  await db.query('INSERT INTO lucky_pulls (user_id, day, kind, need, label, ref) VALUES ($1,$2::date,$3,$4,$5,$6) ON CONFLICT DO NOTHING',
-    [user.id, day, pick.kind, pick.need, pick.label, pick.ref || null]);
+  const { rows: [lv] } = await db.query(
+    `SELECT COALESCE((SELECT j.level FROM student_journal j WHERE j.student_id = $1 ORDER BY j.created_at DESC LIMIT 1), (SELECT level FROM student_dna WHERE user_id = $1)) AS level`, [user.id]).catch(() => ({ rows: [{}] }));
+  const pick = recallTask(ctx, user.id + ':' + day, lv && lv.level);
+  await db.query('INSERT INTO lucky_pulls (user_id, day, kind, need, label, ref) VALUES ($1,$2::date,$3,1,$4,$5) ON CONFLICT DO NOTHING',
+    [user.id, day, pick.kind, pick.label.slice(0, 160), JSON.stringify(pick.ref)]);
   return { lucky: await luckyState(db, user, ctx) };
+}
+
+/* the answer: right pays the lucky bonus, wrong pays the base and shows the meaning - either way the
+   task is done, the points are shown at once and the day counts for the streak */
+async function answerLucky(db, user, choice) {
+  const tz = challenges.tzOf(user), day = challenges.dayIn(tz);
+  const { rows: [pull] } = await db.query('SELECT * FROM lucky_pulls WHERE user_id = $1 AND day = $2::date', [user.id, day]);
+  if (!pull || !RECALL.has(pull.kind)) return { error: 'Pull today’s task first', status: 409 };
+  const q = parseRef(pull.ref);
+  if (pull.completed_at) return { error: 'Today’s task is already done', status: 409, result: q.result };
+  const correct = Number(choice) === q.answer;
+  const pay = correct ? Math.round(LUCKY_BASE_XP * LUCKY_BONUS) : LUCKY_BASE_XP;
+  const result = { correct, answer: q.answer, meaning: q.options[q.answer], word: q.word, word_id: q.word_id || null, xp: pay };
+  const done = await db.query(`UPDATE lucky_pulls SET completed_at = NOW(), ref = $3 WHERE user_id = $1 AND day = $2::date AND completed_at IS NULL`,
+    [user.id, day, JSON.stringify({ ...q, result })]);
+  if (!done.rowCount) return { error: 'Today’s task is already done', status: 409 };
+  await xp.award(db, user.id, 'lucky', day, pay, correct ? 'Lucky Task · right first time' : 'Lucky Task done');
+  const streak = (await require('./streakDays').streakOf(db, user)).streak;
+  return { ok: true, ...result, streak };
 }
 
 async function context(db, user) {
   const tz = challenges.tzOf(user);
   const { rows } = await db.query(
-    `SELECT id, word, translation, example, source_title, source_type, created_at, reps, ease, interval_days, lapses, due_at, learned, last_reviewed_at
-       FROM vocabulary WHERE user_id = $1 AND kind = 'word' ORDER BY created_at DESC LIMIT 600`, [user.id]);
+    `SELECT v.id, v.word, v.translation, v.example, v.source_title, v.source_type, v.created_at, v.reps, v.ease, v.interval_days, v.lapses, v.due_at, v.learned, v.last_reviewed_at,
+            v.sent_by, t.name AS teacher_name
+       FROM vocabulary v LEFT JOIN users t ON t.id = v.sent_by
+      WHERE v.user_id = $1 AND v.kind = 'word' ORDER BY v.created_at DESC LIMIT 600`, [user.id]);
   const [wb, homework, challenge, duels] = await Promise.all([
     Promise.resolve(wordbank.board(rows, tz)), openHomework(db, user.id), challenges.todaysChallenge(db, user), challenges.listDuels(db, user.id)]);
   const { rows: [tp] } = await db.query(`SELECT 1 FROM xp_events WHERE user_id = $1 AND kind = 'treat' AND ref = $2`, [user.id, String(localDay(tz))]);
   return { tz, wb, homework, challenge, duels, treatOpen: !tp };
 }
 
+/* The treat of the day, for the student's level and interests: a word from a piece built for their level
+   and what they like (pieces made before today, so it stays the same all day), one they do not have yet.
+   No such piece yet: the phrase of the day for the level. */
+async function treatPick(db, user, level, day, tz) {
+  try {
+    const prof = await hub.profileOf(db, user.id);
+    const lv = String(level || '').toUpperCase().match(/^[ABC][12]/);
+    const { rows } = await db.query(
+      `SELECT m.id, m.title, m.interest, m.words FROM hub_materials m
+        WHERE m.level = $2 AND m.created_at < ($3::date::timestamp AT TIME ZONE $4)
+          AND (cardinality($5::text[]) = 0 OR m.interest = ANY($5::text[]) OR m.teacher_id IN (SELECT teacher_id FROM student_journal WHERE student_id = $1))
+        ORDER BY m.created_at DESC LIMIT 30`, [user.id, lv ? lv[0] : 'B1', String(localDayIso(tz)), tz, prof.liked]);
+    const have = new Set((await db.query(`SELECT lower(word) AS w FROM vocabulary WHERE user_id = $1 AND kind = 'word'`, [user.id])).rows.map(r => r.w));
+    const cands = [];
+    rows.forEach(m => (m.words || []).forEach(w => { if (w.word && w.translation && w.word.length <= 40 && !/\s.*\s.*\s/.test(w.word)) cands.push({ w, m }); }));
+    const fresh = cands.filter(c => !have.has(c.w.word.toLowerCase()));
+    const list = fresh.length ? fresh : [];
+    if (!list.length) return null;
+    const c = list[hash(user.id + ':' + day) % list.length];
+    return { phrase: c.w.word, meaning: c.w.translation, example: c.w.example || '', level: lv ? lv[0] : 'B1', from: c.m.title };
+  } catch (_) { return null; }
+}
+const localDayIso = tz => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+
 async function treat(db, user) {
   const tz = challenges.tzOf(user);
   const { rows: [r] } = await db.query(
     `SELECT COALESCE((SELECT j.level FROM student_journal j WHERE j.student_id = $1 ORDER BY j.created_at DESC LIMIT 1), (SELECT level FROM student_dna WHERE user_id = $1)) AS level`, [user.id]).catch(() => ({ rows: [{}] }));
   const day = localDay(tz);
-  const p = phraseFor(r && r.level, day);
-  const have = await db.query(`SELECT id FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND lower(word) = lower($2) LIMIT 1`, [user.id, p.phrase]);
   const kept = await db.query(`SELECT 1 FROM xp_events WHERE user_id = $1 AND kind = 'treat' AND ref = $2`, [user.id, String(day)]);
+  // once kept, the treat stays the word that was kept (it is in the bank now, so the pick would move on)
+  const { rows: [k] } = kept.rows.length ? await db.query(
+    `SELECT word, translation, example FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND source_type = 'PHRASE_OF_THE_DAY' ORDER BY created_at DESC LIMIT 1`, [user.id]) : { rows: [] };
+  const p = k ? { phrase: k.word, meaning: k.translation, example: k.example, level: String((r && r.level) || 'B1').slice(0, 2) }
+    : (await treatPick(db, user, r && r.level, day, tz)) || phraseFor(r && r.level, day);
+  const have = await db.query(`SELECT id FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND lower(word) = lower($2) LIMIT 1`, [user.id, p.phrase]);
   const left = (() => { const now = new Date(); const tzNow = new Date(now.toLocaleString('en-US', { timeZone: tz })); return Math.max(1, 24 * 60 - (tzNow.getHours() * 60 + tzNow.getMinutes())); })();
-  return { word: p.phrase, meaning: p.meaning, example: p.example, level: p.level, saved: have.rows.length > 0, paid: kept.rows.length > 0, xp: TREAT_XP, day, next_in_min: left };
+  return { word: p.phrase, meaning: p.meaning, example: p.example, level: p.level, from: p.from || null, saved: have.rows.length > 0, paid: kept.rows.length > 0, xp: TREAT_XP, day, next_in_min: left };
 }
 
 async function keepTreat(db, user) {
   const t = await treat(db, user);
   if (!t.saved) await db.query(
     `INSERT INTO vocabulary (user_id, word, translation, example, kind, source_title, source_type) VALUES ($1,$2,$3,$4,'word',$5,'PHRASE_OF_THE_DAY')`,
-    [user.id, t.word, t.meaning, t.example, 'Phrase of the day · ' + t.level]);
+    [user.id, t.word, t.meaning, t.example, 'Treat of the day · ' + localDayIso(challenges.tzOf(user))]);
   const paid = await xp.award(db, user.id, 'treat', String(t.day), TREAT_XP, 'Treat of the day kept');
-  return { ok: true, xp: paid ? TREAT_XP : 0 };
+  return { ok: true, xp: paid ? TREAT_XP : 0, word: t.word, where: 'My finds' };
 }
 
 async function whatsNew(db, user, ctx) {
@@ -136,8 +212,14 @@ async function whatsNew(db, user, ctx) {
 async function plan(db, user, ctx, lucky) {
   const { wb, homework, challenge, duels, tz } = ctx;
   const rows = [];
-  if (wb.queue.length) {
-    const n = Math.min(wb.queue.length, 8), top = wb.queue[0], gain = wb.queue.slice(0, n).reduce((s, w) => s + w.xp, 0);
+  /* what the teacher gave comes first: the new words from the teacher are step one, the rest of the queue follows */
+  const tw = teacherWords(wb);
+  if (tw) rows.push({ id: 'teacher_words', kind: 'teacher_words', title: 'Practise ' + tw.n + (tw.n === 1 ? ' new word' : ' new words') + ' from ' + tw.teacher,
+    why: '“' + tw.words[0] + '”' + (tw.n > 1 ? ' and ' + (tw.n - 1) + ' more' : '') + ' — sent to your Word Bank by ' + tw.teacher, meta: 'Word Bank · ≈' + Math.max(2, Math.ceil(tw.n / 2)) + ' min',
+    min: Math.max(2, Math.ceil(tw.n / 2)), label: 'Practise', go: 'wordbank', practice: 'teacher' });
+  const twIds = new Set(tw ? tw.ids : []), rest = wb.queue.filter(w => !twIds.has(w.id));
+  if (rest.length) {
+    const n = Math.min(rest.length, 8), top = rest[0], gain = rest.slice(0, n).reduce((s, w) => s + w.xp, 0);
     const why = top.status === 'LAST CALL' ? '“' + top.word + '” is about to slip a stage — a quick pass saves it'
       : top.status === 'DELAYED' ? '“' + top.word + '” has been waiting since yesterday'
       : top.stage === 'new' ? n + (n === 1 ? ' new word is' : ' new words are') + ' ready to board' : '“' + top.word + '” is waiting for you';
@@ -166,11 +248,19 @@ async function plan(db, user, ctx, lucky) {
   return rows.slice(0, 5);
 }
 
+/* the new words from the teacher, for the plan and the banner on Today: how many, from whom, which */
+function teacherWords(wb) {
+  const list = wb.teacher_new || [];
+  if (!list.length) return null;
+  const names = [...new Set(list.map(w => w.teacher))];
+  return { n: list.length, teacher: names.length === 1 ? String(names[0]).split(/\s+/)[0] : 'your teachers', words: list.slice(0, 8).map(w => w.word), ids: list.map(w => w.id), at: list[0].created_at };
+}
+
 async function buildToday(db, user) {
   const ctx = await context(db, user);
   const lucky = await luckyState(db, user, ctx);
   const [rows, t, wn] = await Promise.all([plan(db, user, ctx, lucky), treat(db, user), whatsNew(db, user, ctx)]);
-  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, treat: t, whats_new: wn };
+  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb) };
 }
 
-module.exports = { buildToday, pullLucky, keepTreat, luckyCandidates, TREAT_XP, LUCKY_BASE_XP, LUCKY_BONUS };
+module.exports = { buildToday, pullLucky, answerLucky, keepTreat, luckyCandidates, TREAT_XP, LUCKY_BASE_XP, LUCKY_BONUS };

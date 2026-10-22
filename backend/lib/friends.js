@@ -104,7 +104,12 @@ async function createShare(db, user, kind, body) {
       db.query('SELECT COUNT(*)::int AS n FROM user_badges WHERE user_id = $1', [user.id]),
     ]);
     const { rows: [w] } = await db.query(`SELECT COUNT(*)::int AS n FROM vocabulary WHERE user_id = $1 AND kind = 'word'`, [user.id]);
-    payload = { xp: x.xp, streak: mine.streak, level: (d && d.level) || '', badges: bd.n, words: w.n };
+    // the last words on the card: only words that really are in this student's bank (the client sends the list)
+    const want = (Array.isArray(body && body.recent) ? body.recent : []).map(x => String(x).toLowerCase().slice(0, 60)).slice(0, 5);
+    const { rows: rec } = want.length ? await db.query(
+      `SELECT word FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND lower(word) = ANY($2::text[]) LIMIT 5`, [user.id, want]) : { rows: [] };
+    const { rows: [jl] } = await db.query('SELECT level FROM student_journal WHERE student_id = $1 AND level IS NOT NULL ORDER BY created_at DESC LIMIT 1', [user.id]);
+    payload = { xp: x.xp, streak: mine.streak, level: (jl && jl.level) || (d && d.level) || '', badges: bd.n, words: w.n, recent: rec.map(r => String(r.word).slice(0, 60)) };
   } else return { error: 'Unknown share', status: 400 };
   const token = rnd(10);
   await db.query('INSERT INTO hub_shares (token, owner_id, kind, payload) VALUES ($1,$2,$3,$4)', [token, user.id, kind, JSON.stringify(payload)]);

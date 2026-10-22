@@ -241,7 +241,7 @@ router.post('/send', async (req, res) => {
       }
       added += n;
       if (n) await createNotification(u, 'vocab', `${n} new phrase${n === 1 ? '' : 's'} from your lesson`,
-        `${req.user.name || 'Your teacher'} added them to your Word Bank - practise them before the next lesson.`, 'student.html#practise').catch(() => {});
+        `${req.user.name || 'Your teacher'} added them to your Word Bank - practise them before the next lesson.`, 'student-hub.html#wordbank').catch(() => {});
     }
     res.json({ ok: true, students: allowed.length, added });
   } catch (err) {

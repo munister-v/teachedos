@@ -47,6 +47,7 @@ test('the plan is built from what is really due: words first, then homework, the
   const hw = await pool.query(`INSERT INTO homework (user_id, title, due_at) VALUES ($1,'Jersey article', NOW() + INTERVAL '2 days') RETURNING id`, [teacher.id]).catch(() => null);
   const first = await today.buildToday(pool, s);
   assert.equal(first.plan[0].kind, 'words');
+  assert.equal(first.teacher_words, null);
   assert.match(first.plan[0].why, /overdue/, 'the word about to slip is the reason');
   assert.equal(first.lucky.state, 'sealed');
   assert.ok(first.plan.some(r => r.kind === 'lucky' && r.state === 'sealed'));
@@ -55,21 +56,25 @@ test('the plan is built from what is really due: words first, then homework, the
   if (hw) await pool.query('DELETE FROM homework WHERE id = $1', [hw.rows[0].id]);
 });
 
-test('one pull a day; the task is paid once, when the platform has seen it done', async t => {
+test('one pull a day: a 30-second task from the student\'s own words, paid once, the moment it is answered', async t => {
   if (!dbUp) return t.skip('no database');
   const out = await today.pullLucky(pool, s);
   assert.equal(out.lucky.state, 'revealed');
-  assert.equal(out.lucky.task.kind, 'words');
-  assert.equal(out.lucky.xp, 75);
+  assert.equal(out.lucky.task.kind, 'recall');
+  assert.equal(out.lucky.task.quiz.prompt, 'overdue', 'the word about to slip is the one asked');
+  assert.equal(out.lucky.task.quiz.options.length, 4);
+  assert.ok(out.lucky.task.quiz.options.includes('overdue-tr'));
+  assert.equal(out.lucky.task.quiz.answer, undefined, 'the answer never goes to the page');
   assert.equal((await today.pullLucky(pool, s)).status, 409, 'a second pull is refused');
   const before = (await xp.summary(pool, s.id, 'UTC', 'B1')).total;
-  for (let i = 0; i < 5; i++) await xp.awardWord(pool, s.id, 'w' + i, 'good', '2026-10-2' + i, 3);
+  const right = out.lucky.task.quiz.options.indexOf('overdue-tr');
+  const a = await today.answerLucky(pool, s, right);
+  assert.equal(a.correct, true); assert.equal(a.xp, 75); assert.ok(a.streak >= 1, 'the day counts for the streak');
+  assert.equal((await today.answerLucky(pool, s, right)).status, 409, 'answered once');
   const done = (await today.buildToday(pool, s)).lucky;
-  assert.equal(done.state, 'done'); assert.equal(done.just_done, true);
-  const again = (await today.buildToday(pool, s)).lucky;
-  assert.equal(again.state, 'done'); assert.equal(again.just_done, undefined, 'the bonus is paid once');
+  assert.equal(done.state, 'done'); assert.equal(done.task.result.xp, 75);
   const after = (await xp.summary(pool, s.id, 'UTC', 'B1')).total;
-  assert.equal(after - before, 5 * 3 + 75);
+  assert.equal(after - before, 75);
 });
 
 test('the treat is kept into the Word Bank and pays five XP once', async t => {
@@ -97,6 +102,25 @@ test('what is new: words from the teacher and a duel are told in one sentence', 
   assert.equal((await today.buildToday(pool, s)).whats_new, null, 'after "Caught up" there is nothing new');
 });
 
+test('words from the teacher are never queued, stand first in the plan and on top of the bank', async t => {
+  if (!dbUp) return t.skip('no database');
+  const { rows: [u] } = await pool.query(`INSERT INTO users (email, password_hash, name, role, plan, plan_status) VALUES ($1,'x','Tw Student','student','free','free') RETURNING id, name, email, timezone`, [`td-tw-${tag}@teached.test`]);
+  try {
+    for (let i = 0; i < 6; i++) await word(u, 'own' + i);
+    for (let i = 0; i < 7; i++) await pool.query(`INSERT INTO vocabulary (user_id, word, translation, kind, sent_by, source_type) VALUES ($1,$2,'x','word',$3,'LESSON_BOARD')`, [u.id, 'tw' + i, teacher.id]);
+    const t1 = await today.buildToday(pool, u);
+    assert.equal(t1.plan[0].kind, 'teacher_words');
+    assert.equal(t1.teacher_words.n, 7); assert.equal(t1.teacher_words.teacher, 'Kate');
+    const wb = require('../lib/wordbank');
+    const { rows } = await pool.query(`SELECT v.*, t.name AS teacher_name FROM vocabulary v LEFT JOIN users t ON t.id = v.sent_by WHERE v.user_id = $1`, [u.id]);
+    const b = wb.board(rows, 'UTC');
+    assert.equal(b.counts.teacher_new, 7);
+    assert.ok(b.queue.slice(0, 7).every(w => w.from_teacher), 'all seven board today, first');
+    assert.equal(b.queued, 1, 'only the student\'s own sixth new word waits for a seat');
+    assert.equal(b.counts.due_today, b.flights_today);
+  } finally { await pool.query('DELETE FROM users WHERE id = $1', [u.id]); }
+});
+
 test('island §2: a brand-new student still has a lucky task, a plan with something new, and one streak number', async t => {
   if (!dbUp) return t.skip('no database');
   const { rows: [u] } = await pool.query(`INSERT INTO users (email, password_hash, name, role, plan, plan_status) VALUES ($1,'x','Fresh Student','student','free','free') RETURNING id, name, email, timezone`, [`td-fresh-${tag}@teached.test`]);
@@ -105,7 +129,8 @@ test('island §2: a brand-new student still has a lucky task, a plan with someth
     assert.ok(t1.plan.length >= 1, 'the plan is never blank');
     assert.ok(t1.lucky && t1.lucky.state === 'sealed', 'the lucky task can be pulled');
     const pulled = await today.pullLucky(pool, u);
-    assert.ok(['read', 'treat'].includes(pulled.lucky.task.kind));
+    assert.equal(pulled.lucky.task.kind, 'phrase', 'no words yet: the phrase of the day is the task');
+    assert.equal(pulled.lucky.task.quiz.options.length, 4);
     const sd = require('../lib/streakDays');
     assert.equal((await sd.streakOf(pool, u)).streak, 0);
     await today.keepTreat(pool, u);                    // the smallest step is a day done

@@ -80,6 +80,20 @@ async function summary(db, userId, tz, level) {
     `SELECT kind, label, xp, to_char((created_at AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day
        FROM xp_events WHERE user_id = $1 AND kind NOT IN ('backfill', 'word', 'word_kept')
        ORDER BY created_at DESC LIMIT 6`, [userId, zone]);
+  /* the journal: every payment of the last 30 days, open to the student in full. Word reviews come as
+     one line per day ("Words reviewed ×12"), everything else one line each; the days add up to
+     exactly what "today" and the total say, because they are the same rows. */
+  const { rows: led } = await db.query(
+    `SELECT kind, label, xp, n, day, at FROM (
+       SELECT 'word' AS kind, 'Words reviewed' AS label, SUM(xp)::int AS xp, COUNT(*)::int AS n,
+              to_char((created_at AT TIME ZONE $2)::date, 'YYYY-MM-DD') AS day, MAX(created_at) AS at
+         FROM xp_events WHERE user_id = $1 AND kind = 'word' AND created_at > NOW() - INTERVAL '30 days' GROUP BY day
+       UNION ALL
+       SELECT kind, label, xp, 1, to_char((created_at AT TIME ZONE $2)::date, 'YYYY-MM-DD'), created_at
+         FROM xp_events WHERE user_id = $1 AND kind NOT IN ('backfill', 'word') AND xp > 0 AND created_at > NOW() - INTERVAL '30 days'
+     ) e ORDER BY at DESC LIMIT 80`, [userId, zone]);
+  const { rows: [older] } = await db.query(
+    `SELECT COALESCE(SUM(xp),0)::int AS xp FROM xp_events WHERE user_id = $1 AND created_at <= NOW() - INTERVAL '30 days'`, [userId]);
   const total = t.total;
   const from = String(level || 'B1').toUpperCase(), to = nextLevel(from);
   // after a confirmed level the path starts again from its Base Camp
@@ -90,6 +104,8 @@ async function summary(db, userId, tz, level) {
   const weekXp = week.reduce((n, d) => n + d.xp, 0);
   return {
     total, today: byDay.get(today) || 0, week, week_xp: weekXp, recent,
+    ledger: led.map(e => ({ kind: e.kind, label: e.kind === 'word' ? e.label + ' ×' + e.n : e.label, xp: e.xp, day: e.day })),
+    earlier_xp: older.xp, today_day: today,
     level: { from, to, band_xp: BAND_XP, checkpoint: CHECKPOINT, in_band: inBand, camps: CAMPS,
              next_camp: nextCamp, to_next_camp: Math.max(0, nextCamp.at - inBand), to_summit: Math.max(0, BAND_XP - inBand),
              pct: Math.round(inBand / BAND_XP * 100) },
