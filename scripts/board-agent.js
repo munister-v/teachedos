@@ -732,6 +732,7 @@
     if (a.op === 'duplicate') return `Duplicate ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'cover') return `Hide from students until you uncover: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
     if (a.op === 'uncover') return `Show to students again: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
+    if (a.op === 'launch') return `Open the lesson on the students’ screens${names(a.ids)}`;
     if (a.op === 'wordbank') return `Send ${plural(a.words.length, 'word')} to the student’s Word Bank: ${a.words.slice(0, 3).map(w => quote(w, 22)).join(', ')}${a.words.length > 3 ? ` +${a.words.length - 3}` : ''}`;
     if (a.op === 'assign') return `Give the cards of ${quote(cardText(byId(a.frame) || {}), 24)} to the student as homework${a.title ? ` “${a.title}”` : ''}${a.due ? `, due ${a.due}` : ''}`;
     if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
@@ -1215,6 +1216,10 @@
     withKids(a.ids).map(byId).filter(Boolean).forEach(c => moveTo(c, c.x + a.dx, c.y + a.dy));
   }
 
+  // "Launch lesson": the same stamp the Launch button sets, students' screens open the path
+  const launchable = id => { const c = byId(id); return c && c.data && c.data._wfPath ? c : null; };
+  function doLaunch(a) { a.ids.map(launchable).filter(Boolean).forEach(c => { c.data._wfPath.launch = Date.now(); }); }
+
   function doDuplicate(a) {
     const src = (typeof expandIdsWithFrameChildren === 'function' ? expandIdsWithFrameChildren(a.ids) : withKids(a.ids)).map(byId).filter(Boolean);
     if (!src.length) return [];
@@ -1274,7 +1279,7 @@
      A0 reads, A1 changes the teacher's own board reversibly (one Undo takes
      the task back), A2 is what students see, anything outside this chat's own
      cards that gets deleted, and a mass change (more than ten existing cards). */
-  const STUDENT_OPS = new Set(['cover', 'uncover', 'assign', 'wordbank', 'remember']);
+  const STUDENT_OPS = new Set(['cover', 'uncover', 'assign', 'wordbank', 'launch', 'remember']);
   const MASS = 10;
   function levelOf(a) {
     if (a.op === 'focus' || a.op === 'open') return 'A0';
@@ -1352,6 +1357,7 @@
           const bad = a.ids.map(byId).filter(Boolean).filter(c => { const p = v.pos.get(c.id); return p && (Math.round(c.x) !== p.x + a.dx || Math.round(c.y) !== p.y + a.dy); });
           return bad.length ? miss(`${bad.length} cards are not where they should be`) : { ok: true };
         }
+        case 'launch': { const bad = a.ids.filter(id => !launchable(id)); return bad.length === a.ids.length ? miss('that card is not a lesson') : a.ids.map(launchable).filter(Boolean).every(c => c.data._wfPath.launch) ? { ok: true } : miss('the lesson was not opened'); }
         case 'duplicate': return news.length >= a.ids.length ? { ok: true } : miss('the copies were not made');
         case 'table': case 'checklist': case 'timer': return news.some(c => c.type === a.op) ? { ok: true } : miss(`the ${a.op} was not made`);
         case 'image': return news.some(c => c.type === 'image') ? { ok: true } : { ok: true, warn: 'no photo found for it' };
@@ -1474,6 +1480,7 @@
           else if (a.op === 'frame') track(a, () => doFrame(a, made));
           else if (a.op === 'move') { doMove(a); touched.push(...a.ids); }
           else if (a.op === 'shift') { doShift(a); touched.push(...a.ids); }
+          else if (a.op === 'launch') doLaunch(a);
           else if (a.op === 'duplicate') { track(a, () => doDuplicate(a)); made.push(...news.get(a)); }
           else if (a.op === 'cover' || a.op === 'uncover') { doCover(a); touched.push(...a.ids); }
           else if (a.op === 'table' || a.op === 'checklist' || a.op === 'timer') track(a, () => doSingle(a, made, spot));

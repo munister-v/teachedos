@@ -339,3 +339,8 @@ test('board agent tools: web search reads Wikipedia, words go to the one student
   assert.strictEqual((await tools.addWords(db(one.concat(one), []), 't1', uuid, ['a'])).ok, false);
   assert.strictEqual((await tools.addWords(db(one, []), 't1', 'not-a-uuid', ['a'])).ok, false);
 });
+
+test('board agent: launch needs known non-frame cards, card reads need a safe id', () => {
+  assert.deepStrictEqual(agent.sanitizePlan({ actions: [{ op: 'launch', ids: ['f1', 'c1', 'zz'] }, { op: 'launch', ids: ['c2'] }] }, framed).actions, [{ op: 'launch', ids: ['c1'] }]);
+  assert.deepStrictEqual(agent.readRequest({ read: [{ tool: 'card', id: 'c7' }, { tool: 'card', id: 'x"; drop' }] }), [{ tool: 'card', id: 'c7' }]);
+});

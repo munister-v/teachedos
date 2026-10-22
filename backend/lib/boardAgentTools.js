@@ -42,6 +42,19 @@ async function readResults(db, teacherId, boardId) {
   return 'Results of this board\'s students (from the platform): ' + lines.join(' | ');
 }
 
+/* How each student did in ONE card (a quiz or exercise card of this board). */
+async function readCard(db, teacherId, boardId, cardId) {
+  const students = await boardStudents(db, teacherId, boardId);
+  const id = cut(cardId, 24);
+  if (!students.length) return 'Card results: this board has no students.';
+  const { rows } = await db.query(
+    `SELECT u.name, qr.score, qr.max_score, qr.pct, qr.submitted_at FROM quiz_results qr JOIN users u ON u.id = qr.user_id
+      WHERE qr.board_id::text = $1 AND qr.card_id = $2 AND qr.user_id = ANY($3::uuid[]) ORDER BY qr.submitted_at DESC LIMIT 12`,
+    [boardId, id, students.map(s => s.user_id)]).catch(() => ({ rows: [] }));
+  if (!rows.length) return `Card ${id}: nobody has handed in a result yet.`;
+  return `Card ${id} results: ` + rows.map(r => `${cut(String(r.name || 'Student').split(' ')[0], 20)} ${r.score}/${r.max_score} (${r.pct}%)`).join('; ');
+}
+
 /* Encyclopedia search (Wikipedia, no key): the top pages with their opening lines. */
 async function webSearch(query, lang) {
   const q = cut(query, 100).replace(/[^\p{L}\p{N} '’-]/gu, ' ').trim();
@@ -67,6 +80,7 @@ async function runReads(db, teacherId, boardId, reads) {
   for (const r of (Array.isArray(reads) ? reads : []).slice(0, 3)) {
     const tool = r && r.tool;
     if (tool === 'results') out.push(await readResults(db, teacherId, boardId).catch(() => 'Results: could not be read.'));
+    else if (tool === 'card') out.push(await readCard(db, teacherId, boardId, r.id).catch(() => 'Card results: could not be read.'));
     else if (tool === 'web') out.push(await webSearch(r.q, r.lang));
   }
   return out.join('\n');
