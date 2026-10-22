@@ -2013,3 +2013,35 @@ CREATE TABLE IF NOT EXISTS speaking_flags (                  -- the teacher's "n
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (teacher_id, round_id, kind)
 );
+
+
+-- Retention (ТЗ «Удержание» v1.0), phase 1: streak freezes (2 a month, automatic) and the students' circle.
+CREATE TABLE IF NOT EXISTS streak_freezes (                -- the days a freeze closed, once each (the metric freeze_used)
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day        DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, day)
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS circle_hidden BOOLEAN NOT NULL DEFAULT FALSE;    -- the student stays out of the circle
+CREATE TABLE IF NOT EXISTS circle_posts (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind        VARCHAR(10) NOT NULL,                       -- card | teacher | tich
+  author_id   UUID REFERENCES users(id) ON DELETE CASCADE, -- the student (card, tich win) or the teacher (teacher)
+  teacher_id  UUID REFERENCES users(id) ON DELETE CASCADE, -- teacher posts: whose class sees it
+  card_code   VARCHAR(16),                                -- card posts: the ShareCard (never a copy of its data)
+  ref         TEXT,                                       -- tich posts: what it is about (a duel id), so it is posted once
+  text        TEXT NOT NULL DEFAULT '',
+  payload     JSONB NOT NULL DEFAULT '{}'::jsonb,
+  hidden      BOOLEAN NOT NULL DEFAULT FALSE,             -- the class teacher hides it in one tap
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_circle_posts_recent ON circle_posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_circle_posts_author ON circle_posts(author_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_circle_posts_teacher ON circle_posts(teacher_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_circle_posts_once ON circle_posts(kind, author_id, COALESCE(card_code, ref)) WHERE kind <> 'teacher' AND COALESCE(card_code, ref) IS NOT NULL;
+CREATE TABLE IF NOT EXISTS circle_reactions (               -- «Тиць»: the one reaction; comments do not exist in v1.0
+  post_id    UUID NOT NULL REFERENCES circle_posts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (post_id, user_id)
+);

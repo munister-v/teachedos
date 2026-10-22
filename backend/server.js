@@ -211,6 +211,7 @@ app.use('/api/friends', require('./routes/friends'));
 app.use('/api/cards', require('./routes/cards'));
 app.use('/api/talk', require('./routes/talk'));
 app.use('/api/speaking-tutor', require('./routes/speakingTutor'));
+app.use('/api/circle', require('./routes/circle'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/community', require('./routes/community'));
 app.use('/', require('./routes/seo'));   // public SEO pages: /community/resources/, /community/authors/, /sitemap-community.xml

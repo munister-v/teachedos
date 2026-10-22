@@ -1,0 +1,57 @@
+/* The students' circle (ТЗ «Удержание» §2.2). Palette: sand #F6F6EF, ink #1E2231, lime #D3F26A, turquoise only for Tich. Manrope.
+   Today and Challenges reset margins on everything inside them, so every rule here starts with an id. */
+
+/* ---------- Today: «From your class» ---------- */
+#circleTeaser{margin:18px 0 8px;background:#fff;border:1px solid #EDEBE0;border-radius:20px;padding:14px 18px 8px;color:#1E2231;font-family:Manrope,sans-serif}
+#circleTeaser .cr-kick{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:800;letter-spacing:1.6px;color:#8A8672;margin-bottom:6px}
+#circleTeaser .cr-kick a{font-size:12.5px;letter-spacing:0;color:#1E2231;text-decoration:underline;text-decoration-color:#D3F26A;text-decoration-thickness:3px;text-underline-offset:2px}
+#circleTeaser .cr-line{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid #F1EFE4}
+#circleTeaser .cr-line:first-of-type{border-top:0}
+#circleTeaser .cr-lt{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.4}
+#circleTeaser .cr-lt small{display:block;font-size:11.5px;font-weight:700;color:#8A8672;margin-top:1px}
+
+/* ---------- Challenges: the stream ---------- */
+#circlePanel .cr-sub{font-size:13px;font-weight:600;color:rgba(30,34,49,.55);margin:-8px 0 14px}
+#circlePanel .cr-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;align-items:start}
+#circlePanel .cr-list .dnote,#circlePanel .cr-empty{grid-column:1/-1}
+#circlePanel .cr-empty{display:flex;gap:16px;align-items:center;background:#F6F6EF;border-radius:18px;padding:16px 18px}
+#circlePanel .cr-empty img{width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:38% 32%;border:2.5px solid #D3F26A;flex:none}
+#circlePanel .cr-empty b{display:block;font-size:15px}
+#circlePanel .cr-empty span{display:block;font-size:13.5px;font-weight:600;color:rgba(30,34,49,.6);margin-top:3px;line-height:1.5}
+#circlePanel .cr-post{background:#F6F6EF;border-radius:20px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
+#circlePanel .cr-post header{display:flex;align-items:center;gap:10px}
+#circlePanel .cr-by b{display:block;font-size:14px}
+#circlePanel .cr-by span{display:block;font-size:11.5px;font-weight:700;color:rgba(30,34,49,.5)}
+#circlePanel .cr-text{font-size:15px;font-weight:600;line-height:1.5}
+#circlePanel .cr-text.tich{padding:10px 13px;border-radius:14px;border-bottom-left-radius:5px;background:#D5F6F2;color:#0B3B36}
+#circlePanel .cr-card{border-radius:16px;overflow:hidden;box-shadow:0 8px 22px rgba(30,34,49,.14);background:#E9E7DC}
+#circlePanel .cr-card svg{display:block;width:100%;height:auto}
+#circlePanel .cr-post footer{display:flex;gap:8px;flex-wrap:wrap}
+#circlePanel .cr-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+#circlePanel .cr-more{background:#fff;border:1.5px solid rgba(30,34,49,.16);border-radius:99px;padding:10px 18px;font:800 13px Manrope,sans-serif;color:#1E2231;cursor:pointer}
+#circlePanel .cr-set{margin-left:auto;font-size:12.5px;font-weight:700;color:rgba(30,34,49,.55);display:flex;gap:8px;align-items:center;cursor:pointer}
+
+/* shared parts: the avatar, the tag, the two buttons */
+#circleTeaser .cr-ava,#circlePanel .cr-ava{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;color:#1E2231;object-fit:cover}
+#circleTeaser .cr-ava.cr-tich,#circlePanel .cr-ava.cr-tich{object-position:38% 32%;border:2px solid #D3F26A;background:#7FD9CF}
+#circlePanel .cr-tag{margin-left:auto;font-style:normal;font-size:10px;font-weight:800;letter-spacing:1.4px;background:#D3F26A;color:#1E2231;padding:4px 9px;border-radius:99px}
+#circlePanel .cr-tag.tich{background:#2DD4BF}
+#circleTeaser .cr-tyts,#circlePanel .cr-tyts{border:1.5px solid rgba(30,34,49,.16);background:#fff;color:#1E2231;border-radius:99px;padding:8px 15px;font:800 13px Manrope,sans-serif;cursor:pointer;flex:none;transition:transform .12s}
+#circleTeaser .cr-tyts:hover:not(:disabled),#circlePanel .cr-tyts:hover:not(:disabled){transform:translateY(-1px)}
+#circleTeaser .cr-tyts.on,#circlePanel .cr-tyts.on{background:#D3F26A;border-color:#D3F26A}
+#circleTeaser .cr-tyts:disabled,#circlePanel .cr-tyts:disabled{opacity:.55;cursor:default}
+#circlePanel .cr-duel{border:0;background:#1E2231;color:#fff;border-radius:99px;padding:9px 15px;font:800 13px Manrope,sans-serif;cursor:pointer}
+
+/* dark theme */
+html[data-hubtheme="dark"] #circleTeaser{background:#1E2231;border-color:rgba(244,243,236,.1);color:#F4F3EC}
+html[data-hubtheme="dark"] #circleTeaser .cr-kick a{color:#F4F3EC}
+html[data-hubtheme="dark"] #circleTeaser .cr-kick,html[data-hubtheme="dark"] #circleTeaser .cr-lt small{color:rgba(244,243,236,.62)}
+html[data-hubtheme="dark"] #circleTeaser .cr-line{border-color:rgba(244,243,236,.08)}
+html[data-hubtheme="dark"] #circlePanel .cr-sub,html[data-hubtheme="dark"] #circlePanel .cr-by span,html[data-hubtheme="dark"] #circlePanel .cr-set,html[data-hubtheme="dark"] #circlePanel .cr-empty span{color:rgba(244,243,236,.62)}
+html[data-hubtheme="dark"] #circlePanel .cr-post,html[data-hubtheme="dark"] #circlePanel .cr-empty{background:#141726}
+html[data-hubtheme="dark"] #circlePanel .cr-text.tich{background:#12332F;color:#D5F6F2}
+html[data-hubtheme="dark"] #circleTeaser .cr-tyts,html[data-hubtheme="dark"] #circlePanel .cr-tyts,html[data-hubtheme="dark"] #circlePanel .cr-more{background:#1E2231;color:#F4F3EC;border-color:rgba(244,243,236,.2)}
+html[data-hubtheme="dark"] #circleTeaser .cr-tyts.on,html[data-hubtheme="dark"] #circlePanel .cr-tyts.on{background:#D3F26A;color:#1E2231;border-color:#D3F26A}
+html[data-hubtheme="dark"] #circlePanel .cr-duel{background:#F4F3EC;color:#1E2231}
+html[data-hubtheme="dark"] #circleTeaser .cr-ava,html[data-hubtheme="dark"] #circlePanel .cr-ava:not(.cr-tich){color:#1E2231}
+@media(max-width:700px){#circleTeaser{padding:12px 14px 6px}#circlePanel .cr-list{grid-template-columns:1fr}}

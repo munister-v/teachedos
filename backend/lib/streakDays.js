@@ -35,4 +35,15 @@ async function streakOf(db, user) {
   return { ...computeStreak(new Set(counts.keys()), today), days: counts, today, tz };
 }
 
-module.exports = { dayCounts, streakOf, tzOf, todayIn };
+/* The student's own screens remember which days a freeze closed (streak_freezes), once each, so the day is
+   counted for the product metric freeze_used and the calendar keeps the pause. Never read by anyone else. */
+async function recordFreezes(db, uid, frozen) {
+  for (const day of (frozen || []).slice(0, 8)) {
+    try {
+      const { rowCount } = await db.query('INSERT INTO streak_freezes (user_id, day) VALUES ($1,$2) ON CONFLICT DO NOTHING', [uid, day]);
+      if (rowCount) require('./telemetry').recordTelemetry({ category: 'product', eventType: 'retention.freeze_used', actorId: uid, metadata: { surface: 'hub' } });
+    } catch (e) { console.error('[freezes]', e.message); }
+  }
+}
+
+module.exports = { dayCounts, streakOf, tzOf, todayIn, recordFreezes };

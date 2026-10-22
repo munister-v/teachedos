@@ -32,6 +32,11 @@ router.post('/', requireAuth, wrap(async (req, res) => {
   const out = await cards.create(pool, req.user, req.body || {});
   if (out.error) return res.status(out.status || 400).json({ error: out.error });
   if (out.audience === 'student' || out.kind === 'together') tellTeacher(req.user, out.kind).catch(() => {});
+  // the teacher's word of the day can go to the class circle in the same tap (the form's «also post it» box)
+  if (out.kind === 'wordday' && out.code && req.body && req.body.fields && req.body.fields.circle === true) {
+    const w = out.snapshot || {};
+    await require('../lib/circle').teacherPost(pool, req.user, { text: [w.word, w.definition].filter(Boolean).join(' - '), cardCode: out.code }).catch(() => {});
+  }
   res.status(201).json(out.private ? out : { ...out, path: '/c.html?c=' + out.code });
 }));
 router.get('/available', requireAuth, wrap(async (req, res) => res.json({ kinds: await cards.available(pool, req.user) })));

@@ -699,7 +699,8 @@ router.get('/progress', requireAuth, async (req, res) => {
     const activity = [];
     for (let i = 27; i >= 0; i--) { const d = dayStr(today, i); activity.push({ day: d, n: byDay.get(d) || 0 }); }
     // The run, with one forgiven missed day a month (lib/streak.js): frozen days are drawn on the calendar.
-    const { streak, frozen, freeze_left } = computeStreak(new Set(byDay.keys()), today);
+    const { streak, frozen, freeze_left, per_month } = computeStreak(new Set(byDay.keys()), today);
+    require('../lib/streakDays').recordFreezes(pool, uid, frozen).catch(() => {});
 
     /* BUG-13 (17.10.2026): Recent results are built from the very events the
        calendar counts (the same five sources, the same day in the student's
@@ -751,7 +752,7 @@ router.get('/progress', requireAuth, async (req, res) => {
       words: { total: vw ? vw.total : 0, learned: vw ? vw.learned : 0 },
       activity,
       activeDays28: activity.filter(d => d.n > 0).length,
-      streak, frozen, freeze_left,
+      streak, frozen, freeze_left, freezes_per_month: per_month,
       recent,
     });
   } catch (err) {

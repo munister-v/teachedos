@@ -2146,6 +2146,7 @@ const CARD_FORMS = {
     { key: 'partOfSpeech', label: 'Part of speech (optional)', max: 16, placeholder: 'noun' },
     { key: 'definition', label: 'What it means', max: 120, placeholder: 'the luck of finding what you were not looking for' },
     { key: 'example', label: 'An example (optional)', max: 90, placeholder: 'Meeting her was pure serendipity.' },
+    { key: 'circle', check: true, label: 'Also post it in my students’ circle' },
   ],
   gratitude: [
     { key: 'quote', label: 'The words, exactly as they wrote them', max: 140, area: true, placeholder: 'My son asks for English homework himself now.' },
@@ -2153,6 +2154,45 @@ const CARD_FORMS = {
     { key: 'consent', check: true, label: 'They agreed that I publish this' },
   ],
 };
+/* The class circle (ТЗ «Удержание» §2.2): the teacher posts a line to their students' circle and hides any post
+   in the circle in one tap - no explanation to the student, nothing shown publicly. */
+function classCircleOpen(api) {
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const back = document.createElement('div');
+  back.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(11,16,38,.55);display:grid;place-items:center;padding:16px;font-family:Manrope,sans-serif';
+  back.innerHTML = '<div style="background:#F6F6EF;color:#0B1026;border-radius:22px;width:min(560px,100%);max-height:88vh;overflow:auto;padding:20px 22px">' +
+    '<div style="display:flex;align-items:center"><b style="font-size:18px;flex:1">Class circle</b><button type="button" data-x style="border:0;background:rgba(11,16,38,.08);width:32px;height:32px;border-radius:50%;cursor:pointer">✕</button></div>' +
+    '<p style="margin:6px 0 12px;font-size:13px;font-weight:600;color:rgba(11,16,38,.6)">Your students see this in their hub, next to what their classmates share. Nobody outside your class and their friends can.</p>' +
+    '<textarea data-t rows="3" maxlength="400" placeholder="A line for your class - an announcement, a challenge, a thank-you" style="width:100%;box-sizing:border-box;border:2px solid transparent;border-radius:14px;padding:12px;font:600 14px Manrope,sans-serif"></textarea>' +
+    '<div style="display:flex;gap:10px;align-items:center;margin:10px 0 16px"><button type="button" data-post style="border:0;border-radius:99px;background:#D3F26A;color:#0B1026;font:800 14px Manrope,sans-serif;padding:11px 20px;cursor:pointer">Post to my class</button><span data-msg style="font-size:12.5px;font-weight:700;color:rgba(11,16,38,.6)"></span></div>' +
+    '<div style="font-size:11.5px;font-weight:800;letter-spacing:1.6px;color:#8A8672;margin-bottom:6px">RECENT IN THE CIRCLE</div><div data-list></div></div>';
+  document.body.appendChild(back);
+  const close = () => back.remove();
+  back.querySelector('[data-x]').onclick = close; back.onclick = e => { if (e.target === back) close(); };
+  const msg = t => { back.querySelector('[data-msg]').textContent = t; };
+  const paint = async () => {
+    const r = await api('/api/circle/teacher'), d = r.ok ? await r.json() : { posts: [] };
+    back.querySelector('[data-list]').innerHTML = d.posts.length ? d.posts.map(p =>
+      '<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid rgba(11,16,38,.08);' + (p.hidden ? 'opacity:.5' : '') + '"><div style="flex:1;min-width:0;font-size:13.5px;font-weight:600"><b>' + esc(p.mine ? 'You' : p.author) + '</b> ' + esc((p.what || '').slice(0, 90)) +
+      (p.tyts ? ' <span style="color:#8A8672">· Тиць ' + p.tyts + '</span>' : '') + '</div><button type="button" data-hide="' + esc(p.id) + '" data-to="' + (p.hidden ? 0 : 1) + '" style="border:1.5px solid rgba(11,16,38,.18);background:#fff;border-radius:99px;padding:6px 13px;font:800 12px Manrope,sans-serif;cursor:pointer">' + (p.hidden ? 'Show again' : 'Hide') + '</button></div>').join('')
+      : '<div style="font-size:13px;font-weight:600;color:rgba(11,16,38,.55)">Nothing yet. Post a line, or wait for your students to share cards.</div>';
+  };
+  back.querySelector('[data-list]').onclick = async e => {
+    const b = e.target.closest('[data-hide]'); if (!b) return; b.disabled = true;
+    await api('/api/circle/teacher/' + encodeURIComponent(b.dataset.hide) + '/hidden', { method: 'PUT', body: { hidden: b.dataset.to === '1' } });
+    paint();
+  };
+  back.querySelector('[data-post]').onclick = async e => {
+    const t = back.querySelector('[data-t]'), b = e.currentTarget;
+    if (!t.value.trim()) return msg('Write a line first.');
+    b.disabled = true;
+    const r = await api('/api/circle/teacher', { method: 'POST', body: { text: t.value.trim() } }), d = await r.json().catch(() => ({}));
+    b.disabled = false;
+    if (!r.ok) return msg(d.error || 'Could not post it.');
+    t.value = ''; msg('Posted to ' + (d.students === 1 ? '1 student' : d.students + ' students') + '.'); paint();
+  };
+  paint();
+}
 function pulseInit() {
   if (!window.TeachEdShare || !_authToken) return;
   const api = (path, opts = {}) => fetch(API_BASE + path, {
@@ -2172,9 +2212,10 @@ function pulseInit() {
     el.style.cssText = 'margin:12px 0;padding:14px 18px;border-radius:18px;background:#24282C;color:#FBF7EC;font:700 14px Manrope,sans-serif';
     const chip = 'border:0;border-radius:99px;background:#D5F568;color:#24282C;font:800 13px Manrope,sans-serif;padding:9px 15px;cursor:pointer;margin:4px 6px 0 0';
     el.innerHTML = '<div style="margin-bottom:6px">Cards to share — pictures with a link, your name first.</div>' + kinds.map(k => '<button type="button" style="' + chip + '" data-k="' + k + '">' + CARD_CHIPS[k] + '</button>').join('') +
+      '<button type="button" style="' + chip.replace('#D5F568', 'transparent').replace('#24282C', '#FBF7EC') + ';border:1.5px solid rgba(251,247,236,.3)" data-k="_circle">Class circle</button>' +
       '<button type="button" style="' + chip.replace('#D5F568', 'transparent').replace('#24282C', '#FBF7EC') + ';border:1.5px solid rgba(251,247,236,.3)" data-k="_mine">My cards</button>';
     host.after(el);
-    el.onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === '_mine') window.TeachEdShare.manage({ api }); else open(b.dataset.k); };
+    el.onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === '_mine') window.TeachEdShare.manage({ api }); else if (b.dataset.k === '_circle') classCircleOpen(api); else open(b.dataset.k); };
   }).catch(() => {});
 }
 window.addEventListener('load', () => setTimeout(pulseInit, 1500));
@@ -3904,13 +3945,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1362" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1363" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1362" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1363" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

@@ -171,6 +171,8 @@ async function finishDuel(db, d, forfeit = false) {
   else if (!winner) { await pay(d.challenger_id, duel.DRAW_XP, 'Duel drawn'); await pay(d.opponent_id, duel.DRAW_XP, 'Duel drawn'); }
   else { await pay(winner, duel.WIN_XP, 'Duel won'); await pay(winner === d.challenger_id ? d.opponent_id : d.challenger_id, duel.LOSE_XP, 'Duel played'); }
   await evaluateBadges(db, d.challenger_id); await evaluateBadges(db, d.opponent_id);
+  // a duel won on the board, not by a no-show, is one line in the students' circle (the winner only)
+  if (winner && !forfeit) await require('./circle').postDuelWin(db, d, winner, duel.GAMES);
   return winner;
 }
 

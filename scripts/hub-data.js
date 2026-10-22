@@ -220,9 +220,9 @@
       let best = null; (d.activity || []).forEach(x => { if (!best || x.n > best.n) best = x; });
       const cs = pg.querySelector('.calsum');
       if (cs) cs.innerHTML = '<span><b>' + days + '</b> active days in 4 weeks</span><span>Streak <b>' + plural(st, 'day') + '</b></span>' +
-        ((d.frozen || []).length ? '<span>Freeze saved <b>' + new Date(d.frozen[0] + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + '</b></span>' : (d.freeze_left ? '<span>Freeze <b>ready</b> this month</span>' : '')) +
+        ((d.frozen || []).length ? '<span>A freeze closed <b>' + d.frozen.slice().sort().slice(-2).map(x => new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })).join(', ') + '</b></span>' : '') +
+        '<span>Freezes this month <b>' + (d.freeze_left == null ? 2 : d.freeze_left) + ' of ' + (d.freezes_per_month || 2) + '</b></span>' +
         (best && best.n ? '<span>Best day <b>' + new Date(best.day + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + ' \u00B7 ' + plural(best.n, 'thing') + '</b></span>' : '');
-      const lg = pg.querySelector('.callegend span:nth-child(3)'); if (lg) lg.remove();
     }
   }
 
@@ -706,6 +706,10 @@
       '<label class="dnote" style="display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:10px"><input type="checkbox" id="dInv"' + (h.duel_invites ? ' checked' : '') + '> Let friends send me duel invites</label></section>';
     cols.innerHTML = sprintHtml + duelHtml + '<section class="panel" id="frPanel"><div class="ptitle">FRIENDS</div><div class="dnote">Loading…</div></section>';
     friendsPanel(cols.querySelector('#frPanel'));
+    // the students' circle: the class and friends, one reaction, a duel in one tap (ТЗ «Удержание» §2.2)
+    let cp = pg.querySelector('#circlePanel');
+    if (!cp) { cp = document.createElement('section'); cp.className = 'panel'; cp.id = 'circlePanel'; cp.style.marginBottom = '20px'; cols.after(cp); }
+    if (window.Circle) window.Circle.mountStream(cp, { onDuel: id => throwSheet(id) });
     const inv = cols.querySelector('#dInv');
     if (inv) inv.onchange = () => chApi('/settings', 'PUT', { duel_invites: inv.checked }).then(r => { if (!r.ok) inv.checked = !inv.checked; else CH.duel_invites = inv.checked; });
     cols.onclick = e => {
@@ -871,6 +875,8 @@
     }
     TODAY = t;
     if (window.TalkChat) { window.TalkChat.mountPhrases(); window.TalkChat.renderCard(t.talk); window.TalkChat.setRefresh(reloadToday); }
+    if (t.freezes) set('.streakpill', e => { e.title = t.freezes.left + ' of ' + t.freezes.per_month + ' freezes left this month — a missed day is closed by a freeze on its own'; });
+    if (window.Circle) window.Circle.mountTeaser(document.getElementById('circleTeaser'), { onOpen: () => navTo('challenges') });
     teacherBanner(t);
     const mins = t.minutes;
     const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';

@@ -268,8 +268,11 @@ function teacherWords(wb) {
 async function buildToday(db, user) {
   const ctx = await context(db, user);
   const lucky = await luckyState(db, user, ctx);
+  // the days a freeze closed are written down once, for the student's own screens and the metric (never shown as a loss)
+  const sk = await require('./streakDays').streakOf(db, user).catch(() => null);
+  if (sk) require('./streakDays').recordFreezes(db, user.id, sk.frozen).catch(() => {});
   const [rows, t, wn] = await Promise.all([plan(db, user, ctx, lucky), treat(db, user), whatsNew(db, user, ctx)]);
-  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb),
+  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, freezes: sk ? { left: sk.freeze_left, per_month: sk.per_month, covered: sk.frozen.slice(0, 4) } : null, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb),
     talk: ctx.talk ? { homework: ctx.talk.homework, sessions_today: ctx.talk.sessions_today, open_session: ctx.talk.open_session, unread: ctx.talk.unread, last_tich: ctx.talk.last_tich, pro: ctx.talk.pro, free_left: ctx.talk.free_left, rounds: ctx.talk.rounds } : null };
 }
 
