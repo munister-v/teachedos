@@ -1639,6 +1639,8 @@ function studentDetailRender() {
         <div class="st-fin-f"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>${esc(_paymentLine(s))}</div>
         ${s.paid_claim_at ? '<div class="st-fin-f" style="color:#2e7d32;font-weight:700">Says they paid - check your account</div>' : ''}
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsOpenCalendar('${esc(String(s.journal_id))}')">Lessons calendar</button>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsShareCard('welcome', '${esc(String(s.journal_id))}')">Welcome card for ${esc(String(s.name || 'this student').split(' ')[0])}</button>
+        <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsShareCard('parentreport', '${esc(String(s.journal_id))}')">Report card for the parent</button>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetTrial('${esc(String(s.journal_id))}', ${s.is_trial ? 'false' : 'true'})">${s.is_trial ? 'End the trial' : '✨ Mark as trial student'}</button>
         <div class="st-fin-f" style="margin-top:8px">${s.minor ? (s.consent_at ? `Minor - ${esc(s.guardian_name || 'parent')} agreed to the AI check` : 'Minor - no parent consent: the AI check is off') : 'Adult student'}</div>
         <button type="button" class="st-detail-btn" style="margin-top:8px" onclick="studentsSetConsent('${esc(String(s.journal_id))}')">${s.minor ? 'Parent consent…' : 'Mark as a minor…'}</button>
@@ -2118,6 +2120,39 @@ function studentsOpenCalendar(journalId) {
   window.TeachedLessonCal.open({ api, journalId, teacher: true, onChange: () => studentsReloadRoster() });
 }
 window.studentsOpenCalendar = studentsOpenCalendar;
+/* share cards (scripts/share-cards.js): the welcome card and the monthly report for a parent, from the student's card */
+function studentsShareCard(kind, journalId) {
+  if (!window.TeachEdShare) return;
+  const api = (path, opts = {}) => fetch(API_BASE + path, {
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  window.TeachEdShare.open({ kind, ref: journalId, api, surface: 'student-card', askNote: kind === 'parentreport' });
+}
+window.studentsShareCard = studentsShareCard;
+/* the class week: a strip on the dashboard once there are three students with accounts, and the Monday note opens it */
+function pulseStrip(api) {
+  const host = document.getElementById('mp-next-lesson');
+  if (!host || document.getElementById('mp-pulse') || !window.TeachEdShare) return;
+  const el = document.createElement('div'); el.id = 'mp-pulse';
+  el.style.cssText = 'margin:12px 0;padding:14px 18px;border-radius:18px;background:#24282C;color:#FBF7EC;display:flex;align-items:center;gap:14px;font:700 14px Manrope,sans-serif';
+  el.innerHTML = '<span style="flex:1">Your class week is ready to share — totals only, no names.</span><button type="button" style="border:0;border-radius:99px;background:#D5F568;color:#24282C;font:800 13.5px Manrope,sans-serif;padding:10px 16px;cursor:pointer">Share class week</button>';
+  host.after(el);
+  el.querySelector('button').onclick = () => window.TeachEdShare.open({ kind: 'pulse', api, surface: 'dashboard' });
+}
+function pulseInit() {
+  if (!window.TeachEdShare || !_authToken) return;
+  const api = (path, opts = {}) => fetch(API_BASE + path, {
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _authToken },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const linked = (Array.isArray(STUDENTS) ? STUDENTS : []).filter(x => x && x.id && x.journal_id).length;
+  if (linked >= 3) pulseStrip(api);
+  if (new URLSearchParams(location.search).get('share') === 'pulse') window.TeachEdShare.open({ kind: 'pulse', api, surface: 'dashboard' });
+}
+window.addEventListener('load', () => setTimeout(pulseInit, 1500));
 /* Parental consent and erasure (E5): the teacher records who agreed; a minor without it
    stays away from the AI check. Erasure removes the journal entry and the written work. */
 async function studentsSetConsent(journalId) {
@@ -3844,13 +3879,13 @@ function showAuthOverlay() {
              ще одна картка по центру екрана. Метрики ті самі, що в
              index.html і в модалці auth.css. -->
         <div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;background:rgba(246,246,239,.98);border-bottom:1px solid rgba(36,40,44,.08);">
-          <img src="logo-sm.png?v=1355" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
+          <img src="logo-sm.png?v=1356" alt="" aria-hidden="true" style="width:20px;height:20px;display:block;">
           <span style="font-size:13px;font-weight:700;letter-spacing:-.01em;color:#24282C;">TeachEd</span>
         </div>
         <div style="padding:26px 26px 22px;">
         <div style="text-align:left;margin-bottom:20px;">
           <div style="margin-bottom:12px;">
-            <img class="os-auth-logo" src="logo-sm.png?v=1355" alt="TeachEd" style="width:44px;height:44px;display:block;">
+            <img class="os-auth-logo" src="logo-sm.png?v=1356" alt="TeachEd" style="width:44px;height:44px;display:block;">
           </div>
           <div id="os-auth-title" style="font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:#24282C;margin-bottom:4px;">
             Sign in to your workspace

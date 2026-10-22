@@ -340,6 +340,7 @@ async function main() {
     scheduleLessonReminders();
     const { scheduleCommunityDigest } = require('./jobs/communityDigest');
     scheduleCommunityDigest();
+    require('./jobs/classPulse').scheduleClassPulse();
   }
 }
 

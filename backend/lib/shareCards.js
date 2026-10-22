@@ -7,8 +7,8 @@
    carries the lesson's public catalogue fields and an aggregate "taken by N". Dossiers, teacher
    notes, answer keys and AI traces are not reachable from here - nothing below selects them.
 
-   Wave 1: week, duel, wordset, lesson. The other types are listed so the client knows them,
-   and refused here until their wave. */
+   Wave 1: week, duel, wordset, lesson. Wave 2: streak, levelup, pulse, parentreport, welcome.
+   The other types are refused here until their wave. */
 
 const crypto = require('crypto');
 
@@ -17,7 +17,15 @@ const KINDS = {
   duel: { audience: 'student', mode: 'brag' },
   wordset: { audience: 'student', mode: 'invite' },
   lesson: { audience: 'teacher', mode: 'invite' },
+  streak: { audience: 'student', mode: 'brag' },
+  levelup: { audience: 'student', mode: 'brag' },
+  pulse: { audience: 'teacher', mode: 'brag' },
+  parentreport: { audience: 'teacher', mode: 'invite', private: true },   // no page, no code, never stored
+  welcome: { audience: 'teacher', mode: 'invite' },
 };
+const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+const PULSE_MIN_STUDENTS = 3;       // below that a class "aggregate" is one person's data
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const WEEK_MIN_XP = 50;
 const SURFACES = new Set(['hub-today', 'wordbank', 'duel-result', 'progress', 'dashboard', 'community-publish', 'student-card', 'board-pad', 'invite-flow']);
 
@@ -97,6 +105,83 @@ async function lessonSnap(db, user, ref) {
   } };
 }
 
+/* a streak of 7 / 14 / 30 / 60 / 100 days: the number is the real streak, the milestone is the card's key */
+async function streakSnap(db, user) {
+  const sd = await require('./streakDays').streakOf(db, user);
+  const hit = [...STREAK_MILESTONES].reverse().find(m => sd.streak >= m);
+  if (!hit) return { error: 'A streak card opens at 7 days in a row', status: 409 };
+  const { rows: [x] } = await db.query('SELECT COALESCE(SUM(xp),0)::int AS xp FROM xp_events WHERE user_id = $1', [user.id]);
+  return { ref: 'streak:' + hit, snap: { ...(await studentBits(db, user)), headline: 'Days in a row', bigValue: String(sd.streak), unit: 'days', facts: [x.xp.toLocaleString('en-US') + ' XP so far'] } };
+}
+
+/* the level the teacher confirmed (lib/gate.js writes level_moments); shareable for a month */
+async function levelupSnap(db, user) {
+  const { rows: [m] } = await db.query(
+    `SELECT id, level_to, xp_at FROM level_moments WHERE user_id = $1 AND confirmed_at > NOW() - INTERVAL '30 days' ORDER BY confirmed_at DESC LIMIT 1`, [user.id]);
+  if (!m) return { error: 'A level-up card opens when your teacher confirms a new level', status: 409 };
+  const to = clip(m.level_to, 2).toUpperCase(), i = LEVELS.indexOf(to), from = i > 0 ? LEVELS[i - 1] : '';
+  const bits = await studentBits(db, user);
+  return { ref: 'level:' + m.id, snap: { ...bits, levelLabel: to, headline: 'Level up', bigValue: from ? from + ' → ' + to : to, unit: '', facts: [bits.teacherName ? 'confirmed by ' + bits.teacherName : 'confirmed by my teacher'] } };
+}
+
+/* the class week, from aggregates only: no name, no single student's figure ever reaches the card */
+async function pulseSnap(db, user) {
+  const { rows: [c] } = await db.query(`SELECT COUNT(DISTINCT student_id)::int AS n FROM student_journal WHERE teacher_id = $1 AND student_id IS NOT NULL`, [user.id]);
+  if (c.n < PULSE_MIN_STUDENTS) return { error: 'The class pulse needs at least ' + PULSE_MIN_STUDENTS + ' students with accounts - fewer would show one person', status: 409 };
+  const ids = `(SELECT student_id FROM student_journal WHERE teacher_id = $1 AND student_id IS NOT NULL)`;
+  const [xp, hw, du] = await Promise.all([
+    db.query(`SELECT COALESCE(SUM(xp),0)::int AS n FROM xp_events WHERE user_id IN ${ids} AND created_at > NOW() - INTERVAL '7 days' AND kind <> 'backfill'`, [user.id]),
+    db.query(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE h.due_at IS NULL OR a.submitted_at <= h.due_at)::int AS ok
+                FROM homework_assignment a JOIN homework h ON h.id = a.homework_id
+               WHERE a.student_id IN ${ids} AND a.submitted_at > NOW() - INTERVAL '7 days'`, [user.id]),
+    db.query(`SELECT COUNT(*)::int AS n FROM duels WHERE status = 'finished' AND finished_at > NOW() - INTERVAL '7 days' AND (challenger_id IN ${ids} OR opponent_id IN ${ids})`, [user.id]),
+  ]);
+  const { rows: [t] } = await db.query('SELECT name FROM users WHERE id = $1', [user.id]);
+  const tz = tzOf(user), today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+  const m = new Date(today + 'T12:00:00Z'); m.setUTCDate(m.getUTCDate() - ((m.getUTCDay() + 6) % 7));
+  return { ref: 'pulse:' + m.toISOString().slice(0, 10), snap: {
+    teacherName: first(t && t.name), teacherTagline: 'ENGLISH TEACHER', weekXp: xp.rows[0].n, studentsCount: c.n,
+    homeworkOnTimePct: hw.rows[0].total ? Math.round(hw.rows[0].ok / hw.rows[0].total * 100) : null, duelsPlayed: du.rows[0].n } };
+}
+
+/* the monthly report for one parent: the white list of the report (words, XP, attendance, the teacher's line).
+   Private send - nothing is stored and there is no page or code. */
+async function parentreportSnap(db, user, body) {
+  const { rows: [j] } = await db.query('SELECT id, name, student_id FROM student_journal WHERE id::text = $1 AND teacher_id = $2', [clip(body.ref, 40), user.id]);
+  if (!j) return { error: 'Not your student', status: 404 };
+  const tz = tzOf(user);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+  const monthStart = today.slice(0, 8) + '01';
+  const { rows: [t] } = await db.query('SELECT name FROM users WHERE id = $1', [user.id]);
+  const att = await db.query(`SELECT COUNT(*) FILTER (WHERE status = 'present')::int AS present, COUNT(*) FILTER (WHERE status <> 'cancelled')::int AS held
+                                FROM attendance WHERE journal_id = $1 AND date >= $2::date`, [j.id, monthStart]);
+  const rows = [];
+  if (j.student_id) {
+    const since = `($2::date::timestamp AT TIME ZONE $3)`;
+    const w = await db.query(`SELECT COUNT(*)::int AS n FROM vocabulary WHERE user_id = $1 AND kind = 'word' AND created_at >= ${since}`, [j.student_id, monthStart, tz]);
+    const x = await db.query(`SELECT COALESCE(SUM(xp),0)::int AS n FROM xp_events WHERE user_id = $1 AND created_at >= ${since} AND kind <> 'backfill'`, [j.student_id, monthStart, tz]);
+    rows.push({ label: 'new words', value: String(w.rows[0].n) }, { label: 'XP earned', value: String(x.rows[0].n) });
+  }
+  const a = att.rows[0];
+  rows.push({ label: 'lessons attended', value: a.held ? a.present + ' of ' + a.held : '—' });
+  const period = new Date(monthStart + 'T12:00:00Z').toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
+  return { snap: { teacherName: first(t && t.name), teacherTagline: 'ENGLISH TEACHER', studentName: first(j.name), periodLabel: period, rows, note: clip(body.note, 140) } };
+}
+
+/* the welcome card carries the board's join link: the recipient opens the hub through it.
+   ref = the student's journal id; the teacher's board tied to that student (or the shared one given). */
+async function welcomeSnap(db, user, body) {
+  const ref = clip(body.ref, 40);
+  const { rows: [j] } = await db.query('SELECT id, name FROM student_journal WHERE id::text = $1 AND teacher_id = $2', [ref, user.id]);
+  if (!j) return { error: 'Not your student', status: 404 };
+  const { rows: [b] } = await db.query('SELECT id, join_token FROM boards WHERE user_id = $1 AND journal_id = $2 AND trashed_at IS NULL ORDER BY updated_at DESC LIMIT 1', [user.id, j.id]);
+  if (!b) return { error: 'Make a board for this student first - the card opens it', status: 409 };
+  let token = b.join_token;
+  if (!token) { token = crypto.randomBytes(12).toString('base64url'); await db.query('UPDATE boards SET join_token = $1 WHERE id = $2', [token, b.id]); }
+  const { rows: [t] } = await db.query('SELECT name FROM users WHERE id = $1', [user.id]);
+  return { ref: j.id, snap: { teacherName: first(t && t.name), teacherTagline: 'ENGLISH TEACHER', studentName: first(j.name), join: 'join.html?t=' + encodeURIComponent(token) } };
+}
+
 async function create(db, user, body = {}) {
   const kind = String(body.kind || '');
   const def = KINDS[kind];
@@ -104,8 +189,11 @@ async function create(db, user, body = {}) {
   if (def.audience === 'teacher' && !['teacher', 'admin'].includes(user.role)) return { error: 'Teachers only', status: 403 };
   if (def.audience === 'student' && user.role !== 'student') return { error: 'Students only', status: 403 };
   const built = kind === 'week' ? await weekSnap(db, user) : kind === 'duel' ? await duelSnap(db, user, body.ref)
-    : kind === 'wordset' ? await wordsetSnap(db, user, body) : await lessonSnap(db, user, body.ref);
+    : kind === 'wordset' ? await wordsetSnap(db, user, body) : kind === 'lesson' ? await lessonSnap(db, user, body.ref)
+    : kind === 'streak' ? await streakSnap(db, user) : kind === 'levelup' ? await levelupSnap(db, user)
+    : kind === 'pulse' ? await pulseSnap(db, user) : kind === 'welcome' ? await welcomeSnap(db, user, body) : await parentreportSnap(db, user, body);
   if (built.error) return built;
+  if (def.private) return { code: null, kind, mode: def.mode, audience: def.audience, private: true, snapshot: built.snap };
   // the same card asked twice (a second tap on Share) is the same link
   if (built.ref) {
     const { rows: [have] } = await db.query(
@@ -161,4 +249,4 @@ async function addWordset(db, user, c) {
   return { ok: true, added, total: (r.snapshot.words || []).length };
 }
 
-module.exports = { create, read, mine, revoke, addWordset, KINDS, SURFACES, WEEK_MIN_XP };
+module.exports = { PULSE_MIN_STUDENTS, create, read, mine, revoke, addWordset, KINDS, SURFACES, WEEK_MIN_XP };

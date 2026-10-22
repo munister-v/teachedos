@@ -53,6 +53,13 @@ const code = (new URLSearchParams(location.search).get('c') || '').toLowerCase()
     const take = $('#take');
     if (take) take.onclick = async () => { take.disabled = true; const a = await call('/api/library/' + encodeURIComponent(card.lesson_id) + '/clone', { method: 'POST' }); if (a.ok) { act(); location.href = 'community.html?tab=library'; } else { take.disabled = false; $('#er').textContent = a.d.error || 'Could not take it'; } };
     const go = $('#go'); if (go) go.onclick = act;
+  } else if (card.kind === 'welcome') {
+    body.innerHTML = '<h1>' + esc(s.teacherName) + ' invites you to the board</h1><p>Your hub is ready: words, duels and your lessons live there.</p><a class="btn" href="' + esc(s.join) + '" id="go">Open my hub</a>';
+    $('#go').onclick = act;
+  } else if (card.audience === 'teacher') {
+    body.innerHTML = '<h1>' + esc(s.teacherName) + '’s class week on TeachEd</h1><p>Class totals only - no names. TeachEd is the workshop where lessons, boards and homework live together.</p>' +
+      '<a class="btn" href="' + join('teacher') + '" id="go">I’m a teacher too</a>';
+    $('#go').onclick = act;
   } else {
     // brag: the card, a line about TeachEd, a soft way in
     body.innerHTML = '<h1>' + esc(s.studentName || s.teacherName) + ' learns English on TeachEd</h1><p>Lessons on a live board, words that come back right before you forget them, duels with friends.</p>' +

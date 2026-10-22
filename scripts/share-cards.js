@@ -81,6 +81,28 @@
         txt(64, 1050, 42, 800, G, card.mode === 'invite' && action ? esc(action) : 'Taken by ' + (s.usedByCount || 0) + ' colleague' + (s.usedByCount === 1 ? '' : 's')) +
         txt(64, 1100, 29, 600, G, esc(url), ' opacity="0.7"') + footer(card), s.title);
     }
+    if (card.kind === 'pulse') {
+      const xp = String(s.weekXp).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return svg('<rect width="' + W + '" height="' + H + '" fill="' + G + '"/>' + header(card, true) + photo(src, 140, 380, uid) +
+        txt(64, 640, 56, 800, CREAM, 'My class this week') +
+        txt(64, 812, xp.length > 6 ? 130 : 165, 800, LIME, esc(xp) + '<tspan font-size="64" dx="14">XP</tspan>') +
+        txt(64, 878, 34, 700, CREAM, 'earned together by ' + s.studentsCount + ' students', ' opacity="0.85"') +
+        (s.homeworkOnTimePct == null ? txt(64, 1004, 34, 700, CREAM, 'no homework handed in this week', ' opacity="0.85"') : txt(64, 1010, 72, 800, CREAM, s.homeworkOnTimePct + '%<tspan font-size="30" dx="16" opacity="0.85">homework on time</tspan>')) +
+        txt(64, 1096, 72, 800, CREAM, s.duelsPlayed + '<tspan font-size="30" dx="16" opacity="0.85">duels played · aggregates only, no names</tspan>') + footer(card, true), 'Class pulse');
+    }
+    if (card.kind === 'parentreport') {
+      return svg('<rect width="' + W + '" height="' + H + '" fill="' + PINK_SOFT + '"/>' + header(card) + photo(src, 140, 360, uid) +
+        txt(64, 610, 64, 800, G, esc(s.studentName + ' · ' + s.periodLabel)) +
+        (s.rows || []).slice(0, 4).map((r, i) => txt(64, 716 + i * 96, 54, 800, G, esc(r.value)) + txt(400, 716 + i * 96, 34, 600, G, esc(r.label), ' opacity="0.7"')).join('') +
+        (s.note ? wrap('“' + s.note + '”', 44).slice(0, 3).map((l, i) => txt(64, 1040 + i * 44, 34, 600, G, esc(l), ' font-style="italic" opacity="0.85"')).join('') : '') + footer(card), 'Progress report');
+    }
+    if (card.kind === 'welcome') {
+      const gid = uid + 'g';
+      return svg(grad(gid, TURQ, LIME) + '<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>' + header(card) + photo(src, 140, 470, uid) +
+        txt(64, 740, 66, 800, G, esc(s.studentName ? s.studentName + ', welcome' : 'Welcome')) + txt(64, 818, 66, 800, G, 'to my board!') +
+        txt(64, 892, 35, 700, G, 'Your hub is ready: words, duels and our lessons live there', ' opacity="0.8"') +
+        (action ? band(action, url, 950) : '') + footer(card), 'Welcome');
+    }
     // student stat cards: week / streak / words / duel / levelup / costreak / duelinvite / comeback / perfectweek / wordmarathon
     const dark = card.kind === 'comeback', ink = dark ? CREAM : G, gid = uid + 'g';
     return svg(grad(gid, dark ? BLUE : TURQ, card.kind === 'costreak' ? PINK : dark ? TURQ : LIME) +
@@ -136,6 +158,11 @@
     if (card.kind === 'duel') return 'Won a duel on TeachEd: ' + s.bigValue;
     if (card.kind === 'wordset') return s.setTitle + ' - ' + s.totalWords + ' words. Add them to your Word Bank';
     if (card.kind === 'lesson') return s.title + ' - take it to your board';
+    if (card.kind === 'streak') return s.bigValue + ' days in a row on TeachEd';
+    if (card.kind === 'levelup') return 'New level on TeachEd: ' + s.bigValue;
+    if (card.kind === 'pulse') return 'My class this week: ' + s.weekXp + ' XP on TeachEd';
+    if (card.kind === 'welcome') return 'Welcome to my board on TeachEd';
+    if (card.kind === 'parentreport') return s.studentName + ' · ' + s.periodLabel;
     return 'TeachEd';
   }
 
@@ -171,9 +198,19 @@
     const onKey = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     back.querySelector('.shs-close').onclick = close; back.onclick = e => { if (e.target === back) close(); };
-    let card;
+    let card, note = '';
+    if (opts.askNote) {
+      // one step first: the teacher's line for the parent (optional), then the card
+      note = await new Promise(res => {
+        back.querySelector('.shs-body').innerHTML = '<p class="shs-note" style="margin:0 0 8px;color:#0B1026;font-weight:700">A short line for the parent (optional)</p>' +
+          '<textarea id="shsNote" maxlength="140" rows="3" style="width:100%;box-sizing:border-box;border-radius:14px;border:1.5px solid rgba(11,16,38,.14);padding:12px;font:600 15px Manrope,sans-serif" placeholder="Strong month - speaking is braver every week."></textarea>' +
+          '<div class="shs-actions"><button class="shs-btn shs-btn-primary" id="shsMake">Make the card</button></div>';
+        back.querySelector('#shsMake').onclick = () => res(back.querySelector('#shsNote').value.trim());
+      });
+      back.querySelector('.shs-body').innerHTML = '<div class="shs-preview"></div>';
+    }
     try {
-      const r = await opts.api('/api/cards', { method: 'POST', body: { kind: opts.kind, ref: opts.ref, title: opts.title, words: opts.words, description: opts.description } });
+      const r = await opts.api('/api/cards', { method: 'POST', body: { kind: opts.kind, ref: opts.ref, title: opts.title, words: opts.words, description: opts.description, note } });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || 'Could not make the card');
       card = d;
@@ -181,12 +218,13 @@
     event('sheet_shown', { surface: opts.surface, kind: card.kind });
     const src = await photoFor(card.kind);
     let mode = card.mode;
-    const hasInvite = !!ACTION[card.kind];
+    const isPrivate = !!card.private;
+    const hasInvite = !!ACTION[card.kind] && !isPrivate;
     const body = back.querySelector('.shs-body');
     const draw = () => {
       const eff = { ...card, mode };
       body.innerHTML = (hasInvite ? '<div class="shs-modes" role="tablist"><button class="shs-mode' + (mode === 'invite' ? ' on' : '') + '" data-m="invite">Invite</button><button class="shs-mode' + (mode === 'brag' ? ' on' : '') + '" data-m="brag">Just brag</button></div>' : '') +
-        '<div class="shs-preview">' + render(eff, src) + '</div><div class="shs-actions"><button class="shs-btn shs-btn-primary" data-a="share">Share</button><button class="shs-btn" data-a="copy">Copy link</button></div>' +
+        '<div class="shs-preview">' + render(eff, src) + '</div><div class="shs-actions"><button class="shs-btn shs-btn-primary" data-a="share">' + (isPrivate ? 'Send to parent' : 'Share') + '</button>' + (isPrivate ? '' : '<button class="shs-btn" data-a="copy">Copy link</button>') + '</div>' +
         '<p class="shs-note">' + esc(NOTE(card)) + '</p><p class="shs-note" data-msg></p>';
       body.querySelectorAll('[data-m]').forEach(b => { b.onclick = () => { mode = b.dataset.m; draw(); }; });
       const msg = t => { body.querySelector('[data-msg]').textContent = t; };
@@ -194,14 +232,15 @@
         const b = e.currentTarget; b.disabled = true;
         try {
           const blob = await toPng(render(eff, src));
-          const ch = await sharePng(blob, 'teached-' + card.kind + '-' + card.code + '.png', messageFor(eff), fullUrl(eff));
+          const ch = await sharePng(blob, 'teached-' + card.kind + '-' + (card.code || 'private') + '.png', messageFor(eff), fullUrl(eff));
           event('shared', { mode, channel: ch, kind: card.kind });
-          msg(ch === 'download' ? 'Picture saved - send it with the link: ' + fullUrl(eff) : 'Shared.');
+          msg(ch === 'download' ? (isPrivate ? 'Picture saved - send it to the parent yourself.' : 'Picture saved - send it with the link: ' + fullUrl(eff)) : 'Shared.');
           if (opts.onShared) opts.onShared(ch, mode);
         } catch (err) { if (err && err.name !== 'AbortError') msg('The picture could not be made here - Copy link still works.'); }
         b.disabled = false;
       };
-      body.querySelector('[data-a="copy"]').onclick = async e => {
+      const copyBtn = body.querySelector('[data-a="copy"]');
+      if (copyBtn) copyBtn.onclick = async e => {
         const b = e.currentTarget, u = fullUrl(eff);
         try { await navigator.clipboard.writeText(u); b.textContent = 'Copied ✓'; setTimeout(() => { b.textContent = 'Copy link'; }, 2000); }
         catch (_) { window.prompt('Copy this link:', u); }

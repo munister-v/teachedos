@@ -1629,17 +1629,24 @@
 
   /* share cards (scripts/share-cards.js): the server builds the card from its white list */
   const shareCard = (kind, surface, extra) => window.TeachEdShare && window.TeachEdShare.open({ kind, surface, api, ...(extra || {}) });
-  /* Today: the week card shows up in the feed once the week reaches 50 XP */
-  function weekCardToday(x) {
-    const pg = document.getElementById('pg-today'); if (!pg || !x) return;
-    let el = pg.querySelector('#weekShare');
-    if (!(x.week_xp >= 50) || !window.TeachEdShare) { if (el) el.remove(); return; }
-    if (!el) { el = document.createElement('div'); el.id = 'weekShare'; el.className = 'twbar'; const end = pg.querySelector('.planend'); (end || pg.querySelector('.plan')).after(el); }
-    el.innerHTML = '<span class="pxart" data-art="crown" data-color="#7A9A1E" data-px="3"></span><p><b>Your week: ' + num(x.week_xp) + ' XP.</b> That is worth a card — share it with friends or family.</p><button type="button">Share my week</button>';
+  /* Today: cards in the feed when there is something to be proud of - the week from 50 XP, a streak
+     milestone, a level the teacher confirmed. Each is a banner with one button; none when it is not true. */
+  const MILES = [7, 14, 30, 60, 100];
+  function cardBanner(id, show, art, html, btn, kind) {
+    const pg = document.getElementById('pg-today'); if (!pg) return;
+    let el = pg.querySelector('#' + id);
+    if (!show || !window.TeachEdShare) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = id; el.className = 'twbar'; const end = pg.querySelector('.planend'); (end || pg.querySelector('.plan')).after(el); }
+    el.innerHTML = '<span class="pxart" data-art="' + art + '" data-color="#7A9A1E" data-px="3"></span><p>' + html + '</p><button type="button">' + btn + '</button>';
     paintArt(el.querySelector('.pxart'));
-    el.querySelector('button').onclick = () => shareCard('week', 'hub-today');
+    el.querySelector('button').onclick = () => shareCard(kind, 'hub-today');
   }
-
+  function weekCardToday(x) {
+    if (!x) return;
+    cardBanner('weekShare', x.week_xp >= 50, 'crown', '<b>Your week: ' + num(x.week_xp) + ' XP.</b> That is worth a card — share it with friends or family.', 'Share my week', 'week');
+    cardBanner('lvlShare', !!x.level_moment, 'crown', '<b>You are now ' + esc2(x.level_moment ? x.level_moment.level_to : '') + '.</b> Your teacher confirmed it — tell someone.', 'Share my level', 'levelup');
+    cardBanner('streakShare', MILES.includes(STREAK.n), 'bolt', '<b>' + STREAK.n + ' days in a row.</b> A streak like this is rare — share it.', 'Share my streak', 'streak');
+  }
   /* ── 2 / 11. On top of the Word Bank: the new words from the teacher; under the board: my finds, with dates ── */
   function wbBlocks(wb, b) {
     const dep = wb.querySelector('.dep16'); if (!dep) return;
@@ -1711,7 +1718,7 @@
   Promise.all([pMe, pProgress]).then(([me, pr]) => {
     if (me && me.user) who(me.user);
     STREAK = { n: pr && Number(pr.streak) || 0, today: actToday(pr) };
-    streak(STREAK.n); streakCard();
+    streak(STREAK.n); streakCard(); if (XPLAST) weekCardToday(XPLAST);
   });
   pDash.then(() => refreshBell());
   const pSide = Promise.all([pMe, pDash]).then(([me, dash]) => {

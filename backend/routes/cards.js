@@ -23,14 +23,14 @@ async function tellTeacher(user, kind) {
     `SELECT 1 FROM notifications WHERE user_id = $1 AND type = 'share' AND title = $2 AND created_at > NOW() - INTERVAL '1 day' LIMIT 1`, [j.teacher_id, title]);
   if (had) return;
   await require('./notifications').createNotification(j.teacher_id, 'share', title,
-    kind === 'week' ? 'Their week in English - a good moment for a word of praise.' : kind === 'duel' ? 'They won a duel.' : 'They shared a word set with a friend.', 'index.html#students');
+    ({ week: 'Their week in English - a good moment for a word of praise.', duel: 'They won a duel.', streak: 'A streak milestone - worth a word of praise.', levelup: 'They shared their new level.' })[kind] || 'They shared a word set with a friend.', 'index.html#students');
 }
 
 router.post('/', requireAuth, wrap(async (req, res) => {
   const out = await cards.create(pool, req.user, req.body || {});
   if (out.error) return res.status(out.status || 400).json({ error: out.error });
   if (out.audience === 'student') tellTeacher(req.user, out.kind).catch(() => {});
-  res.status(201).json({ ...out, path: '/c.html?c=' + out.code });
+  res.status(201).json(out.private ? out : { ...out, path: '/c.html?c=' + out.code });
 }));
 router.get('/mine', requireAuth, wrap(async (req, res) => res.json({ cards: await cards.mine(pool, req.user) })));
 router.delete('/:code', requireAuth, wrap(async (req, res) => {

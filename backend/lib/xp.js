@@ -97,7 +97,7 @@ async function summary(db, userId, tz, level) {
   const total = t.total;
   const from = String(level || 'B1').toUpperCase(), to = nextLevel(from);
   // after a confirmed level the path starts again from its Base Camp
-  const { rows: [lm] } = await db.query('SELECT xp_at FROM level_moments WHERE user_id = $1 ORDER BY confirmed_at DESC LIMIT 1', [userId]);
+  const { rows: [lm] } = await db.query('SELECT xp_at, level_to, (confirmed_at > NOW() - INTERVAL \'30 days\') AS recent FROM level_moments WHERE user_id = $1 ORDER BY confirmed_at DESC LIMIT 1', [userId]);
   const bandStart = lm ? Math.min(lm.xp_at, total) : 0;
   const inBand = Math.min(total - bandStart, BAND_XP);
   const nextCamp = CAMPS.find(c => c.at > inBand) || CAMPS[CAMPS.length - 1];
@@ -105,7 +105,7 @@ async function summary(db, userId, tz, level) {
   return {
     total, today: byDay.get(today) || 0, week, week_xp: weekXp, recent,
     ledger: led.map(e => ({ kind: e.kind, label: e.kind === 'word' ? e.label + ' ×' + e.n : e.label, xp: e.xp, day: e.day })),
-    earlier_xp: older.xp, today_day: today,
+    earlier_xp: older.xp, today_day: today, level_moment: lm && lm.recent ? { level_to: lm.level_to } : null,
     level: { from, to, band_xp: BAND_XP, checkpoint: CHECKPOINT, in_band: inBand, camps: CAMPS,
              next_camp: nextCamp, to_next_camp: Math.max(0, nextCamp.at - inBand), to_summit: Math.max(0, BAND_XP - inBand),
              pct: Math.round(inBand / BAND_XP * 100) },
