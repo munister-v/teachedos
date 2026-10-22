@@ -36,6 +36,8 @@ test.before(async () => {
   await pool.query(`INSERT INTO student_journal (teacher_id, student_id, name, level) VALUES ($1,$2,'x','B1'),($1,$3,'x','B2')`, [teacher.id, s.id, mate.id]);
   for (const w of ['bargain', 'hesitate', 'drift', 'lantern', 'glacier', 'fjord']) await word(s, w);
   await word(s, 'overdue', { reps: 3, iv: 3, due: -4, reviewed: true });
+  // she studied yesterday: this is an ordinary day, not a return after a pause (that plan is tested in comebackDb.test.js)
+  await pool.query(`INSERT INTO xp_events (user_id, kind, ref, xp, label, created_at) VALUES ($1,'qa','td-yesterday',5,'qa', NOW() - INTERVAL '1 day')`, [s.id]);
 });
 test.after(async () => {
   if (dbUp) await pool.query('DELETE FROM users WHERE id = ANY($1)', [made]);

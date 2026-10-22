@@ -2045,3 +2045,13 @@ CREATE TABLE IF NOT EXISTS circle_reactions (               -- «Тиць»: the
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (post_id, user_id)
 );
+
+-- Retention: a welcome-back is written down once per absence (the last day something was done), for comeback_shown / comeback_returned.
+CREATE TABLE IF NOT EXISTS comebacks (
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  last_active DATE NOT NULL,
+  gap         INTEGER NOT NULL,
+  shown_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  returned_at TIMESTAMPTZ,
+  PRIMARY KEY (user_id, last_active)
+);

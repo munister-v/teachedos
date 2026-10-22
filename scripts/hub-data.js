@@ -896,6 +896,9 @@
       }
     }
 
+    // three days or more away: Tich welcomes back, the "while you were away" line moves inside it
+    if (window.Comeback && window.Comeback.render(document.getElementById('cbWelcome'), t.comeback) && wn) wn.style.display = 'none';
+
     // the treat of the day: the phrase of the day, kept into the Word Bank for +5 XP
     const tr = pg.querySelector('#treat'), T = t.treat;
     if (tr && T) {
