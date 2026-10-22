@@ -1975,3 +1975,5 @@ CREATE TABLE IF NOT EXISTS speaking_tasks (                -- the teacher's erra
   done_at     TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_speaking_tasks_user ON speaking_tasks(user_id, status);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS talk_seen_at TIMESTAMPTZ;              -- when the student last opened the chat: Tich's newer messages are "new"

@@ -135,7 +135,9 @@ async function context(db, user) {
   const [wb, homework, challenge, duels] = await Promise.all([
     Promise.resolve(wordbank.board(rows, tz)), openHomework(db, user.id), challenges.todaysChallenge(db, user), challenges.listDuels(db, user.id)]);
   const { rows: [tp] } = await db.query(`SELECT 1 FROM xp_events WHERE user_id = $1 AND kind = 'treat' AND ref = $2`, [user.id, String(localDay(tz))]);
-  return { tz, wb, homework, challenge, duels, treatOpen: !tp };
+  let talk = null;
+  try { talk = await require('./speaking/tutor').getState(db, user); } catch (_) { /* the plan never waits for Talk Time */ }
+  return { tz, wb, homework, challenge, duels, treatOpen: !tp, talk };
 }
 
 /* The treat of the day, for the student's level and interests: a word from a piece built for their level
@@ -212,6 +214,12 @@ async function whatsNew(db, user, ctx) {
 async function plan(db, user, ctx, lucky) {
   const { wb, homework, challenge, duels, tz } = ctx;
   const rows = [];
+  /* Talk Time is task one (Speaking Tutor ТЗ §2): five minutes of talking with Tich. It stays a row all day; it
+     is ticked once a session was finished today. */
+  const talk = ctx.talk;
+  if (talk) rows.push({ id: 'talk', kind: 'talk', state: talk.sessions_today > 0 ? 'done' : undefined, title: 'Talk Time with Tich',
+    why: talk.open_session ? 'You are in the middle of a session - pick it up' : talk.last_tich ? 'He asked: ' + String(talk.last_tich).slice(0, 70) : 'Five minutes of talking - he starts with one question',
+    meta: '5 min · +' + require('./speaking/constants').XP_PER_SESSION + ' XP', min: 5, label: talk.open_session ? 'Continue' : 'Talk', go: 'talk' });
   /* what the teacher gave comes first: the new words from the teacher are step one, the rest of the queue follows */
   const tw = teacherWords(wb);
   if (tw) rows.push({ id: 'teacher_words', kind: 'teacher_words', title: 'Practise ' + tw.n + (tw.n === 1 ? ' new word' : ' new words') + ' from ' + tw.teacher,
@@ -260,7 +268,8 @@ async function buildToday(db, user) {
   const ctx = await context(db, user);
   const lucky = await luckyState(db, user, ctx);
   const [rows, t, wn] = await Promise.all([plan(db, user, ctx, lucky), treat(db, user), whatsNew(db, user, ctx)]);
-  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb) };
+  return { plan: rows, minutes: rows.reduce((n, r) => n + (r.min || 0), 0), lucky, treat: t, whats_new: wn, teacher_words: teacherWords(ctx.wb),
+    talk: ctx.talk ? { sessions_today: ctx.talk.sessions_today, open_session: ctx.talk.open_session, unread: ctx.talk.unread, last_tich: ctx.talk.last_tich, pro: ctx.talk.pro, free_left: ctx.talk.free_left, rounds: ctx.talk.rounds } : null };
 }
 
 module.exports = { buildToday, pullLucky, answerLucky, keepTreat, luckyCandidates, TREAT_XP, LUCKY_BASE_XP, LUCKY_BONUS };

@@ -46,9 +46,10 @@ test('the plan is built from what is really due: words first, then homework, the
   if (!dbUp) return t.skip('no database');
   const hw = await pool.query(`INSERT INTO homework (user_id, title, due_at) VALUES ($1,'Jersey article', NOW() + INTERVAL '2 days') RETURNING id`, [teacher.id]).catch(() => null);
   const first = await today.buildToday(pool, s);
-  assert.equal(first.plan[0].kind, 'words');
+  assert.equal(first.plan[0].kind, 'talk', 'Talk Time is task one');
+  assert.equal(first.plan[1].kind, 'words');
   assert.equal(first.teacher_words, null);
-  assert.match(first.plan[0].why, /overdue/, 'the word about to slip is the reason');
+  assert.match(first.plan[1].why, /overdue/, 'the word about to slip is the reason');
   assert.equal(first.lucky.state, 'sealed');
   assert.ok(first.plan.some(r => r.kind === 'lucky' && r.state === 'sealed'));
   assert.equal(first.whats_new, null, 'the first visit says nothing and starts the clock');
@@ -109,7 +110,7 @@ test('words from the teacher are never queued, stand first in the plan and on to
     for (let i = 0; i < 6; i++) await word(u, 'own' + i);
     for (let i = 0; i < 7; i++) await pool.query(`INSERT INTO vocabulary (user_id, word, translation, kind, sent_by, source_type) VALUES ($1,$2,'x','word',$3,'LESSON_BOARD')`, [u.id, 'tw' + i, teacher.id]);
     const t1 = await today.buildToday(pool, u);
-    assert.equal(t1.plan[0].kind, 'teacher_words');
+    assert.equal(t1.plan[1].kind, 'teacher_words');
     assert.equal(t1.teacher_words.n, 7); assert.equal(t1.teacher_words.teacher, 'Kate');
     const wb = require('../lib/wordbank');
     const { rows } = await pool.query(`SELECT v.*, t.name AS teacher_name FROM vocabulary v LEFT JOIN users t ON t.id = v.sent_by WHERE v.user_id = $1`, [u.id]);

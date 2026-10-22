@@ -23,10 +23,17 @@ router.get('/messages', wrap(async (req, res) => res.json({ messages: await tuto
 router.post('/session', wrap(async (req, res) => res.status(201).json(await tutor.startSession(pool, req.user, req.body || {}))));
 router.post('/round/:id/answer', wrap(async (req, res) => res.json(await tutor.answer(pool, req.user, req.params.id, req.body || {}))));
 router.post('/round/:id/repeat', wrap(async (req, res) => res.json(await tutor.repeat(pool, req.user, req.params.id, req.body || {}))));
+router.post('/round/:id/skip', wrap(async (req, res) => res.json(await tutor.skipRound(pool, req.user, req.params.id))));
+router.put('/seen', wrap(async (req, res) => { await tutor.markSeen(pool, req.user); res.json({ ok: true }); }));
 router.post('/session/:id/finish', wrap(async (req, res) => res.json({ message: await tutor.finishSession(pool, req.user, req.params.id) })));
 router.get('/sound', wrap(async (req, res) => {
   const { rows: [u] } = await pool.query('SELECT speaking_accent FROM users WHERE id = $1', [req.user.id]);
   res.json(tutor.soundCard(req.query.word, req.query.phoneme, u.speaking_accent));
+}));
+router.get('/say', wrap(async (req, res) => {
+  const a = await tutor.sayAudio(pool, req.user, req.query.text);
+  if (!a) return res.status(404).json({ error: 'No voice for this' });
+  res.set({ 'Content-Type': a.mime, 'Cache-Control': 'private, max-age=86400' }).send(a.bytes);
 }));
 router.get('/audio/:id', wrap(async (req, res) => {
   const a = await tutor.getAudio(pool, req.user, req.params.id);

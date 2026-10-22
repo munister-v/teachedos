@@ -85,16 +85,25 @@ async function voiceAllowed(db, userId) {
 }
 
 async function getState(db, user) {
-  const [lim, open, voiceOk, done, acc] = await Promise.all([
+  const [lim, open, voiceOk, done, acc, unread] = await Promise.all([
     freeLeft(db, user),
     db.query(`SELECT s.id, s.total_rounds, s.kind, (SELECT COUNT(*)::int FROM speaking_rounds r WHERE r.session_id = s.id AND r.state = 'done') AS done
                 FROM speaking_sessions s WHERE s.user_id = $1 AND s.finished_at IS NULL AND s.started_at > NOW() - INTERVAL '6 hours' ORDER BY s.started_at DESC LIMIT 1`, [user.id]),
     voiceAllowed(db, user.id),
     db.query(`SELECT COUNT(*)::int AS n FROM speaking_sessions WHERE user_id = $1 AND finished_at IS NOT NULL AND (finished_at AT TIME ZONE $2)::date = $3::date`, [user.id, tzOf(user), todayIn(tzOf(user))]),
     db.query('SELECT speaking_accent FROM users WHERE id = $1', [user.id]),
+    db.query(`SELECT COUNT(*)::int AS n, (ARRAY_AGG(text ORDER BY created_at DESC) FILTER (WHERE text IS NOT NULL))[1] AS last
+                FROM speaking_messages WHERE user_id = $1 AND author = 'tich' AND kind IN ('text','greeting','hint')
+                 AND created_at > COALESCE((SELECT talk_seen_at FROM users WHERE id = $1), 'epoch')`, [user.id]),
   ]);
+  let active = null;
+  if (open.rows[0]) {
+    const { rows: [r] } = await db.query(`SELECT id, state FROM speaking_rounds WHERE session_id = $1 ORDER BY idx DESC LIMIT 1`, [open.rows[0].id]);
+    active = r ? { id: r.id, state: r.state } : null;
+  }
   return { accent: acc.rows[0].speaking_accent, tts: deps.azure.enabled(), stt: sttEnabled(), voice_allowed: voiceOk, ...lim,
-    open_session: open.rows[0] ? { id: open.rows[0].id, done: open.rows[0].done, total: open.rows[0].total_rounds, kind: open.rows[0].kind } : null,
+    open_session: open.rows[0] ? { id: open.rows[0].id, done: open.rows[0].done, total: open.rows[0].total_rounds, kind: open.rows[0].kind, round: active } : null,
+    unread: unread.rows[0].n, last_tich: unread.rows[0].last || null,
     sessions_today: done.rows[0].n, daily_cap_min: C.DAILY_AUDIO_CAP_MIN, max_answer_sec: C.MAX_ANSWER_SEC, rounds: C.SESSION_ROUNDS };
 }
 
@@ -311,6 +320,25 @@ async function rememberFacts(db, user, rounds) {
   for (const f of facts) await db.query('INSERT INTO speaking_facts (user_id, fact) VALUES ($1,$2)', [user.id, f]);
 }
 
+/* "Skip": a round the student does not want to finish. It is not counted (a round counts only with its repeat),
+   the next question comes at once */
+async function skipRound(db, user, roundId) {
+  const round = await ownRound(db, user.id, roundId);
+  if (!round || round.s_finished) throw fail(404, 'NOT_FOUND', 'This round is not open');
+  if (round.state === 'done') throw fail(409, 'DONE', 'This round is already finished');
+  await db.query(`UPDATE speaking_rounds SET state = 'skipped', done_at = NOW() WHERE id = $1`, [round.id]);
+  return { messages: await advance(db, user, round.session_id), state: 'skipped', round_id: round.id };
+}
+/* a single word or short phrase in Tich's voice, for the sound card (cached; null without a voice) */
+async function sayAudio(db, user, text) {
+  const t = clip(text, 60);
+  if (!t || !/^[A-Za-z' ,.!?-]+$/.test(t)) return null;
+  const acc = (await db.query('SELECT speaking_accent FROM users WHERE id = $1', [user.id])).rows[0].speaking_accent;
+  const v = await voiceFor(db, user, t, acc);
+  return v ? getAudio(db, user, v.id) : null;
+}
+const markSeen = (db, user) => db.query('UPDATE users SET talk_seen_at = NOW() WHERE id = $1', [user.id]);
+
 /* leaving after any round keeps the progress: the log is already written, the finished rounds count */
 const leave = (db, user, sessionId) => finishSession(db, user, sessionId);
 
@@ -321,4 +349,4 @@ async function getAudio(db, user, id) {
   return a || null;
 }
 
-module.exports = { setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };
+module.exports = { sayAudio, skipRound, markSeen, setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };

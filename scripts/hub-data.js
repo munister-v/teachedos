@@ -839,7 +839,7 @@
      "while you were away" line. Painted last, over what the earlier loaders left. */
   const fresh = el => { if (!el) return el; const n = el.cloneNode(true); el.replaceWith(n); return n; };
   const GO = { wordbank: 2, watchread: 1, challenges: 3 };
-  const navTo = k => { if (k === 'homework') { location.href = 'homework-do.html'; return; } goTo(GO[k] != null ? GO[k] : 0); };
+  const navTo = k => { if (k === 'talk') { if (window.TalkChat) window.TalkChat.open(); return; } if (k === 'homework') { location.href = 'homework-do.html'; return; } goTo(GO[k] != null ? GO[k] : 0); };
   function todayPaint(t) {
     const pg = document.getElementById('pg-today');
     if (!pg || !t) return;
@@ -870,6 +870,7 @@
       const pullBtn = plan.querySelector('#luckyPull'); if (pullBtn) pullBtn.addEventListener('click', openLucky);
     }
     TODAY = t;
+    if (window.TalkChat) { window.TalkChat.renderCard(t.talk); window.TalkChat.setRefresh(reloadToday); }
     teacherBanner(t);
     const mins = t.minutes;
     const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';
