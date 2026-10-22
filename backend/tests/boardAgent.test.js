@@ -244,3 +244,61 @@ test('board agent: a lesson is a banner and designed stages; long cues become st
   assert.strictEqual(st.steps.length, 1);
   assert.ok(agent.buildPrompt({ command: 'plan a lesson', cards: [] }).includes('Never build a lesson out of plain "add" stickies'));
 });
+
+const framed = [
+  { id: 'f1', type: 'frame', text: 'Warm-up', x: 0, y: 0, w: 600, h: 400 },
+  { id: 'f2', type: 'frame', text: 'Practice', x: 700, y: 0, w: 600, h: 400, selected: true },
+  { id: 'c1', type: 'sticky', text: 'to annoy', x: 10, y: 20, frame: 'f1' },
+  { id: 'c2', type: 'image', text: '', x: 720, y: 20, frame: 'f2' },
+];
+
+test('board agent: the prompt lists what each frame holds and the open question', () => {
+  const p = agent.buildPrompt({ command: 'yes', cards: framed, pending: 'Which frame is the quiz from?' });
+  assert.match(p, /f1 «Warm-up» at \(0,0\) 600x400: c1 \[sticky\] to annoy/);
+  assert.match(p, /f2 «Practice».* SELECTED: c2 \[image\]/);
+  assert.match(p, /Your open question to the teacher.*Which frame is the quiz from\?/);
+  assert.doesNotMatch(agent.buildPrompt({ command: 'x', cards: [] }), /open question/);
+});
+
+test('board agent: shift, duplicate, cover, uncover and assign are checked against the board', () => {
+  const plan = agent.sanitizePlan({
+    reply: 'ok',
+    actions: [
+      { op: 'shift', ids: ['f1', 'nope'], dx: 100.4, dy: 0 },
+      { op: 'shift', ids: ['f1'], dx: 0, dy: 0 },
+      { op: 'shift', ids: ['f1'], dx: 99999, dy: 1 },
+      { op: 'duplicate', ids: ['c1'], dx: 40, dy: 40 },
+      { op: 'duplicate', ids: ['ghost'] },
+      { op: 'cover', ids: ['f2', 'c1'] },
+      { op: 'uncover', ids: ['f2'] },
+      { op: 'assign', frame: 'c1' },
+      { op: 'assign', frame: 'f2', title: ' Past  simple ', due: '2026-11-01' },
+      { op: 'assign', frame: 'f1' },
+    ],
+  }, framed);
+  assert.deepStrictEqual(plan.actions, [
+    { op: 'shift', ids: ['f1'], dx: 100, dy: 0 },
+    { op: 'duplicate', ids: ['c1'], dx: 40, dy: 40 },
+    { op: 'cover', ids: ['f2', 'c1'] },
+    { op: 'uncover', ids: ['f2'] },
+    { op: 'assign', frame: 'f2', title: 'Past simple', due: '2026-11-01' },
+  ]);
+});
+
+test('board agent: needs_input keeps one question and no actions, no_tool must name its tool', () => {
+  const ask = agent.sanitizePlan({ outcome: 'needs_input', reply: '', question: ' Which frame?  ', options: ['Warm-up', 'Practice', 'Warm-up', ''], actions: [{ op: 'delete', ids: ['c1'] }] }, framed);
+  assert.strictEqual(ask.outcome, 'needs_input');
+  assert.strictEqual(ask.question, 'Which frame?');
+  assert.deepStrictEqual(ask.options, ['Warm-up', 'Practice']);
+  assert.deepStrictEqual(ask.actions, []);
+  assert.strictEqual(ask.reply, 'Which frame?');
+
+  const gap = agent.sanitizePlan({ outcome: 'no_tool', reply: 'I cannot send to the Word Bank.', gap: { tool: 'Word Bank push!', closest: 'Add the words as a table' }, actions: [] }, framed);
+  assert.strictEqual(gap.outcome, 'no_tool');
+  assert.deepStrictEqual(gap.gap, { tool: 'word_bank_push', closest: 'Add the words as a table' });
+
+  // a refusal that names nothing is not an outcome of its own
+  assert.strictEqual(agent.sanitizePlan({ outcome: 'no_tool', reply: "I can't", actions: [] }, framed).outcome, 'done');
+  assert.strictEqual(agent.sanitizePlan({ outcome: 'needs_input', reply: 'hm', actions: [] }, framed).outcome, 'done');
+  assert.strictEqual(agent.sanitizePlan({ reply: 'hi', actions: [] }, framed).outcome, 'done');
+});

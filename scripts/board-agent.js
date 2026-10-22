@@ -17,6 +17,16 @@
    those. When the model is not there (no key, a timeout, offline) the local
    rules below still tidy, find, frame, colour, time and clean the board.
 
+   It is an agent, not a chat (23.10.2026, ТЗ «Board Assistant как агент»):
+   a plan is classed by what it touches (read / reversible change on the
+   teacher's board / anything students see or a mass change), small reversible
+   plans run at once, bigger ones are listed first with a tick on every step,
+   and student-facing ones wait for a confirmation. After the plan is applied
+   the board is READ AGAIN and every step is checked against it; the report
+   names what really changed and what did not, with one Undo for the task.
+   An answer is one of: done, a single precise question (with clickable
+   answers), or "no tool" with the missing tool named (the server logs it).
+
    Loaded after board-app.js and uses its globals: state, addCard, removeCard,
    setCardData, reRenderCard, updateCardPos, snapshot, apiFetch and friends.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -40,6 +50,9 @@
   let lastCommand = '';   // what was sent last; ArrowUp in an empty field brings it back
   let turns = [];         // the chat so far: { role: 'teacher' | 'assistant', text }
   let recentIds = new Set();   // cards the last applied plan made or changed
+  let pendingQuestion = '';    // the one question the assistant asked and is waiting on
+  let report = null;           // what the last applied plan really did (a node for the chat)
+  let ticked = [];             // which listed steps are still ticked
 
   /* ── Bar ────────────────────────────────────────────────────────────── */
   const bar = document.createElement('div');
@@ -227,7 +240,8 @@
     const el = document.createElement('div');
     el.className = 'ba-msg ' + (role === 'teacher' ? 'me' : 'ai');
     el.textContent = text;
-    if (note) { const n = document.createElement('div'); n.className = 'ba-note'; n.textContent = note; el.appendChild(n); }
+    if (note && note.nodeType) el.appendChild(note);
+    else if (note) { const n = document.createElement('div'); n.className = 'ba-note'; n.textContent = note; el.appendChild(n); }
     logEl.appendChild(el);
     const body = $('.ba-body');
     if (body) body.scrollTop = body.scrollHeight;
@@ -252,16 +266,31 @@
      or when the panel closes; an unapplied plan says so. */
   function archiveAnswer(note) {
     if (out.hidden || !replyEl.textContent || replyEl.classList.contains('ba-thinking')) return;
-    const left = plan ? (note || 'Not applied') : (out.dataset.note || '');
+    let left = report || (plan ? (note || 'Not applied') : (out.dataset.note || ''));
     if (plan) noteLastTurn('not applied');
+    // the missing tool stays with the answer in the chat
+    if (out.dataset.gap) {
+      const box = document.createElement('div');
+      const g = document.createElement('div');
+      g.className = 'ba-note';
+      g.textContent = out.dataset.gap;
+      box.appendChild(g);
+      if (left && left.nodeType) box.appendChild(left);
+      else if (left) { const n = document.createElement('div'); n.className = 'ba-note'; n.textContent = left; box.appendChild(n); }
+      left = box;
+    }
     bubble('assistant', replyEl.textContent, left);
     out.dataset.note = '';
+    out.dataset.gap = '';
+    report = null;
   }
   function newChat() {
     clearPlan();
     logEl.textContent = '';
     turns = [];
     recentIds = new Set();
+    pendingQuestion = '';
+    report = null;
     input.value = '';
     input.focus();
   }
@@ -583,6 +612,8 @@
     clearPlan();
     bubble('teacher', command);
     const history = turns.slice();
+    const pending = pendingQuestion;   // this command answers it
+    pendingQuestion = '';
     remember('teacher', command);
     // "Remember that…": never decided by the model - the exact text and where it goes, then Apply
     const rem = REMEMBER.exec(command);
@@ -596,7 +627,7 @@
     try {
       const boardId = typeof currentBoardId !== 'undefined' ? currentBoardId : null;   // TeachEd memory, read on the server
       const board = { name: ((document.getElementById('board-name-display') || {}).textContent || '').trim().slice(0, 80) };
-      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, boardId, board, history, ...collectCards() } });
+      const r = await apiFetch('/api/ai/board-agent', { method: 'POST', body: { command, boardId, board, history, pending, ...collectCards() } });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
         // provider noise ("fetch failed", "timeout after…") means one thing to a teacher
@@ -649,8 +680,8 @@
   }
 
   /* Next steps the assistant offers after its answer: a click sends them. */
-  function showSuggestions(list, target) {
-    const items = (Array.isArray(list) ? list : []).filter(t => typeof t === 'string' && t.trim()).slice(0, 3);
+  function showSuggestions(list, target, max) {
+    const items = (Array.isArray(list) ? list : []).filter(t => typeof t === 'string' && t.trim()).slice(0, max || 3);
     if (!items.length) return;
     const li = document.createElement('li');
     li.className = 'ba-chips ba-next';
@@ -697,6 +728,11 @@
     if (a.op === 'game') return `Add a ${GAME_LABELS[a.game] || 'game'}: “${a.title}”`;
     if (a.op === 'homework') return `Build an exercise card: “${a.title}” - ${a.exercises.length} exercise${a.exercises.length === 1 ? '' : 's'}, ${a.exercises.reduce((n, e) => n + e.questions.length, 0)} questions`;
     if (a.op === 'open') return `Open ${STUDIO_LABELS[a.studio] || a.studio} Studio`;
+    if (a.op === 'shift') return `Move ${plural(a.ids.length, 'card')}${names(a.ids)} ${[a.dx ? `${Math.abs(a.dx)} px ${a.dx > 0 ? 'right' : 'left'}` : '', a.dy ? `${Math.abs(a.dy)} px ${a.dy > 0 ? 'down' : 'up'}` : ''].filter(Boolean).join(' and ')}`;
+    if (a.op === 'duplicate') return `Duplicate ${plural(a.ids.length, 'card')}${names(a.ids)}`;
+    if (a.op === 'cover') return `Hide from students until you uncover: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
+    if (a.op === 'uncover') return `Show to students again: ${plural(a.ids.length, 'card')}${names(a.ids)}`;
+    if (a.op === 'assign') return `Give the cards of ${quote(cardText(byId(a.frame) || {}), 24)} to the student as homework${a.title ? ` “${a.title}”` : ''}${a.due ? `, due ${a.due}` : ''}`;
     if (a.op === 'remember') return `Save to ${a.name}'s memory · Notes: ${quote(a.text, 80)}`;
     return '';
   }
@@ -706,6 +742,7 @@
     const live = id => !!byId(id);
     const actions = (Array.isArray(data.actions) ? data.actions : []).map(a => {
       if (a.op === 'edit') return live(a.id) ? a : null;
+      if (a.op === 'assign') return live(a.frame) ? a : null;
       if (a.op === 'sort') {
         const columns = a.columns.map(c => ({ ...c, ids: c.ids.filter(live) })).filter(c => c.ids.length);
         return columns.length ? { ...a, columns } : null;
@@ -716,10 +753,34 @@
 
     out.hidden = false;
     replyEl.classList.remove('err');
-    replyEl.textContent = plain(data.reply);
     stepsEl.textContent = '';
     out.dataset.note = '';
-    remember('assistant', (data.reply || '') + (actions.length ? '\nPlan: ' + actions.map(describe).filter(Boolean).join('; ') : ''));
+    out.dataset.gap = '';
+
+    /* One precise question (§8.3): shown alone, its answers are clickable, and
+       the next command is read as the answer to it. */
+    if (data.outcome === 'needs_input' && data.question) {
+      replyEl.textContent = plain(data.question);
+      pendingQuestion = data.question;
+      remember('assistant', 'I asked: ' + data.question + (data.options && data.options.length ? ' (options: ' + data.options.join(' / ') + ')' : ''));
+      if (data.options && data.options.length) showSuggestions(data.options, stepsEl, 6);
+      btns.hidden = true;
+      plan = null;
+      toEnd();
+      return;
+    }
+
+    replyEl.textContent = plain(data.reply);
+    remember('assistant', (data.reply || '') + (actions.length ? '\nPlan: ' + actions.map(describe).filter(Boolean).join('; ') : '') + (data.gap ? `\n[no tool: ${data.gap.tool}]` : ''));
+
+    // No tool (§8.4): the missing tool by name, and what is offered instead.
+    if (data.outcome === 'no_tool' && data.gap) {
+      const li = document.createElement('li');
+      li.className = 'ba-gap';
+      li.textContent = `Missing tool: ${data.gap.tool.replace(/[_.]+/g, ' ')}.` + (data.gap.closest ? ` Closest I can do: ${plain(data.gap.closest)}` : '');
+      out.dataset.gap = li.textContent;
+      stepsEl.appendChild(li);
+    }
 
     // Opening a studio changes nothing on the board - no Apply step.
     const opener = actions.find(a => a.op === 'open');
@@ -728,7 +789,7 @@
     // the next steps it offers, or - when there are none - the studios.
     if (!actions.length) {
       if (Array.isArray(data.suggest) && data.suggest.length) showSuggestions(data.suggest);
-      else showStudioChips();
+      else if (!data.gap) showStudioChips();
     }
     // "Where is…" only moves the camera, so there is nothing to confirm.
     if (actions.length && actions.every(a => a.op === 'focus')) {
@@ -737,19 +798,51 @@
       showSuggestions(data.suggest);
       return;
     }
+
+    /* Levels (§7): a small reversible plan runs now and is reported; a bigger
+       one is listed with a tick on every step; what students see (or a mass
+       change) waits for a confirmation. */
+    const gate = gateOf(actions);
+    ticked = [];
     actions.forEach(a => {
       const li = document.createElement('li');
-      li.textContent = describe(a);
-      if (a.op === 'delete') li.className = 'danger';
+      const lvl = levelOf(a);
+      if (!gate.auto && lvl !== 'A0') {
+        const label = document.createElement('label');
+        const box = document.createElement('input');
+        box.type = 'checkbox'; box.checked = true; box.title = 'Untick to skip this step';
+        ticked.push({ a, box });
+        label.append(box, ' ' + describe(a));
+        li.appendChild(label);
+      } else li.textContent = describe(a);
+      if (a.op === 'delete') li.classList.add('danger');
+      if (lvl === 'A2') {
+        const tag = document.createElement('span');
+        tag.className = 'ba-lvl';
+        tag.textContent = STUDENT_OPS.has(a.op) && a.op !== 'remember' ? 'students see this' : 'needs your OK';
+        li.appendChild(tag);
+      }
       stepsEl.appendChild(li);
     });
-    btns.hidden = !actions.length;
+    if (gate.confirm && !gate.auto && actions.length) {
+      const note = document.createElement('li');
+      note.className = 'ba-gate';
+      note.textContent = actions.some(a => levelOf(a) === 'A2' && STUDENT_OPS.has(a.op) && a.op !== 'remember')
+        ? 'This reaches your students, so it waits for your confirmation.'
+        : 'This changes a lot of cards at once (or removes cards you did not make here), so it waits for your confirmation.';
+      stepsEl.appendChild(note);
+    }
+    $('.ba-apply').firstChild.textContent = gate.confirm ? 'Confirm ' : 'Apply ';
+    btns.hidden = !actions.length || gate.auto;
     plan = actions.length ? actions : null;
     planFor = command;
     pendingSuggest = actions.length ? (data.suggest || []) : [];
     toEnd();
+    if (gate.auto) { input.value = ''; apply(actions); }
   }
   let pendingSuggest = [];   // offered once the plan is applied
+  // the steps still ticked (all of them when the plan is not listed with ticks)
+  const chosen = () => (plan || []).filter(a => { const t = ticked.find(x => x.a === a); return !t || t.box.checked; });
 
   /* ── Apply ──────────────────────────────────────────────────────────── */
   function bbox(cards) {
@@ -1106,6 +1199,221 @@
     state.groups.push({ id: 'g' + (_groupNextId++), cardIds: ids });
   }
 
+  /* ── Four more tools (23.10.2026) ───────────────────────────────────────
+     shift (an exact distance, frames carry their cards), duplicate, and the
+     student-facing pair cover / uncover, plus assign (a frame becomes
+     homework for the board's student). */
+  const kidsOf = id => state.cards.filter(c => c.data && c.data.parentFrame === id);
+  const withKids = ids => {
+    const out = new Set();
+    ids.forEach(id => { const c = byId(id); if (!c) return; out.add(c.id); if (c.type === 'frame') kidsOf(c.id).forEach(k => out.add(k.id)); });
+    return [...out];
+  };
+
+  function doShift(a) {
+    withKids(a.ids).map(byId).filter(Boolean).forEach(c => moveTo(c, c.x + a.dx, c.y + a.dy));
+  }
+
+  function doDuplicate(a) {
+    const src = (typeof expandIdsWithFrameChildren === 'function' ? expandIdsWithFrameChildren(a.ids) : withKids(a.ids)).map(byId).filter(Boolean);
+    if (!src.length) return [];
+    const dx = Number.isFinite(a.dx) ? a.dx : 40, dy = Number.isFinite(a.dy) ? a.dy : 40;
+    const cloned = cloneCardsWithRelationships(src, dx, dy) || [];
+    if (cloned.some(c => c.type === 'frame') && typeof renumberFrames === 'function') renumberFrames();
+    return cloned;
+  }
+
+  /* Cover = the server stops sending the card's content to students
+     (boardVisibility.js): the same flag as the eye on a card (js/board-reveal.js). */
+  function doCover(a) {
+    const cover = a.op === 'cover';
+    withKids(a.ids).map(byId).filter(Boolean).forEach(c => {
+      c.data = c.data || {};
+      if (cover) { c.data.studentHidden = true; delete c.data.revealed; }
+      else if (c.data.studentHidden) c.data.revealed = true;
+      try { reRenderCard(c); } catch (_) {}
+    });
+  }
+
+  /* Homework from a frame, given to the board's student: the board is saved
+     first (the student reads the cards from the server), the student is the
+     one non-owner member, and a covered frame is refused with the reason. */
+  async function doAssign(a) {
+    const frame = byId(a.frame);
+    if (!frame || frame.type !== 'frame') return { ok: false, why: 'the frame is gone' };
+    if (typeof currentBoardId === 'undefined' || !currentBoardId) return { ok: false, why: 'save this board to your account first' };
+    const cards = kidsOf(frame.id).filter(c => c.type !== 'frame');
+    if (!cards.length) return { ok: false, why: 'the frame is empty' };
+    if (frame.data && frame.data.studentHidden && !frame.data.revealed) return { ok: false, why: 'the frame is covered, so the student would not see it - uncover it first' };
+    const mr = await apiFetch('/api/members/' + encodeURIComponent(currentBoardId));
+    const members = mr.ok ? ((await mr.json().catch(() => ({}))).members || []).filter(m => m.role !== 'owner') : [];
+    if (members.length !== 1) return { ok: false, why: members.length ? 'this board has several students - assign from the Homework journal' : 'this board has no student yet' };
+    try { saveLocal(); await saveToCloud(); } catch (_) { return { ok: false, why: 'the board could not be saved' }; }
+    const r = await apiFetch('/api/homework', { method: 'POST', body: {
+      board_id: currentBoardId,
+      title: String(a.title || cardText(frame) || 'Homework').slice(0, 255),
+      instructions: '',
+      required_cards: cards.map(c => c.id),
+      due_at: a.due ? new Date(a.due + 'T20:00:00').toISOString() : null,
+      student_ids: [members[0].user_id],
+    } });
+    const d = await r.json().catch(() => ({}));
+    return r.ok && d.homework ? { ok: true, note: 'Homework journal' } : { ok: false, why: (d && d.error) || 'the server refused it' };
+  }
+
+  /* ── Levels (§7) ────────────────────────────────────────────────────────
+     A0 reads, A1 changes the teacher's own board reversibly (one Undo takes
+     the task back), A2 is what students see, anything outside this chat's own
+     cards that gets deleted, and a mass change (more than ten existing cards). */
+  const STUDENT_OPS = new Set(['cover', 'uncover', 'assign', 'remember']);
+  const MASS = 10;
+  function levelOf(a) {
+    if (a.op === 'focus' || a.op === 'open') return 'A0';
+    if (STUDENT_OPS.has(a.op)) return 'A2';
+    if (a.op === 'delete' && a.ids.some(id => !recentIds.has(id))) return 'A2';
+    return 'A1';
+  }
+  function existingTouched(actions) {
+    const ids = new Set();
+    actions.forEach(a => {
+      if (a.op === 'edit') ids.add(a.id);
+      else if (a.op === 'sort') a.columns.forEach(c => c.ids.forEach(id => ids.add(id)));
+      else if (['color', 'arrange', 'tidy', 'group', 'frame', 'move', 'shift', 'duplicate', 'delete'].includes(a.op)) a.ids.forEach(id => ids.add(id));
+    });
+    return ids.size;
+  }
+  /* auto: do it now and report; otherwise the plan is listed first. */
+  function gateOf(actions) {
+    const a2 = actions.filter(a => levelOf(a) === 'A2');
+    const mass = existingTouched(actions) > MASS;
+    const confirm = a2.length > 0 || mass;
+    return { confirm, auto: !confirm && actions.length > 0 && actions.length <= 3 && actions.some(a => levelOf(a) === 'A1') };
+  }
+
+  /* ── Verify (§3.4) ──────────────────────────────────────────────────────
+     After the plan is applied the board is read again and every step is
+     checked against what it promised: a created card exists with its text, a
+     moved one is where it should be, a covered one is flagged. "Done" without
+     this does not exist. */
+  const norm = t => String(t == null ? '' : t).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+  function verifyStep(a, v) {
+    const news = v.news.get(a) || [];
+    const live = id => !!byId(id);
+    const miss = n => ({ ok: false, why: n });
+    try {
+      switch (a.op) {
+        case 'add': {
+          const have = new Set(news.map(c => norm(cardText(c))));
+          const lost = a.items.filter(i => !have.has(norm(i.text)));
+          if (lost.length) return miss(`${lost.length} of ${a.items.length} cards did not land on the board`);
+          if (a.frame && !news.some(c => c.type === 'frame' && norm(cardText(c)) === norm(a.frame).slice(0, 60))) return miss(`the frame “${a.frame}” was not made`);
+          if (a.into && !news.some(c => c.data && c.data.parentFrame === a.into)) return miss('the cards are not inside that frame');
+          return { ok: true };
+        }
+        case 'edit': {
+          const c = byId(a.id);
+          if (!c) return miss('the card is gone');
+          return norm(cardText(c)) === norm(c.type === 'frame' ? a.text.slice(0, 60) : a.text) ? { ok: true } : miss('the text did not change');
+        }
+        case 'color': {
+          const bad = a.ids.map(byId).filter(c => c && c.type === 'sticky' && colorName(c.color) !== a.color);
+          return bad.length ? miss(`${bad.length} stickies kept their colour`) : { ok: true };
+        }
+        case 'delete': { const left = a.ids.filter(live); return left.length ? miss(`${left.length} cards are still there`) : { ok: true }; }
+        case 'arrange': case 'tidy': case 'sort': {
+          const ids = a.op === 'sort' ? a.columns.flatMap(c => c.ids) : a.ids;
+          const gone = ids.filter(id => !live(id));
+          return gone.length ? miss(`${gone.length} cards disappeared`) : { ok: true };
+        }
+        case 'group': {
+          const ids = a.ids.filter(live);
+          return ids.length < 2 || state.groups.some(g => ids.every(id => g.cardIds.has(id))) ? { ok: true } : miss('the group was not made');
+        }
+        case 'frame': {
+          const f = news.find(c => c.type === 'frame');
+          if (!f) return miss(`the frame “${a.title}” was not made`);
+          const out = a.ids.map(byId).filter(c => c && c.type !== 'frame' && !(c.data && c.data.parentFrame === f.id));
+          return out.length ? miss(`${out.length} cards are not inside the frame`) : { ok: true };
+        }
+        case 'move': {
+          const out = a.ids.map(byId).filter(c => c && c.type !== 'frame' && !(c.data && c.data.parentFrame === a.into));
+          return out.length ? miss(`${out.length} cards are not inside the frame`) : { ok: true };
+        }
+        case 'shift': {
+          const bad = a.ids.map(byId).filter(Boolean).filter(c => { const p = v.pos.get(c.id); return p && (Math.round(c.x) !== p.x + a.dx || Math.round(c.y) !== p.y + a.dy); });
+          return bad.length ? miss(`${bad.length} cards are not where they should be`) : { ok: true };
+        }
+        case 'duplicate': return news.length >= a.ids.length ? { ok: true } : miss('the copies were not made');
+        case 'table': case 'checklist': case 'timer': return news.some(c => c.type === a.op) ? { ok: true } : miss(`the ${a.op} was not made`);
+        case 'image': return news.some(c => c.type === 'image') ? { ok: true } : { ok: true, warn: 'no photo found for it' };
+        case 'banner': return news.some(c => norm(cardText(c)).includes(norm(a.title))) ? { ok: true } : miss('the title plate was not made');
+        case 'stage': {
+          const f = news.find(c => c.type === 'frame' && norm(cardText(c)) === norm(a.title));
+          if (!f) return miss(`the stage “${a.title}” was not made`);
+          return a.image && !news.some(c => c.type === 'image' && c.data && c.data.parentFrame === f.id) ? { ok: true, warn: 'no photo found for it' } : { ok: true };
+        }
+        case 'homework': return news.length ? { ok: true } : miss('the exercise card was not made');
+        case 'game': return news.some(c => c.type === 'game') ? { ok: true } : miss('the game was not made');
+        case 'cover': case 'uncover': {
+          const cards = withKids(a.ids).map(byId).filter(Boolean);
+          const held = c => !!(c.data && c.data.studentHidden && !c.data.revealed);
+          const bad = cards.filter(c => a.op === 'cover' ? !held(c) : held(c));
+          return bad.length ? miss(`${bad.length} cards did not change`) : { ok: true };
+        }
+        case 'assign': { const r = v.asyncRes.get(a); return r ? (r.ok ? { ok: true } : miss(r.why)) : miss('it was not sent'); }
+        default: return { ok: true };
+      }
+    } catch (err) { return miss('could not be checked'); }
+  }
+
+  /* The report: a diff, not a story - what is on the board now, step by
+     step, a failed step named, and one Undo for the whole task. */
+  function buildReport(actions, results, undoMark) {
+    const box = document.createElement('div');
+    box.className = 'ba-report';
+    const bad = results.filter(r => !r.ok), soft = results.filter(r => r.ok && r.warn);
+    const head = document.createElement('div');
+    head.className = 'ba-note' + (bad.length ? ' warn' : '');
+    head.textContent = !bad.length ? `✓ Done and checked: ${plural(results.length, 'step')} on the board.`
+      : bad.length === results.length ? `Not done: ${bad.length === 1 ? 'the step' : `all ${bad.length} steps`} did not work.`
+      : `Partly done: ${results.length - bad.length} of ${results.length} steps are on the board, ${bad.length} did not work.`;
+    box.appendChild(head);
+    if (bad.length || soft.length || results.length <= 6) {
+      const ul = document.createElement('ul');
+      ul.className = 'ba-checks';
+      results.forEach((r, i) => {
+        if (results.length > 6 && r.ok && !r.warn) return;   // a long plan: only the steps that need attention
+        const li = document.createElement('li');
+        li.className = r.ok ? (r.warn ? 'soft' : 'ok') : 'bad';
+        li.textContent = `${r.ok ? (r.warn ? '!' : '✓') : '✗'} ${describe(actions[i])}${r.ok ? (r.warn ? ' - ' + r.warn : '') : ' - ' + r.why}`;
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    const changed = results.some((r, i) => levelOf(actions[i]) !== 'A0' && r.ok && actions[i].op !== 'assign');
+    if (changed && typeof undo === 'function') {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ba-undo';
+      b.textContent = bad.length ? 'Undo the whole task' : 'Undo';
+      b.addEventListener('click', () => {
+        if (b.disabled) return;
+        if (typeof undoStack !== 'undefined' && undoStack.length !== undoMark) { toast('The board changed after this task - use Ctrl+Z step by step'); return; }
+        undo();
+        b.disabled = true; b.textContent = 'Undone';
+        recentIds = new Set();
+      });
+      box.appendChild(b);
+    }
+    if (actions.some((a, i) => a.op === 'assign' && results[i].ok)) {
+      const n = document.createElement('div');
+      n.className = 'ba-note';
+      n.textContent = 'The homework is with the student now - take it back in the Homework journal.';
+      box.appendChild(n);
+    }
+    return box;
+  }
+
   async function apply(actions, quiet) {
     if (!actions || !actions.length) return;
     const changes = actions.some(a => a.op !== 'focus' && a.op !== 'remember');   // memory is not the board
@@ -1124,30 +1432,46 @@
       } finally { setBusy(false); }
     }
     const before = new Set(state.cards.map(c => c.id));
+    const pos = new Map(state.cards.map(c => [c.id, { x: Math.round(c.x), y: Math.round(c.y) }]));
     const made = [], touched = [];
+    const news = new Map();                 // step -> the cards it made, for the check afterwards
+    const asyncRes = new Map();
     let focus = [];
     const spot = placer();
     if (changes) snapshot();
+    const undoMark = typeof undoStack !== 'undefined' ? undoStack.length : 0;
     _suppressSnapshot++;
+    // runs one step and remembers which cards appeared because of it
+    const track = (a, fn) => {
+      const seen = new Set(state.cards.map(c => c.id));
+      const r = fn();
+      news.set(a, state.cards.filter(c => !seen.has(c.id)));
+      return r;
+    };
     try {
-      try { doLesson(actions, made, spot, stageImages); } catch (err) { console.warn('[board-agent] lesson', err); }
+      const lessonSteps = actions.filter(a => a.op === 'banner' || a.op === 'stage');
+      try { track(lessonSteps[0] || {}, () => doLesson(actions, made, spot, stageImages)); } catch (err) { console.warn('[board-agent] lesson', err); }
+      lessonSteps.forEach(a => news.set(a, news.get(lessonSteps[0]) || []));
       actions.forEach(a => {
         try {
           if (a.op === 'banner' || a.op === 'stage') return;   // laid out together above
-          if (a.op === 'add') doAdd(a, made, spot);
+          if (a.op === 'add') track(a, () => doAdd(a, made, spot));
           else if (a.op === 'edit') { doEdit(a); touched.push(a.id); }
           else if (a.op === 'color') { doColor(a); touched.push(...a.ids); }
           else if (a.op === 'delete') a.ids.forEach(id => removeCard(id));
           else if (a.op === 'arrange' || a.op === 'tidy') { doArrange(a); touched.push(...a.ids); }
           else if (a.op === 'sort') { doSort(a, made); a.columns.forEach(c => touched.push(...c.ids)); }
           else if (a.op === 'group') { doGroup(a); touched.push(...a.ids); }
-          else if (a.op === 'frame') doFrame(a, made);
+          else if (a.op === 'frame') track(a, () => doFrame(a, made));
           else if (a.op === 'move') { doMove(a); touched.push(...a.ids); }
-          else if (a.op === 'table' || a.op === 'checklist' || a.op === 'timer') doSingle(a, made, spot);
-          else if (a.op === 'image') doSingle(a, made, spot, images[pics.indexOf(a)]);
+          else if (a.op === 'shift') { doShift(a); touched.push(...a.ids); }
+          else if (a.op === 'duplicate') { track(a, () => doDuplicate(a)); made.push(...news.get(a)); }
+          else if (a.op === 'cover' || a.op === 'uncover') { doCover(a); touched.push(...a.ids); }
+          else if (a.op === 'table' || a.op === 'checklist' || a.op === 'timer') track(a, () => doSingle(a, made, spot));
+          else if (a.op === 'image') track(a, () => doSingle(a, made, spot, images[pics.indexOf(a)]));
           else if (a.op === 'focus') focus = focus.concat(a.ids);
-          else if (a.op === 'homework') { if (!placeHomeworkOnBoard(a)) toast('Could not build the homework'); }
-          else if (a.op === 'game') placeGameOnBoard(a.game, a.title, 'B1', a.content);
+          else if (a.op === 'homework') { track(a, () => { if (!placeHomeworkOnBoard(a)) toast('Could not build the homework'); }); }
+          else if (a.op === 'game') track(a, () => placeGameOnBoard(a.game, a.title, 'B1', a.content));
           else if (a.op === 'remember') doRemember(a).catch(() => toast('Could not save to memory'));
         } catch (err) { console.warn('[board-agent]', a.op, err); }
       });
@@ -1157,6 +1481,11 @@
       renderAllArrows();
       updateGroupOutlines();
       scheduleSave(); saveLocal();
+    }
+    // the steps that talk to the server run after the board is in place
+    for (const a of actions.filter(x => x.op === 'assign')) {
+      setBusy(true);
+      try { asyncRes.set(a, await doAssign(a)); } catch (err) { asyncRes.set(a, { ok: false, why: 'the server did not answer' }); } finally { setBusy(false); }
     }
     // games and exercise cards place themselves; they count as made too
     const fresh = state.cards.filter(c => !before.has(c.id)).map(c => c.id);
@@ -1174,8 +1503,11 @@
     if (typeof updateMultiSelBox === 'function') updateMultiSelBox();
     refreshScope();
     if (!quiet) {
-      noteLastTurn('applied');
-      out.dataset.note = '✓ Done · Ctrl+Z to undo';
+      // the board is read again: every step against what it promised
+      const results = actions.map(a => verifyStep(a, { news, pos, asyncRes }));
+      const bad = results.filter(r => !r.ok);
+      report = buildReport(actions, results, undoMark);
+      noteLastTurn(bad.length ? `partly applied - failed: ${actions.filter((a, i) => !results[i].ok).map(a => a.op).join(', ')}` : 'applied and checked');
       plan = null;
       archiveAnswer();
       clearPlan();
@@ -1183,7 +1515,7 @@
       if (next.length) { const holder = document.createElement('ul'); holder.className = 'ba-steps'; logEl.appendChild(holder); showSuggestions(next, holder); }
       toEnd();
       input.value = '';
-      toast('Done · Ctrl+Z to undo');
+      toast(bad.length ? 'Partly done - see the assistant' : 'Done · Ctrl+Z to undo');
     }
   }
 
@@ -1252,17 +1584,17 @@
     e.preventDefault();
     // The field is empty after sending, so Enter on an empty field applies the plan.
     const typed = input.value.trim();
-    if (plan && (!typed || typed === planFor)) apply(plan);
+    if (plan && (!typed || typed === planFor)) apply(chosen());
     else ask();
   });
-  $('.ba-apply').addEventListener('click', () => apply(plan));
+  $('.ba-apply').addEventListener('click', () => apply(chosen()));
   $('.ba-cancel').addEventListener('click', () => { archiveAnswer('Cancelled'); clearPlan(); input.focus(); });
   $('.ba-close').addEventListener('click', close);
   $('.ba-new').addEventListener('click', newChat);
   bar.querySelectorAll('.ba-sug').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.sug;
-    if (k === 'plan') { close(); if (typeof openLessonWizard === 'function') openLessonWizard(); return; }
-    input.value = k === 'quiz' ? 'Make a short quiz from the selected frame' : 'Suggest a warm-up game for this lesson and put it on the board';
+    // A preset is only a shortcut for a common request: the assistant does it here, in this chat (no other screen)
+    input.value = k === 'plan' ? 'Plan a lesson' : k === 'quiz' ? 'Quiz from this frame' : 'Find a warmer game: suggest a warm-up game for this lesson and put it on the board';
     ask();
   }));
   // the empty state shows while there is no plan, answer or chat

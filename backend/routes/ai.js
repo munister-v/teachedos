@@ -2493,10 +2493,25 @@ router.post('/board-agent', requireAuth, requireTeacher, boardAgentLimiter, asyn
     if (command.length < 2) return res.status(400).json({ error: 'command required' });
     if (!aiEngine.enabled()) return res.status(503).json({ error: 'AI not configured on this server' });
     await reserveAiQuota(req.user, { mode: 'board-agent', source: command + cards.map(c => c.text).join('\n') + boardAgent.normalizeHistory(req.body?.history).map(t => t.text).join('\n') });
-    const memory = await require('../lib/memoryContext').memoryContextSafe(require('../db/pool'), req.user.id, req.body?.boardId);
-    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory, history: req.body?.history, board: req.body?.board }));
+    const db = require('../db/pool');
+    let memory = await require('../lib/memoryContext').memoryContextSafe(db, req.user.id, req.body?.boardId);
+    // how many students sit on this board (a count, no names): "assign" needs to know whether there is anyone to give homework to
+    if (/^[0-9a-f-]{36}$/i.test(String(req.body?.boardId || ''))) {
+      const { rows: [n] } = await db.query(
+        `SELECT COUNT(*)::int AS n FROM boards b JOIN board_collaborators bc ON bc.board_id = b.id
+           JOIN users u ON u.id = bc.user_id AND u.role = 'student' WHERE b.id = $1 AND b.user_id = $2`,
+        [req.body.boardId, req.user.id]).catch(() => ({ rows: [] }));
+      if (n) memory = `${memory ? memory + ' ' : ''}This board has ${n.n} student${n.n === 1 ? '' : 's'}${n.n === 1 ? ' (the one "assign" gives homework to)' : n.n ? ' ("assign" needs exactly one - otherwise ask which student, or answer no_tool)' : ' ("assign" has nobody to give homework to)'}.`;
+    }
+    const raw = await aiEngine.rawGenerate(boardAgent.buildPrompt({ command, cards, viewport: req.body?.viewport, memory, history: req.body?.history, board: req.body?.board, pending: req.body?.pending }));
     recordActualAiCost(req.user, recordTokens(aiEngine.getLastTrace && aiEngine.getLastTrace() && aiEngine.getLastTrace().usage));
-    res.json({ ...boardAgent.sanitizePlan(raw, cards), quota: await readAiQuota(req.user) });
+    const plan = boardAgent.sanitizePlan(raw, cards);
+    // A request with no tool behind it goes to the gap log (§8): the developers read it to decide the next tool.
+    if (plan.gap) {
+      require('../db/pool').query('INSERT INTO board_agent_gaps (teacher_id, tool, closest, command) VALUES ($1, $2, $3, $4)',
+        [req.user.id, plan.gap.tool, plan.gap.closest, command.slice(0, 600)]).catch(e => console.warn('[ai/board-agent] gap log', e.message));
+    }
+    res.json({ ...plan, quota: await readAiQuota(req.user) });
   } catch (err) {
     console.error('[ai/board-agent]', err.message);
     res.status(err.status || 500).json({ error: err.message || 'AI engine error', code: err.code, reason: err.reason, quota: err.quota });

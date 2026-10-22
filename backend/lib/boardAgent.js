@@ -5,7 +5,15 @@
 
    Everything the model returns is treated as untrusted: sanitizePlan keeps
    only known ops, only ids that exist on the board the teacher sent, and
-   bounded text. Anything else is dropped rather than repaired. */
+   bounded text. Anything else is dropped rather than repaired.
+
+   The assistant is an agent, not a chat (ТЗ «Board Assistant как агент»,
+   23.10.2026): the browser reads the board, applies the plan, re-reads the
+   board to check every step and reports what really changed. A request has
+   exactly four outcomes (§8): done, partly done (the board finds that out
+   itself when a check fails), needs one precise input, or no tool - and then
+   the missing tool is named and written to the gap log. "I can't" without
+   a named tool is not an answer. */
 
 const COLORS = ['yellow', 'sand', 'lime', 'green', 'cyan', 'blue', 'purple', 'peach', 'orange', 'grey', 'olive', 'white'];
 const LAYOUTS = ['grid', 'row', 'column'];
@@ -14,6 +22,7 @@ const EDITABLE = new Set(['sticky', 'text', 'frame']);
 /* Lesson studios the board can open (the lesson builder's skills, see
    BOARD_LESSON_SKILLS in js/teacher-tools-data.js). */
 const STUDIOS = ['vocabulary', 'listening', 'reading', 'speaking', 'writing', 'grammar', 'magazine', 'scenes'];
+const OUTCOMES = ['done', 'needs_input', 'no_tool'];
 
 const MAX_CARDS = 150;
 const MAX_ACTIONS = 40;
@@ -77,19 +86,40 @@ const GUIDE = `How this board works (use it to answer "how do I..." questions):
 - "Follow me" in the top bar brings students to the teacher's view. "Share" invites students. The Lesson pad on the right keeps the lesson's words and notes.
 - Ctrl/Cmd+K opens this command bar.`;
 
-function buildPrompt({ command, cards, viewport, memory, history, board }) {
+/* What each frame holds, one line per frame: the model answers "what is in
+   this frame" and "which frame is the warm-up" from this, not from guessing
+   at rectangles. */
+function frameOutline(list) {
+  const frames = list.filter(c => c.type === 'frame');
+  if (!frames.length) return '';
+  return frames.map(f => {
+    const inside = list.filter(c => c.frame === f.id && c.type !== 'frame');
+    const body = inside.slice(0, 30).map(c => `${c.id} [${c.type}] ${c.text ? c.text.slice(0, 80) : '(no text)'}`).join(' | ');
+    return `${f.id} «${f.text || 'Frame'}» at (${f.x},${f.y}) ${f.w || '?'}x${f.h || '?'}${f.selected ? ' SELECTED' : ''}: ${inside.length ? body + (inside.length > 30 ? ` | +${inside.length - 30} more` : '') : '(empty)'}`;
+  }).join('\n');
+}
+
+function buildPrompt({ command, cards, viewport, memory, history, board, pending }) {
   const list = normalizeCards(cards);
   const selected = list.filter(c => c.selected);
   const recent = list.filter(c => c.recent);
   const lines = list.map(c => JSON.stringify(c)).join('\n');
   const turns = normalizeHistory(history);
   const boardName = oneLine(board && board.name, 80);
-  return `You are the board assistant inside TeachEd, an online whiteboard for English (EFL/ESL) teachers. You are the teacher's capable colleague: you read the board, understand what they mean even when the command is short, vague or has typos, and you DO the work - the board carries out the plan you return. Prefer doing a sensible thing over asking a question. Ask only when two readings would change the board in very different ways.
+  const outline = frameOutline(list);
+  const question = oneLine(pending, 300);
+  return `You are the board assistant inside TeachEd, an online whiteboard for English (EFL/ESL) teachers. You are an agent, not a chat: you work the board INSTEAD of the teacher, with the tools listed below and only those. You read the board, understand what they mean even when the command is short, vague or has typos, and you DO the work - the board carries out the plan you return and then re-reads itself to check every step. Prefer doing a sensible thing over asking a question.
 
 ${GUIDE}
 
 Return ONLY a JSON object:
-{"reply":"one to three short sentences for the teacher","actions":[ ... ],"suggest":["up to 3 short next commands the teacher may want, in their language"]}
+{"outcome":"done"|"needs_input"|"no_tool","reply":"one to three short sentences for the teacher","actions":[ ... ],"question":"only for needs_input","options":["only for needs_input: up to 6 short answers the teacher can click"],"gap":{"tool":"only for no_tool: the missing tool, snake_case","closest":"what you did or offer instead"},"suggest":["up to 3 short next commands the teacher may want, in their language"]}
+
+The four outcomes (exactly one per answer):
+1. "done" - the plan in "actions" does the whole job (a question answered in "reply" is also "done").
+2. "needs_input" - one input is missing and two readings would change the board in very different ways: ask ONE precise question in "question" (not a questionnaire), with "options" when the answer is a pick from what is on the board (frame titles, studios, levels). No actions. Never ask for what the board, the memory or the conversation already tells you.
+3. "no_tool" - the job needs a tool you do not have. Name it in "gap.tool", say in "reply" in one sentence what is missing, and in "gap.closest" what you do or offer instead; do that closest thing in "actions" when it is useful. You never answer "I can't" or "I don't know" or "I'm just a language model" without naming the exact missing tool: the board, the cards, the student's memory and the conversation are all in front of you.
+Partly done is reported by the board itself after it checks the result - you do not claim success in "reply", you say what the plan will do.
 
 Allowed actions (use only these, with ids taken from the card list below):
 - {"op":"banner","title":"Travel Talk","subtitle":"B1 · 45 min · speaking and vocabulary"}  the lesson's title plate, once, first in a lesson plan
@@ -104,6 +134,11 @@ Allowed actions (use only these, with ids taken from the card list below):
 - {"op":"frame","title":"...","ids":["c1","c2"]}  put a frame around existing cards (they move with it from then on)
 - {"op":"move","ids":["c1"],"into":"<frame id>"}  move cards inside an existing frame
 - {"op":"focus","ids":["c1"]}  select the cards and move the camera to them (for "where is...", "show me...")
+- {"op":"shift","ids":["c1"],"dx":100,"dy":0}  move cards (or whole frames - a frame carries what is inside it) by an exact distance in pixels; dx right, dy down. "Move the first frame 100 px to the right" is this, and "move it back" is the same with the opposite sign.
+- {"op":"duplicate","ids":["c1"],"dx":40,"dy":40}  copies of existing cards (a frame is copied with what is inside it), placed beside the originals; dx and dy optional
+- {"op":"cover","ids":["c34"]}  hold a frame (or cards) back from students: the server stops sending its content to them until it is uncovered. Student-facing, so the teacher confirms it first.
+- {"op":"uncover","ids":["c34"]}  show covered cards to students again (also needs the teacher's confirmation)
+- {"op":"assign","frame":"c34","title":"optional homework title","due":"optional YYYY-MM-DD"}  turn the cards of ONE existing frame into homework and give it to the student of this board. Student-facing, so the teacher confirms it first. Only on a board that has a student (see the memory block below); otherwise it is a no_tool answer with gap "assign_to_student" and the closest thing is a "homework" card on the board.
 - {"op":"table","title":"...","rows":[["Base form","Past simple"],["go","went"]]}  a table card; first row is the header; up to 14 rows x 6 columns
 - {"op":"checklist","title":"...","items":["..."]}  a checklist card (lesson goals, success criteria, a to-do), up to 12 items
 - {"op":"timer","title":"Pair work","minutes":5}  a countdown timer card, 1-60 minutes
@@ -136,7 +171,13 @@ Rules:
 - Stickies are for short things: a word, a question, a cue - under 90 characters. Longer instructions go into a "stage" task or an "add" of kind "text".
 - When the teacher asks to build, make, create or set a homework, a quiz to do, a test or exercises (any wording, any language: "build a homework", "дай домашку на past simple", "сделай тест по этим словам"), answer with ONE "homework" action. Never refuse it and never wrap it in a flip card or sticky notes. If the topic is missing, use the selected cards or the board's words and level.
 - If the command is a question (about the board, about English, about the cards - "what does this word mean", "is this sentence correct", "explain the rule", "how do I...") answer it well in "reply" (up to six short sentences) and add actions only if the teacher asked for something on the board. If the answer is content the teacher may want on the board, say so and put that command into "suggest".
-- If the command cannot be done with the allowed actions, say so plainly in "reply", do the closest useful thing or suggest it, never leave the teacher with nothing.
+- If the command cannot be done with the allowed actions, answer "no_tool" (see the outcomes above): name the missing tool, do the closest useful thing or offer it. Missing tools right now: searching the web for text (only stock photos are searchable), sending anything to the student's Word Bank, launching a lesson as "used in class", reading how a student did in an interactive (name: "lesson_results").
+- Levels: reading the board is free; changes on the teacher's own board are reversible (one Undo takes back the whole task); anything the student will see (cover, uncover, assign) and deleting cards you did not make in this chat are confirmed by the teacher first. There is no tool that shows the student the teacher's layer (answer keys, notes, covered frames, this chat): never offer a workaround for that.
+- Never give a methodical verdict ("this lesson is bad"): propose, explain, the teacher decides.
+- The preset "Plan a lesson" is a request to build the lesson HERE with "banner" and "stage" actions. Take topic, level and words from the board, the memory and the selected cards; if the topic truly cannot be told, ask ONE question ("needs_input") with a few topic ideas as "options". Never send the teacher to another screen for it.
+- The preset "Quiz from this frame" uses the selected frame; with nothing selected and one frame on the board it uses that one; with several frames and none selected ask which one ("needs_input", "options" = their titles). Build the quiz with a "homework" action or a "game" from what the frame really says.
+- "Prepare the board for the lesson / check what is missing / tidy up": read the board (frames, what is inside, what is empty), fix what the tools allow (tidy, align frames in a row, remove the empty cards you are sure are junk, add what is missing), and say in "reply" what you found and did, concretely.
+- A short "yes", "ok", "do it", "да", "давай", "так" answers the last thing you proposed or asked in the conversation below: do it, do not ask again what to make.
 - "suggest": natural next steps for THIS board after your answer (e.g. "Make a game from these words", "Add a 5-minute timer", "Translate them into Ukrainian"). Each under 60 characters. Leave it out when nothing fits.
 - Content you write for learners must be correct, natural English at the level the existing cards suggest (or the level the teacher names).
 
@@ -145,13 +186,16 @@ ${String(memory).slice(0, 1600)}
 
 ` : ''}${boardName ? `Board: «${boardName}».\n` : ''}Camera centre: x=${Math.round(Number(viewport && viewport.x) || 0)}, y=${Math.round(Number(viewport && viewport.y) || 0)}. x grows to the right, y grows downward.
 
-Cards on the board (${list.length}${list.length >= MAX_CARDS ? ', nearest ones only' : ''}), one JSON object per line:
+${outline ? `Frames and what each holds:
+${outline}
+
+` : ''}Cards on the board (${list.length}${list.length >= MAX_CARDS ? ', nearest ones only' : ''}), one JSON object per line:
 ${lines || '(the board is empty)'}
 
 ${turns.length ? `Conversation so far (oldest first):
 ${turns.map(t => `${t.role === 'teacher' ? 'Teacher' : 'You'}: ${t.text}`).join('\n')}
 
-` : ''}Teacher's command:
+` : ''}${question ? `Your open question to the teacher (their command below answers it - continue the same task, do not start over): ${question}\n\n` : ''}Teacher's command:
 ${clean(command, 1200)}`;
 }
 
@@ -224,6 +268,7 @@ function sanitizePlan(raw, cards) {
   const known = new Set(types.keys());
   const plan = { reply: clean(raw && raw.reply, 700), actions: [] };
   let added = 0;
+  const frames = new Set([...types].filter(([, t]) => t === 'frame').map(([id]) => id));
 
   for (const a of Array.isArray(raw && raw.actions) ? raw.actions : []) {
     if (plan.actions.length >= MAX_ACTIONS) break;
@@ -335,6 +380,28 @@ function sanitizePlan(raw, cards) {
     } else if (op === 'focus') {
       const ids = idList(a.ids, known);
       if (ids.length) plan.actions.push({ op, ids });
+    } else if (op === 'shift') {
+      const ids = idList(a.ids, known, 60);
+      const dx = Math.round(Number(a.dx) || 0), dy = Math.round(Number(a.dy) || 0);
+      if (ids.length && (dx || dy) && Math.abs(dx) <= 5000 && Math.abs(dy) <= 5000) plan.actions.push({ op, ids, dx, dy });
+    } else if (op === 'duplicate') {
+      const ids = idList(a.ids, known, 20);
+      if (!ids.length || plan.actions.filter(x => x.op === 'duplicate').length >= 3) continue;
+      const act = { op, ids };
+      const dx = Math.round(Number(a.dx)), dy = Math.round(Number(a.dy));
+      if (Number.isFinite(dx) && Number.isFinite(dy) && Math.abs(dx) <= 3000 && Math.abs(dy) <= 3000) { act.dx = dx; act.dy = dy; }
+      plan.actions.push(act);
+    } else if (op === 'cover' || op === 'uncover') {
+      const ids = idList(a.ids, known, 40);
+      if (ids.length) plan.actions.push({ op, ids });
+    } else if (op === 'assign') {
+      const frame = String(a.frame || '');
+      if (!frames.has(frame) || plan.actions.some(x => x.op === 'assign')) continue;
+      const act = { op, frame };
+      const title = oneLine(a.title, 80);
+      if (title) act.title = title;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(a.due || ''))) act.due = a.due;
+      plan.actions.push(act);
     } else if (op === 'open') {
       const studio = String(a.studio || '');
       if (!STUDIOS.includes(studio) || plan.actions.some(x => x.op === 'open')) continue;
@@ -399,10 +466,31 @@ function sanitizePlan(raw, cards) {
     }
   }
 
+  /* The outcome (§8). A question needs its one question; a missing tool needs
+     its name; an answer that does nothing and says nothing is no answer. */
+  let outcome = OUTCOMES.includes(raw && raw.outcome) ? raw.outcome : 'done';
+  const question = oneLine(raw && raw.question, 300);
+  if (outcome === 'needs_input') {
+    if (!question) outcome = 'done';
+    else {
+      plan.question = question;
+      plan.actions = [];
+      const options = (Array.isArray(raw.options) ? raw.options : []).map(o => oneLine(o, 60)).filter(Boolean);
+      if (options.length) plan.options = [...new Set(options)].slice(0, 6);
+      if (!plan.reply) plan.reply = question;
+    }
+  }
+  if (outcome === 'no_tool') {
+    const gap = raw && raw.gap && typeof raw.gap === 'object' ? raw.gap : {};
+    const tool = oneLine(gap.tool, 60).toLowerCase().replace(/[^a-z0-9_.]+/g, '_').replace(/^_+|_+$/g, '');
+    if (tool) plan.gap = { tool, closest: oneLine(gap.closest, 300) };
+    else outcome = 'done';
+  }
+  plan.outcome = outcome;
   if (!plan.reply) plan.reply = plan.actions.length ? 'Here is the plan.' : 'I could not turn that into board actions. Try describing it another way.';
   const suggest = (Array.isArray(raw && raw.suggest) ? raw.suggest : []).map(t => oneLine(t, 70)).filter(t => t.length >= 3);
   if (suggest.length) plan.suggest = [...new Set(suggest)].slice(0, 3);
   return plan;
 }
 
-module.exports = { buildPrompt, sanitizePlan, normalizeCards, normalizeHistory, COLORS, GAMES, STUDIOS, MAX_CARDS };
+module.exports = { buildPrompt, sanitizePlan, normalizeCards, normalizeHistory, frameOutline, COLORS, GAMES, STUDIOS, OUTCOMES, MAX_CARDS };

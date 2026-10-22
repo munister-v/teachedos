@@ -1819,3 +1819,14 @@ CREATE TABLE IF NOT EXISTS hub_shares (
 CREATE INDEX IF NOT EXISTS idx_hub_shares_owner ON hub_shares(owner_id, created_at DESC);
 -- A duel invite closed with one tap is closed for good.
 ALTER TABLE duels ADD COLUMN IF NOT EXISTS hidden_for UUID[] NOT NULL DEFAULT '{}';
+
+-- Board assistant gap log (ТЗ «Board Assistant как агент» §8): a request the assistant had no tool for. Developers read it to decide the next tool.
+CREATE TABLE IF NOT EXISTS board_agent_gaps (
+  id         BIGSERIAL PRIMARY KEY,
+  teacher_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  tool       VARCHAR(60) NOT NULL,
+  closest    TEXT NOT NULL DEFAULT '',
+  command    TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_board_agent_gaps_tool ON board_agent_gaps(tool, created_at DESC);
