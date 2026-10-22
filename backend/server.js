@@ -342,6 +342,7 @@ async function main() {
     const { scheduleCommunityDigest } = require('./jobs/communityDigest');
     scheduleCommunityDigest();
     require('./jobs/classPulse').scheduleClassPulse();
+    require('./lib/speaking/ritual').scheduleRituals();
   }
 }
 

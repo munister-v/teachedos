@@ -144,3 +144,70 @@ test('two clean sessions in a row fix a recurring construction, and it stops bei
   }
   assert.equal((await pool.query(`SELECT status FROM speaking_mistakes WHERE user_id = $1`, [s.id])).rows[0].status, 'fixed');
 });
+
+const ritual = require('../lib/speaking/ritual');
+test('Phrase Bank: a phrase repeated on three different days becomes Mine and leaves the warm-up; the warm-up shows due phrases only', async t => {
+  if (!dbUp) return t.skip('no database');
+  await pool.query(`DELETE FROM speaking_audio WHERE user_id = $1 AND kind IN ('student','repeat')`, [s.id]);      // a new day for the cap
+  await pool.query('DELETE FROM speaking_phrases WHERE user_id = $1', [s.id]);
+  const { rows: [p] } = await pool.query(`INSERT INTO speaking_phrases (user_id, text, next_review, correct_days) VALUES ($1,'I bought a jacket - a real bargain.', CURRENT_DATE, '{}') RETURNING id`, [s.id]);
+  await pool.query(`INSERT INTO speaking_phrases (user_id, text, next_review) VALUES ($1,'Not due yet.', CURRENT_DATE + 5)`, [s.id]);
+  await pool.query(`UPDATE speaking_sessions SET finished_at = NOW() WHERE user_id = $1 AND finished_at IS NULL`, [s.id]);
+  const st = await tutor.startSession(pool, s, {});
+  const warm = st.messages.find(m => m.kind === 'warmup');
+  assert.deepEqual(warm.meta.phrases.map(x => x.text), ['I bought a jacket - a real bargain.'], 'only the phrase that is due');
+  azureIssues = [];
+  const r1 = await tutor.repeatPhrase(pool, s, p.id, { audio: Buffer.from('x').toString('base64'), sec: 3 });
+  assert.equal(r1.correct, true); assert.equal(r1.status, 'learning'); assert.equal(r1.repeats, 1);
+  assert.equal((await tutor.repeatPhrase(pool, s, p.id, {})).repeats, 1, 'the same day does not count twice');
+  await pool.query(`UPDATE speaking_phrases SET correct_days = ARRAY[CURRENT_DATE - 6, CURRENT_DATE - 2] WHERE id = $1`, [p.id]);
+  const r3 = await tutor.repeatPhrase(pool, s, p.id, {});
+  assert.equal(r3.status, 'mine');
+  assert.equal(await tutor.repeatPhrase(pool, s, p.id, {}).catch(e => e.status), 409);
+  const list = await tutor.listPhrases(pool, s);
+  assert.equal(list.mine, 1);
+  await tutor.leave(pool, s, st.session_id);
+});
+
+test('Phrase repeat: a weak sound from the assessor means "not yet" - the day is not counted', async t => {
+  if (!dbUp) return t.skip('no database');
+  const { rows: [p] } = await pool.query(`INSERT INTO speaking_phrases (user_id, text, next_review) VALUES ($1,'Weak one.', CURRENT_DATE) RETURNING id`, [s.id]);
+  azureIssues = [[{ word: 'weak', phoneme: 'w', score: 30 }]];
+  const r = await tutor.repeatPhrase(pool, s, p.id, { audio: Buffer.from('x').toString('base64'), sec: 2 });
+  assert.equal(r.correct, false); assert.equal(r.repeats, 0); assert.deepEqual(r.weakest, { word: 'weak', phoneme: 'w' });
+});
+
+test('Tich remembers: the student sees the facts, deletes one in a tap, and it does not come back', async t => {
+  if (!dbUp) return t.skip('no database');
+  await pool.query('DELETE FROM speaking_facts WHERE user_id = $1', [s.id]);
+  await pool.query(`INSERT INTO speaking_facts (user_id, fact) VALUES ($1,'has a dog named Lucky')`, [s.id]);
+  const [f] = await tutor.listFacts(pool, s);
+  await tutor.deleteFact(pool, s, f.id);
+  assert.equal((await tutor.listFacts(pool, s)).length, 0);
+  const { extractFacts } = require('../lib/speaking/llm');
+  const blocked = (await pool.query('SELECT norm FROM speaking_fact_blocks WHERE user_id = $1', [s.id])).rows.map(r => r.norm);
+  assert.deepEqual(await extractFacts('I have a dog named Lucky', [], blocked), [], 'the deleted fact is not extracted again');
+  assert.equal(await tutor.deleteFact(pool, s, f.id).catch(e => e.status), 404);
+});
+
+test('the morning ritual: Tich writes first with a hook from a real fact, a pair of words and a question; once a day; never the same greeting', async t => {
+  if (!dbUp) return t.skip('no database');
+  await pool.query(`UPDATE speaking_sessions SET finished_at = NOW() WHERE user_id = $1 AND finished_at IS NULL`, [s.id]);
+  await pool.query(`DELETE FROM speaking_sessions WHERE user_id = $1 AND kind = 'ritual'`, [s.id]);
+  await pool.query(`INSERT INTO speaking_facts (user_id, fact) VALUES ($1,'has a cat named Misha')`, [s.id]);
+  await pool.query(`INSERT INTO speaking_phrases (user_id, text, next_review) VALUES ($1,'Ritual phrase to repeat.', CURRENT_DATE)`, [s.id]);
+  await pool.query(`INSERT INTO vocabulary (user_id, word, translation, kind) VALUES ($1,'bargain','x','word')`, [s.id]);
+  const r = await ritual.startRitual(pool, s, {});
+  assert.ok(r.session_id);
+  const { rows: [g] } = await pool.query(`SELECT * FROM speaking_messages WHERE user_id = $1 AND kind = 'greeting' ORDER BY created_at DESC LIMIT 1`, [s.id]);
+  assert.equal(g.meta.hook, 'has a cat named Misha');
+  assert.deepEqual(g.meta.pairs.map(p => p.kind), ['activate', 'phraseRepeat']);
+  assert.equal((await pool.query(`SELECT COUNT(*)::int AS n FROM speaking_rounds WHERE session_id = $1`, [r.session_id])).rows[0].n, 1, 'the first question is in the thread');
+  assert.equal(await ritual.startRitual(pool, s, {}), null, 'one ritual a day');
+  const nobody = await user('student', 'No Thread');
+  assert.equal(await ritual.startRitual(pool, nobody, {}), null, 'a student who never opened Talk Time gets no greeting');
+  // finishing it pays the small ritual XP, once
+  const m = await tutor.leave(pool, s, r.session_id);
+  assert.equal(m.meta.rounds_done, 0, 'nothing answered: nothing paid, nothing blamed');
+});
+

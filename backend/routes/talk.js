@@ -30,6 +30,11 @@ router.get('/sound', wrap(async (req, res) => {
   const { rows: [u] } = await pool.query('SELECT speaking_accent FROM users WHERE id = $1', [req.user.id]);
   res.json(tutor.soundCard(req.query.word, req.query.phoneme, u.speaking_accent));
 }));
+router.get('/phrases', wrap(async (req, res) => res.json(await tutor.listPhrases(pool, req.user))));
+router.post('/phrase/:id/repeat', wrap(async (req, res) => res.json(await tutor.repeatPhrase(pool, req.user, req.params.id, req.body || {}))));
+router.post('/pair', wrap(async (req, res) => res.json(await tutor.markPair(pool, req.user, req.body || {}))));
+router.get('/facts', wrap(async (req, res) => res.json({ facts: await tutor.listFacts(pool, req.user) })));
+router.delete('/facts/:id', wrap(async (req, res) => res.json(await tutor.deleteFact(pool, req.user, req.params.id))));
 router.get('/say', wrap(async (req, res) => {
   const a = await tutor.sayAudio(pool, req.user, req.query.text);
   if (!a) return res.status(404).json({ error: 'No voice for this' });

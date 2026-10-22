@@ -130,7 +130,18 @@
         (x.xp ? '<div class="tk-trans">+' + x.xp + ' XP' + (x.input_mode === 'text' ? ' (half, for writing)' : '') + '</div>' : '');
       return '<div class="tk-row"><div class="tk-bubble tk-sum" data-summary="1">' + body + '</div></div>';
     }
-    if (m.kind === 'betterVersion') {
+    if (m.kind === 'warmup') {
+      const list = (m.meta && m.meta.phrases) || [];
+      body = '<div class="tk-tag">WARM-UP</div><div>' + esc(m.text) + '</div>' + list.map(p =>
+        '<div class="tk-phr" data-phrase="' + esc(p.id) + '"><span class="tk-pt">' + esc(p.text) + '</span><span class="tk-pa">' + (p.audio_id ? '<button type="button" class="tk-mini" data-play="' + esc(p.audio_id) + '">Listen</button>' : '') +
+        '<button type="button" class="tk-mini" data-phraserep="' + esc(p.id) + '">Say it</button></span></div>').join('');
+    } else if (m.kind === 'greeting') {
+      const pairs = (m.meta && m.meta.pairs) || [];
+      body = '<div>' + esc(m.text) + '</div>' + (m.audio_id ? voiceChip(m.audio_id, m.audio_sec) : '') +
+        (pairs.length ? '<div class="tk-pair-lbl">YOUR PAIR TODAY</div><div class="tk-chips">' + pairs.map((p, i) =>
+          '<button type="button" class="tk-chip' + (p.kind === 'phraseRepeat' ? ' phrase' : '') + (pairDone(m.id, i) ? ' done' : '') + '" data-pair="' + i + '" data-msg="' + esc(m.id) + '" data-kind="' + esc(p.kind) + '" data-word="' + esc(p.word) + '" data-phrase="' + esc(p.phraseId || '') + '" data-audio="' + esc(p.audio_id || '') + '">' +
+          esc(p.word.length > 46 ? p.word.slice(0, 44) + '…' : p.word) + (p.kind === 'phraseRepeat' ? ' · your phrase' : '') + '</button>').join('') + '</div>' : '');
+    } else if (m.kind === 'betterVersion') {
       body = '<div class="tk-tag">Your phrase — just better</div><div>' + highlight(m.text, m.meta && m.meta.changed) + '</div>' + (m.audio_id ? voiceChip(m.audio_id, m.audio_sec) : '') +
         (m.round_id ? '<button type="button" class="tk-repeat" data-repeat="' + esc(m.round_id) + '">Repeat</button>' : '');
     } else if (m.kind === 'hint') {
@@ -144,6 +155,8 @@
     return '<div class="tk-row' + (mine ? ' me' : '') + '" data-id="' + esc(m.id) + '">' + av + '<div class="tk-bubble' + (m.kind === 'hint' ? ' hint' : '') + '">' + body + '</div></div>';
   }
 
+  const pairKey = (id, i) => 'tk_pair_' + id + '_' + i;
+  const pairDone = (id, i) => { try { return localStorage.getItem(pairKey(id, i)) === '1'; } catch (_) { return false; } };
   const thread = () => ov.querySelector('#tkThread');
   const toBottom = () => { const t = thread(); if (t) t.scrollTop = t.scrollHeight; };
   function append(list) { const t = thread(); t.querySelector('.tk-typing-row') && t.querySelector('.tk-typing-row').remove(); if (list.length) t.querySelectorAll('[data-ph]').forEach(e => e.remove()); list.forEach(m => t.insertAdjacentHTML('beforeend', msgHtml(m))); toBottom(); }
@@ -285,6 +298,109 @@
     };
   }
 
+  /* a phrase said again, inline: tap, say it, tap to stop - one WAV goes to the assessor; no preview, the phrase is short */
+  async function phraseRecord(phraseId, btn, onResult) {
+    if (!navigator.mediaDevices || !window.MediaRecorder) { btn.textContent = 'No microphone'; return; }
+    if (btn.dataset.rec === '1') { btn._rec && btn._rec.stop(); return; }
+    const rec = recorder(() => {});
+    try { await rec.start(); } catch (_) { btn.textContent = 'Mic blocked'; return; }
+    btn.dataset.rec = '1'; btn._rec = rec; const label = btn.textContent; btn.textContent = 'Stop';
+    setTimeout(() => rec.stop(), 12000);
+    const { blob, sec } = await rec.done; btn.dataset.rec = ''; btn._rec = null; btn.textContent = 'Checking…'; btn.disabled = true;
+    try {
+      const wav = await toWav(blob);
+      const r = await call('/api/talk/phrase/' + encodeURIComponent(phraseId) + '/repeat', { method: 'POST', body: { audio: await b64(wav), mime: 'audio/wav', sec } });
+      btn.disabled = false; btn.textContent = label;
+      if (onResult) onResult(r); else phraseResultInRow(btn, r);
+    } catch (_) { btn.disabled = false; btn.textContent = label; }
+  }
+  function phraseResultInRow(btn, r) {
+    const row = btn.closest('.tk-phr'); if (!row) return;
+    if (!r.ok) { row.insertAdjacentHTML('beforeend', '<div class="tk-pnote">' + esc(r.d.error || 'Could not check that') + '</div>'); return; }
+    row.classList.toggle('ok', !!r.d.correct);
+    const note = row.querySelector('.tk-pnote') || row.appendChild(Object.assign(document.createElement('div'), { className: 'tk-pnote' }));
+    note.textContent = r.d.correct ? (r.d.status === 'mine' ? 'Yours now — you say this one by yourself.' : 'Good. We will repeat it again soon.') : 'Almost — one sound: ' + (r.d.weakest ? r.d.weakest.word : '') + '. Try once more.';
+    if (r.d.correct) btn.textContent = '✓';
+  }
+
+  /* one chip of the morning pair: listen, say it, done */
+  function pairSheet(chip) {
+    const chat = ov.querySelector('.tk-chat'); chat.querySelector('.tk-sheet') && chat.querySelector('.tk-sheet').remove();
+    const d = chip.dataset, phrase = d.kind === 'phraseRepeat';
+    const sh = document.createElement('div'); sh.className = 'tk-sheet';
+    sh.innerHTML = '<div class="tk-tag">' + (phrase ? 'YOUR PHRASE' : 'A WORD TO USE TODAY') + '</div><div class="tk-sw" style="font-size:' + (d.word.length > 28 ? 20 : 28) + 'px">' + esc(d.word) + '</div>' +
+      '<div class="tk-how">' + (phrase ? 'Say it out loud, the way you said it yesterday.' : 'Listen, say it once, and try to use it in your answers today.') + '</div><div class="tk-row0">' +
+      (d.audio ? '<button type="button" class="tk-mini" data-listen="1">Listen</button>' : '') + '<button type="button" class="tk-mini" data-say-it="1">Say it</button></div><button type="button" class="tk-big tk-done">Done</button>';
+    chat.appendChild(sh);
+    const listen = sh.querySelector('[data-listen]'); if (listen) listen.onclick = () => playId(d.audio, listen);
+    sh.querySelector('[data-say-it]').onclick = e => {
+      if (phrase && d.phrase) return phraseRecord(d.phrase, e.currentTarget, r => { const b = sh.querySelector('[data-say-it]'); b.textContent = r.ok && r.d.correct ? '✓ Said' : 'Once more'; });
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Listening…';
+      (async () => { try { const rec = recorder(() => {}); await rec.start(); setTimeout(() => rec.stop(), 3500); const { blob } = await rec.done; const a = new Audio(URL.createObjectURL(blob)); b.textContent = 'Your voice'; a.play(); a.onended = () => { b.disabled = false; b.textContent = '✓ Said'; }; } catch (_) { b.disabled = false; b.textContent = 'Say it'; } })();
+    };
+    sh.querySelector('.tk-done').onclick = () => { try { localStorage.setItem(pairKey(d.msg, d.pair), '1'); } catch (_) {} chip.classList.add('done'); if (phrase && d.phrase) call('/api/talk/pair', { method: 'POST', body: { kind: 'phraseRepeat' } }); sh.remove(); };
+  }
+
+  /* what Tich knows about me (the student sees all of it and deletes any in one tap) and the accent of Tich's voice */
+  async function settingsSheet() {
+    const chat = ov.querySelector('.tk-chat'); chat.querySelector('.tk-sheet') && chat.querySelector('.tk-sheet').remove();
+    const [f, st] = await Promise.all([call('/api/talk/facts'), call('/api/talk/state')]);
+    const sh = document.createElement('div'); sh.className = 'tk-sheet';
+    const acc = (st.d && st.d.accent) || 'en-US';
+    const draw = facts => {
+      sh.innerHTML = '<div class="tk-tag">TICH REMEMBERS ABOUT ME</div><div class="tk-how">This is what Tich remembered from your talks. You see everything and can delete any of it.</div>' +
+        (facts.length ? facts.map(x => '<div class="tk-pairrow" data-fact="' + esc(x.id) + '"><span>' + esc(x.fact) + '</span><button type="button" class="tk-mini" data-tkdel="' + esc(x.id) + '" aria-label="Delete">✕</button></div>').join('') : '<div class="tk-tip">Nothing yet — Tich learns about your life as you talk.</div>') +
+        '<div class="tk-tag" style="margin-top:14px">TICH’S ACCENT</div><div class="tk-row0"><button type="button" class="tk-mini' + (acc === 'en-US' ? ' on' : '') + '" data-acc="en-US">American</button><button type="button" class="tk-mini' + (acc === 'en-GB' ? ' on' : '') + '" data-acc="en-GB">British</button></div>' +
+        '<button type="button" class="tk-big tk-done">Close</button>';
+      sh.querySelector('.tk-done').onclick = () => sh.remove();
+    };
+    draw((f.d && f.d.facts) || []);
+    sh.onclick = async e => {
+      const del = e.target.closest("[data-tkdel]");
+      if (del) { const r = await call('/api/talk/facts/' + encodeURIComponent(del.dataset.tkdel), { method: 'DELETE' }); if (r.ok) del.closest('.tk-pairrow').remove(); return; }
+      const a = e.target.closest('[data-acc]');
+      if (a) { const r = await call('/api/talk/accent', { method: 'PUT', body: { accent: a.dataset.acc } }); if (r.ok) sh.querySelectorAll('[data-acc]').forEach(b => b.classList.toggle('on', b === a)); }
+    };
+    chat.appendChild(sh);
+  }
+
+  /* ── Word Bank -> Phrases (§13): the student's own phrases, the Mine ones as a collection ─────────────────── */
+  function mountPhrases() {
+    const pg = document.getElementById('pg-wordbank'); if (!pg || pg.querySelector('.wbtabs')) return;
+    const main = pg.querySelector('.main'); if (!main) return;
+    const tabs = document.createElement('div'); tabs.className = 'wbtabs'; tabs.innerHTML = '<button type="button" class="on" data-t="words">Words</button><button type="button" data-t="phrases">Phrases</button>';
+    const panel = document.createElement('section'); panel.id = 'phrasesPanel'; panel.hidden = true;
+    main.prepend(panel); main.prepend(tabs);
+    tabs.onclick = e => {
+      const b = e.target.closest('[data-t]'); if (!b) return;
+      tabs.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      pg.classList.toggle('show-phrases', b.dataset.t === 'phrases'); panel.hidden = b.dataset.t !== 'phrases';
+      if (b.dataset.t === 'phrases') loadPhrases(panel);
+    };
+  }
+  async function loadPhrases(panel) {
+    panel.innerHTML = '<div class="tk-pnote">Loading…</div>';
+    const r = await call('/api/talk/phrases');
+    if (!r.ok) { panel.innerHTML = '<div class="tk-pnote">Phrases did not load.</div>'; return; }
+    const list = r.d.phrases;
+    if (!list.length) { panel.innerHTML = '<div class="tk-pempty"><b>Your phrases will appear here</b><span>The ones you already said right in Talk Time.</span><button type="button" class="tk-go" data-open="1">Open chat</button></div>'; panel.querySelector('[data-open]').onclick = () => open(); return; }
+    panel.innerHTML = '<div class="tk-phead"><b>' + list.length + ' phrases</b><span>' + r.d.mine + ' already yours</span></div><div class="tk-pgrid">' + list.map(p =>
+      '<div class="tk-pcard' + (p.status === 'mine' ? ' mine' : '') + '" data-id="' + esc(p.id) + '"><div class="tk-pctext">' + esc(p.text) + '</div><div class="tk-pcmeta"><span class="tk-pill' + (p.status === 'mine' ? ' mine' : '') + '">' + (p.status === 'mine' ? 'Mine' : 'Learning') + '</span>' +
+      (p.status === 'mine' ? '' : '<span>we will repeat it ' + (p.next_label === 'today' || p.next_label === 'tomorrow' ? p.next_label : 'on ' + new Date(p.next_label + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>') + '</div><div class="tk-pcact">' +
+      (p.audio_id ? '<button type="button" class="tk-mini" data-play="' + esc(p.audio_id) + '">Listen</button>' : '') + (p.status === 'mine' ? '' : '<button type="button" class="tk-mini" data-rep="' + esc(p.id) + '">Say it</button>') + '</div></div>').join('') + '</div>';
+    panel.onclick = e => {
+      const pl = e.target.closest('[data-play]'); if (pl) return playId(pl.dataset.play, pl);
+      const rp = e.target.closest('[data-rep]'); if (rp) phraseRecord(rp.dataset.rep, rp, res => { phraseResultInCard(rp, res); });
+    };
+  }
+  function phraseResultInCard(btn, r) {
+    const card = btn.closest('.tk-pcard'); if (!card) return;
+    let note = card.querySelector('.tk-pnote'); if (!note) { note = document.createElement('div'); note.className = 'tk-pnote'; card.appendChild(note); }
+    if (!r.ok) { note.textContent = r.d.error || 'Could not check that'; return; }
+    note.textContent = r.d.correct ? (r.d.status === 'mine' ? 'Yours now — you say this one by yourself.' : 'Good. We will repeat it again soon.') : 'Almost — one sound: ' + (r.d.weakest ? r.d.weakest.word : '') + '. Try once more.';
+    if (r.d.status === 'mine') { card.classList.add('mine'); const pill = card.querySelector('.tk-pill'); if (pill) { pill.textContent = 'Mine'; pill.classList.add('mine'); } btn.remove(); }
+  }
+
   async function loadMessages() {
     const r = await call('/api/talk/messages?limit=40');
     const t = thread(); t.innerHTML = '';
@@ -297,10 +413,11 @@
   async function open() {
     if (ov) return;
     ov = document.createElement('div'); ov.className = 'tk-ov';
-    ov.innerHTML = '<div class="tk-chat" role="dialog" aria-modal="true" aria-label="Talk Time with Tich"><header class="tk-head"><img class="tk-avatar" src="' + PHOTO + '" alt=""><div><div class="tk-name">Tich</div><div class="tk-status" id="tkStatus">ready to chat</div></div><button type="button" class="tk-x" aria-label="Close">✕</button></header>' +
+    ov.innerHTML = '<div class="tk-chat" role="dialog" aria-modal="true" aria-label="Talk Time with Tich"><header class="tk-head"><img class="tk-avatar" src="' + PHOTO + '" alt=""><div><div class="tk-name">Tich</div><div class="tk-status" id="tkStatus">ready to chat</div></div><button type="button" class="tk-gear" aria-label="About Tich and settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></button><button type="button" class="tk-x" aria-label="Close">✕</button></header>' +
       '<div class="tk-thread" id="tkThread"></div><footer class="tk-foot"><div class="tk-bar" id="tkBar"></div><div class="tk-input"><input class="tk-field" type="text" maxlength="600" autocomplete="off"><button type="button" class="tk-mic" aria-label="Record a voice answer"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></footer></div>';
     document.body.appendChild(ov); document.body.style.overflow = 'hidden';
     ov.querySelector('.tk-x').onclick = close;
+    ov.querySelector('.tk-gear').onclick = settingsSheet;
     ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     ov.querySelector('.tk-field').addEventListener('keydown', e => { if (e.key === 'Enter') sendText(e.target.value); });
     ov.querySelector('.tk-mic').onclick = () => { if (S.rec) return S.rec.stop(); if (S.roundId && !S.busy) recordFlow(S.state === 'better' ? 'repeat' : 'answer'); };
@@ -308,6 +425,8 @@
       const p = e.target.closest('[data-play]'); if (p) return playId(p.dataset.play, p);
       const rp = e.target.closest('[data-repeat]'); if (rp) { if (S.roundId && S.state === 'better' && !S.busy) recordFlow('repeat'); return; }
       const sd = e.target.closest('[data-sound]'); if (sd) return soundSheet(sd.dataset.word, sd.dataset.sound);
+      const pr = e.target.closest('[data-phraserep]'); if (pr) return phraseRecord(pr.dataset.phraserep, pr, null);
+      const pc = e.target.closest('[data-pair]'); if (pc) return pairSheet(pc);
     });
     S = { roundId: null, sessionId: null, state: null, busy: false, canVoice: true, tts: false, pro: true, free_left: null, limit: null, rec: null };
     thread().innerHTML = '<div class="tk-day">Loading…</div>';
@@ -329,5 +448,5 @@
     refreshCard();
   }
 
-  window.TalkChat = { open, close, renderCard, setRefresh: f => { refreshCard = f; } };
+  window.TalkChat = { open, close, renderCard, mountPhrases, setRefresh: f => { refreshCard = f; } };
 })();

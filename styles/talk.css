@@ -109,3 +109,40 @@ html[data-hubtheme="dark"] .tk-mini{background:#141726;color:#F4F3EC}
 html[data-hubtheme="dark"] .tk-sound{background:#17302E;color:#F4F3EC}
 html[data-hubtheme="dark"] .tk-name,html[data-hubtheme="dark"] .tk-status{color:#F4F3EC}
 @media (prefers-reduced-motion:reduce){.tk-voice.on .tk-wave i,.tk-recdot,.tk-typing i{animation:none}.tk-thread{scroll-behavior:auto}}
+
+/* ---------- warm-up, greeting chips, settings, Phrase Bank ---------- */
+.tk-gear{margin-left:auto;border:0;background:rgba(11,16,38,.07);width:34px;height:34px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.tk-gear+.tk-x{margin-left:8px}.tk-gear svg{width:17px;height:17px;fill:none;stroke:#0B1026;stroke-width:1.8;stroke-linejoin:round}
+.tk-phr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1.5px solid #EFEEDF}.tk-phr .tk-pt{flex:1;min-width:150px;font-weight:700;font-size:14px}
+.tk-phr.ok .tk-pt{text-decoration:underline;text-decoration-color:#D3F26A;text-decoration-thickness:3px}
+.tk-pa{display:inline-flex;gap:6px}.tk-pnote{width:100%;font-size:12.5px;font-weight:700;color:#55523f;margin-top:4px}
+.tk-pair-lbl{font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:#8A8672;margin-top:10px}
+.tk-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+.tk-chip{border:0;font:800 13px Manrope,sans-serif;padding:7px 13px;border-radius:999px;cursor:pointer;color:#0B1026;background:linear-gradient(120deg,#E6FC95,#D3F26A)}
+.tk-chip.phrase{background:#fff;border:1.5px solid rgba(11,16,38,.2)}.tk-chip.done::before{content:"✓ "}.tk-chip.done{opacity:.7}
+.tk-mini.on{background:#0B1026;color:#D3F26A}.tk-row0{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+/* Word Bank tabs + Phrases (the hub's own reset is #id-based, so these are too) */
+#pg-wordbank .wbtabs{display:flex;gap:6px;margin:0 0 14px}
+#pg-wordbank .wbtabs button{border:0;background:rgba(11,16,38,.07);color:inherit;font:800 13.5px Manrope,sans-serif;padding:9px 18px;border-radius:999px;cursor:pointer}
+#pg-wordbank .wbtabs button.on{background:#D3F26A;color:#0B1026}
+#pg-wordbank.show-phrases .main>:not(.wbtabs):not(#phrasesPanel){display:none!important}
+#pg-wordbank #phrasesPanel{font-family:Manrope,sans-serif}
+#pg-wordbank .tk-phead{display:flex;gap:14px;align-items:baseline;margin-bottom:12px;font-size:15px}#pg-wordbank .tk-phead span{font-weight:700;opacity:.6}
+#pg-wordbank .tk-pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+#pg-wordbank .tk-pcard{background:#fff;color:#0B1026;border-radius:20px;padding:16px 18px;box-shadow:0 2px 10px rgba(11,16,38,.06)}
+#pg-wordbank .tk-pcard.mine{background:#F4FAD9}
+#pg-wordbank .tk-pctext{font-size:16px;font-weight:700;line-height:1.4}
+#pg-wordbank .tk-pcmeta{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:12.5px;font-weight:700;color:#8A8672;flex-wrap:wrap}
+#pg-wordbank .tk-pill{background:#ECEADB;color:#55523f;font-weight:800;padding:4px 10px;border-radius:999px}#pg-wordbank .tk-pill.mine{background:#D3F26A;color:#0B1026}
+#pg-wordbank .tk-pcact{display:flex;gap:8px;margin-top:10px}
+#pg-wordbank .tk-mini{border:0;background:#F6F6EF;border-radius:999px;padding:7px 13px;font:800 12.5px Manrope,sans-serif;cursor:pointer;color:#0B1026}
+#pg-wordbank .tk-pnote{margin-top:8px;font-size:12.5px;font-weight:700;color:#55523f}
+#pg-wordbank .tk-pempty{background:#fff;color:#0B1026;border-radius:22px;padding:30px;text-align:center;display:grid;gap:8px;justify-items:center}#pg-wordbank .tk-pempty span{opacity:.6;font-weight:600}
+#pg-wordbank .tk-go{background:#D3F26A;border:0;color:#0B1026;font:800 14px Manrope,sans-serif;padding:11px 20px;border-radius:999px;cursor:pointer;margin-top:4px}
+html[data-hubtheme="dark"] #pg-wordbank .tk-pcard,html[data-hubtheme="dark"] #pg-wordbank .tk-pempty{background:#1E2231;color:#F4F3EC}
+html[data-hubtheme="dark"] #pg-wordbank .tk-pcard.mine{background:#2B3320}
+html[data-hubtheme="dark"] #pg-wordbank .tk-mini{background:#141726;color:#F4F3EC}
+html[data-hubtheme="dark"] #pg-wordbank .wbtabs button{background:#1E2231;color:#F4F3EC}
+html[data-hubtheme="dark"] #pg-wordbank .wbtabs button.on{background:#D3F26A;color:#0B1026}
+html[data-hubtheme="dark"] .tk-gear{background:#1E2231}html[data-hubtheme="dark"] .tk-gear svg{stroke:#F4F3EC}
+html[data-hubtheme="dark"] .tk-chip.phrase{background:#1E2231;color:#F4F3EC;border-color:rgba(244,243,236,.25)}

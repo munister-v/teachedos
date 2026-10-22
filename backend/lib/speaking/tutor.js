@@ -143,9 +143,19 @@ async function startSession(db, user, opts = {}) {
     [user.id, kind, opts.inputMode === 'text' || !voiceOk ? 'text' : 'voice', JSON.stringify(plan), total]);
   const msgs = [];
   const dd = await ensureDayDivider(db, user); if (dd) msgs.push(dd);
+  if (kind === 'free') { const w = await warmupMessage(db, user, session, ctx); if (w) msgs.push(w); }
   const first = await askNext(db, user, session, ctx);
   if (first) msgs.push(first.message);
   return { resumed: false, session_id: session.id, round_id: first && first.round.id, messages: msgs };
+}
+
+/* the warm-up (§13): before the new questions, up to three of the student's own phrases, due by the schedule, said out loud */
+async function warmupMessage(db, user, session, ctx) {
+  const due = (ctx.duePhrases || []).slice(0, 3);
+  if (!due.length) return null;
+  const phrases = [];
+  for (const p of due) { const v = await voiceFor(db, user, p.text, ctx.accent); phrases.push({ id: p.id, text: p.text, audio_id: v && v.id, audio_sec: v && v.sec }); }
+  return say(db, user.id, { author: 'tich', kind: 'warmup', text: 'Warm-up first - say your own phrases out loud, one minute.', session_id: session.id, meta: { phrases } });
 }
 
 const ownRound = async (db, userId, roundId) => {
@@ -297,7 +307,8 @@ async function finishSession(db, user, sessionId) {
   }
   const typed = done.filter(r => !r.student_audio).length;
   const inputMode = typed > done.length / 2 ? 'text' : 'voice';
-  const base = done.length ? Math.round(C.XP_PER_SESSION * done.length / s.total_rounds) : 0;
+  const full = s.kind === 'ritual' ? C.XP_PER_RITUAL : C.XP_PER_SESSION;
+  const base = done.length ? Math.round(full * done.length / s.total_rounds) : 0;
   const pay = inputMode === 'text' ? Math.floor(base / 2) : base;
   if (pay > 0) await xp.award(db, user.id, 'speaking', s.id, pay, 'Talk Time');
   const summary = { pairs, goal: goal ? goal[0] : null, xp: pay, rounds_done: done.length, total: s.total_rounds, input_mode: inputMode };
@@ -318,6 +329,55 @@ async function rememberFacts(db, user, rounds) {
   ]);
   const facts = await deps.llm.extractFacts(transcript, known.rows.map(r => r.fact), blocked.rows.map(r => r.norm));
   for (const f of facts) await db.query('INSERT INTO speaking_facts (user_id, fact) VALUES ($1,$2)', [user.id, f]);
+}
+
+/* ── the Phrase Bank (§13): the student's own better versions, repeated on a schedule until they are Mine ───── */
+const phraseShape = r => ({ id: r.id, text: r.text, audio_id: r.audio_id, status: r.status, next_review: r.next_review, repeats: (r.correct_days || []).length, created_at: r.created_at });
+async function listPhrases(db, user) {
+  const tz = tzOf(user), today = todayIn(tz);
+  const { rows } = await db.query(`SELECT id, text, audio_id, status, to_char(next_review, 'YYYY-MM-DD') AS next_review, correct_days, created_at FROM speaking_phrases WHERE user_id = $1 ORDER BY (status = 'learning') DESC, created_at DESC LIMIT 200`, [user.id]);
+  const label = r => r.status === 'mine' ? 'Mine' : r.next_review <= today ? 'today' : r.next_review === engine.addDays(today, 1) ? 'tomorrow' : r.next_review;
+  return { phrases: rows.map(r => ({ ...phraseShape(r), next_label: label(r) })), today, mine: rows.filter(r => r.status === 'mine').length };
+}
+/* a phrase said again: with Azure the repeat is assessed (a weak sound means "not yet"), without it the student's own word stands */
+async function repeatPhrase(db, user, id, input = {}) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(id))) throw fail(404, 'NOT_FOUND', 'Phrase not found');
+  const { rows: [p] } = await db.query(`SELECT *, to_char(next_review, 'YYYY-MM-DD') AS nr, ARRAY(SELECT to_char(d, 'YYYY-MM-DD') FROM unnest(correct_days) d) AS days FROM speaking_phrases WHERE id = $1 AND user_id = $2`, [id, user.id]);
+  if (!p) throw fail(404, 'NOT_FOUND', 'Phrase not found');
+  if (p.status === 'mine') throw fail(409, 'DONE', 'This phrase is already yours');
+  let correct = true, weakest = null;
+  if (input.audio) {
+    if (!(await voiceAllowed(db, user.id))) throw fail(403, 'VOICE_OFF', 'Voice practice is switched off for this account.');
+    const buf = Buffer.from(String(input.audio), 'base64');
+    if (!buf.length || buf.length > 3 * 1024 * 1024) throw fail(413, 'TOO_BIG', 'That recording is too long');
+    await assertCap(db, user.id);
+    const sec = Math.max(0.5, Math.min(20, Number(input.sec) || 0));
+    await db.query(`INSERT INTO speaking_audio (user_id, kind, mime, sec, bytes) VALUES ($1,'repeat',$2,$3,$4)`, [user.id, String(input.mime || 'audio/wav').split(';')[0], sec, buf]);
+    const acc = (await db.query('SELECT speaking_accent FROM users WHERE id = $1', [user.id])).rows[0].speaking_accent;
+    const res = await deps.azure.assess(buf, p.text, acc).catch(() => null);
+    weakest = res ? deps.azure.weakestSound(res) : null;
+    correct = !weakest;
+  }
+  const today = todayIn(tzOf(user));
+  const next = engine.recordPhraseRepeat({ ...p, correctRepeatDays: p.days, nextReviewOn: p.nr }, correct, today);
+  await db.query(`UPDATE speaking_phrases SET correct_days = $2::date[], status = $3, next_review = $4::date WHERE id = $1`, [p.id, next.correctRepeatDays, next.status, next.nextReviewOn]);
+  return { id: p.id, correct, status: next.status, next_review: next.nextReviewOn, repeats: next.correctRepeatDays.length, weakest: weakest ? { word: weakest.word, phoneme: weakest.phoneme } : null };
+}
+
+/* ── "Tich remembers about me" (§20): the student sees every fact and deletes any in one tap; a deleted fact never comes back ── */
+const listFacts = async (db, user) => (await db.query('SELECT id, fact, created_at FROM speaking_facts WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100', [user.id])).rows;
+async function deleteFact(db, user, id) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(id))) throw fail(404, 'NOT_FOUND', 'Not found');
+  const { rows: [f] } = await db.query('DELETE FROM speaking_facts WHERE id = $1 AND user_id = $2 RETURNING fact', [id, user.id]);
+  if (!f) throw fail(404, 'NOT_FOUND', 'Not found');
+  await db.query('INSERT INTO speaking_fact_blocks (user_id, norm) VALUES ($1,$2) ON CONFLICT DO NOTHING', [user.id, f.fact.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()]);
+  return { ok: true };
+}
+
+/* the pair of words of the morning greeting: a tap, listen, say it, done - the chip is marked */
+async function markPair(db, user, input = {}) {
+  if (input.kind === 'phraseRepeat' && input.phraseId) return repeatPhrase(db, user, input.phraseId, {});
+  return { ok: true };
 }
 
 /* "Skip": a round the student does not want to finish. It is not counted (a round counts only with its repeat),
@@ -349,4 +409,4 @@ async function getAudio(db, user, id) {
   return a || null;
 }
 
-module.exports = { sayAudio, skipRound, markSeen, setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };
+module.exports = { listPhrases, repeatPhrase, listFacts, deleteFact, markPair, sayAudio, skipRound, markSeen, setDeps, getState, listMessages, startSession, answer, repeat, finishSession, leave, getAudio, soundCard, freeLeft, voiceFor, say, ensureDayDivider, askNext, logMistakes };

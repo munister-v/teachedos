@@ -870,7 +870,7 @@
       const pullBtn = plan.querySelector('#luckyPull'); if (pullBtn) pullBtn.addEventListener('click', openLucky);
     }
     TODAY = t;
-    if (window.TalkChat) { window.TalkChat.renderCard(t.talk); window.TalkChat.setRefresh(reloadToday); }
+    if (window.TalkChat) { window.TalkChat.mountPhrases(); window.TalkChat.renderCard(t.talk); window.TalkChat.setRefresh(reloadToday); }
     teacherBanner(t);
     const mins = t.minutes;
     const kick = pg.querySelector('.kick a'); if (kick) kick.textContent = rows.length ? '≈' + mins + ' min · then you are free' : 'nothing due';
