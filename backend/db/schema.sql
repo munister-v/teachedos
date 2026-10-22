@@ -1846,3 +1846,132 @@ CREATE TABLE IF NOT EXISTS share_cards (
   revoked_at  TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_share_cards_owner ON share_cards(owner_id, created_at DESC);
+
+-- Speaking Tutor (ТЗ v1.0): one voice thread with Tich per student, sessions of rounds, the mistake log, the Phrase Bank,
+-- what Tich remembers (the student sees and deletes it), the teacher's tasks. Audio is the student's property (§28).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS speaking_accent VARCHAR(5) NOT NULL DEFAULT 'en-US';          -- en-US | en-GB (§22)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS speaking_voice_ok BOOLEAN;                                      -- minors: the teacher's switch (§28); null = default
+CREATE TABLE IF NOT EXISTS speaking_audio (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       VARCHAR(12) NOT NULL,                       -- student | repeat | tich
+  mime       VARCHAR(40) NOT NULL,
+  sec        REAL NOT NULL DEFAULT 0,
+  bytes      BYTEA NOT NULL,
+  cache_key  VARCHAR(64),                                -- tich: a hash of the text and the voice, so a phrase is voiced once
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_audio_user ON speaking_audio(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_speaking_audio_cache ON speaking_audio(cache_key) WHERE cache_key IS NOT NULL;
+CREATE TABLE IF NOT EXISTS speaking_sessions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind        VARCHAR(12) NOT NULL DEFAULT 'free',       -- free | homework | ritual | guest
+  mode        VARCHAR(8)  NOT NULL DEFAULT 'errors',     -- errors | scene | retell
+  homework_id UUID,
+  input_mode  VARCHAR(5)  NOT NULL DEFAULT 'voice',      -- voice | text
+  plan        JSONB NOT NULL DEFAULT '[]'::jsonb,        -- the round plan, in order
+  total_rounds INTEGER NOT NULL DEFAULT 5,
+  xp          INTEGER NOT NULL DEFAULT 0,
+  summary     JSONB,
+  started_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  finished_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_sessions_user ON speaking_sessions(user_id, started_at DESC);
+CREATE TABLE IF NOT EXISTS speaking_rounds (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id    UUID NOT NULL REFERENCES speaking_sessions(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  idx           INTEGER NOT NULL,
+  source        VARCHAR(12) NOT NULL,                    -- program | teacherTask | recurring | lesson | starter | event
+  question      TEXT NOT NULL,
+  question_audio UUID,
+  construct     TEXT,
+  target_words  TEXT[] NOT NULL DEFAULT '{}',
+  state         VARCHAR(10) NOT NULL DEFAULT 'asked',    -- asked | hinted | better | done
+  attempts      INTEGER NOT NULL DEFAULT 0,
+  student_audio UUID,
+  student_sec   REAL,
+  transcript    TEXT,
+  better        TEXT,
+  changed       JSONB NOT NULL DEFAULT '[]'::jsonb,
+  hint          TEXT,
+  self_fixed    BOOLEAN NOT NULL DEFAULT FALSE,
+  repeat_audio  UUID,
+  repeats       INTEGER NOT NULL DEFAULT 0,
+  weakest       JSONB,                                   -- one sound from the repeat; the scores live only here and in the teacher's analytics
+  scores        JSONB,
+  used_words    TEXT[] NOT NULL DEFAULT '{}',
+  asked_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  answered_at   TIMESTAMPTZ,
+  done_at       TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_rounds_session ON speaking_rounds(session_id, idx);
+CREATE INDEX IF NOT EXISTS idx_speaking_rounds_user ON speaking_rounds(user_id, asked_at DESC);
+CREATE TABLE IF NOT EXISTS speaking_messages (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  author     VARCHAR(8) NOT NULL,                        -- tich | student | system
+  kind       VARCHAR(14) NOT NULL,                       -- text | voice | betterVersion | hint | soundCard | dayDivider | sessionSummary | greeting
+  text       TEXT,
+  audio_id   UUID,
+  audio_sec  REAL,
+  round_id   UUID,
+  session_id UUID,
+  meta       JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_messages_user ON speaking_messages(user_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS speaking_mistakes (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  source       VARCHAR(10) NOT NULL DEFAULT 'speaking',
+  said         TEXT NOT NULL,
+  better       TEXT NOT NULL,
+  category     VARCHAR(14) NOT NULL DEFAULT 'grammar',
+  construct    TEXT NOT NULL,
+  weight       VARCHAR(10) NOT NULL DEFAULT 'cosmetic',  -- blocking | recurring | cosmetic (§15)
+  occurrences  INTEGER NOT NULL DEFAULT 1,
+  status       VARCHAR(10) NOT NULL DEFAULT 'new',       -- new | recurring | fixed
+  self_fixed   INTEGER NOT NULL DEFAULT 0,
+  clean_streak INTEGER NOT NULL DEFAULT 0,
+  round_id     UUID,
+  first_seen   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_mistakes_user ON speaking_mistakes(user_id, status, last_seen DESC);
+CREATE TABLE IF NOT EXISTS speaking_phrases (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  text         TEXT NOT NULL,
+  audio_id     UUID,
+  round_id     UUID,
+  status       VARCHAR(10) NOT NULL DEFAULT 'learning',  -- learning | mine
+  correct_days DATE[] NOT NULL DEFAULT '{}',
+  next_review  DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_phrases_user ON speaking_phrases(user_id, status, next_review);
+CREATE TABLE IF NOT EXISTS speaking_facts (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  fact       TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_facts_user ON speaking_facts(user_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS speaking_fact_blocks (          -- facts the student deleted: never extracted again unless they say it themselves
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  norm    TEXT NOT NULL,
+  PRIMARY KEY (user_id, norm)
+);
+CREATE TABLE IF NOT EXISTS speaking_tasks (                -- the teacher's errands for Tich (§27)
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  teacher_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  instruction TEXT NOT NULL,
+  construct   TEXT,
+  status      VARCHAR(10) NOT NULL DEFAULT 'queued',     -- queued | inProgress | done | noContact
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  done_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_speaking_tasks_user ON speaking_tasks(user_id, status);
