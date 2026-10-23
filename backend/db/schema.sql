@@ -2114,3 +2114,43 @@ CREATE TABLE IF NOT EXISTS absence_nudges (                -- the teacher's own 
   UNIQUE (student_id, last_active)
 );
 CREATE INDEX IF NOT EXISTS idx_absence_nudges_teacher ON absence_nudges(teacher_id, sent_at DESC);
+
+-- Retention phase 3 (ТЗ «Удержание» §4): personal weekly goals until the league's launch gate, then the platform league in weekly cohorts.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS league_out BOOLEAN NOT NULL DEFAULT FALSE;         -- the student left the league (one tap; back from the next Monday)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS league_nick VARCHAR(30);                           -- the only name other students ever see in the league
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_league_nick ON users(lower(league_nick)) WHERE league_nick IS NOT NULL;
+CREATE TABLE IF NOT EXISTS league_weeks (                   -- one row per week once it was decided: the guard against building twice
+  week     DATE PRIMARY KEY,                               -- the Monday (Kyiv)
+  enabled  BOOLEAN NOT NULL,                               -- did the launch gate pass
+  cohorts  INTEGER NOT NULL DEFAULT 0,
+  built_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS league_cohorts (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  week       DATE NOT NULL,
+  cefr       VARCHAR(2) NOT NULL,
+  idx        INTEGER NOT NULL,
+  UNIQUE (week, cefr, idx)
+);
+CREATE TABLE IF NOT EXISTS league_members (
+  cohort_id  UUID NOT NULL REFERENCES league_cohorts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  week       DATE NOT NULL,
+  nickname   VARCHAR(30) NOT NULL,
+  PRIMARY KEY (cohort_id, user_id),
+  UNIQUE (week, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_league_members_user ON league_members(user_id, week DESC);
+CREATE TABLE IF NOT EXISTS league_marks (                   -- the Тиць-mark in the profile: the top three of a cohort for a week
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  week    DATE NOT NULL,
+  rank    INTEGER NOT NULL,
+  cefr    VARCHAR(2) NOT NULL,
+  PRIMARY KEY (user_id, week)
+);
+CREATE TABLE IF NOT EXISTS weekly_goals (                   -- the personal goal of a week, set once from the student's own last weeks
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  week    DATE NOT NULL,
+  goal    INTEGER NOT NULL,
+  PRIMARY KEY (user_id, week)
+);

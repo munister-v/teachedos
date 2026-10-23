@@ -707,8 +707,12 @@
     cols.innerHTML = sprintHtml + duelHtml + '<section class="panel" id="frPanel"><div class="ptitle">FRIENDS</div><div class="dnote">Loading…</div></section>';
     friendsPanel(cols.querySelector('#frPanel'));
     // the students' circle: the class and friends, one reaction, a duel in one tap (ТЗ «Удержание» §2.2)
+    // the personal weekly goal until the league opens, then the league cohort (ТЗ «Удержание» §4)
+    let lp = pg.querySelector('#leaguePanel');
+    if (!lp) { lp = document.createElement('section'); lp.className = 'panel'; lp.id = 'leaguePanel'; lp.style.display = 'none'; cols.after(lp); }
+    if (window.League) window.League.mount(lp);
     let cp = pg.querySelector('#circlePanel');
-    if (!cp) { cp = document.createElement('section'); cp.className = 'panel'; cp.id = 'circlePanel'; cp.style.marginBottom = '20px'; cols.after(cp); }
+    if (!cp) { cp = document.createElement('section'); cp.className = 'panel'; cp.id = 'circlePanel'; cp.style.marginBottom = '20px'; (pg.querySelector('#leaguePanel') || cols).after(cp); }
     if (window.Circle) window.Circle.mountStream(cp, { onDuel: id => throwSheet(id) });
     const inv = cols.querySelector('#dInv');
     if (inv) inv.onchange = () => chApi('/settings', 'PUT', { duel_invites: inv.checked }).then(r => { if (!r.ok) inv.checked = !inv.checked; else CH.duel_invites = inv.checked; });

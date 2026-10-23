@@ -214,6 +214,7 @@ app.use('/api/speaking-tutor', require('./routes/speakingTutor'));
 app.use('/api/circle', require('./routes/circle'));
 app.use('/api/feed', require('./routes/feed'));
 app.use('/api/absence', require('./routes/absence'));
+app.use('/api/league', require('./routes/league'));
 app.use('/api/library', require('./routes/library'));
 app.use('/api/community', require('./routes/community'));
 app.use('/', require('./routes/seo'));   // public SEO pages: /community/resources/, /community/authors/, /sitemap-community.xml
@@ -347,6 +348,7 @@ async function main() {
     scheduleCommunityDigest();
     require('./jobs/classPulse').scheduleClassPulse();
     require('./lib/feed').scheduleFeedOfficial();
+    require('./lib/league').scheduleLeague();
     require('./lib/speaking/ritual').scheduleRituals();
     require('./jobs/speakingRetention').scheduleSpeakingRetention();
   }
